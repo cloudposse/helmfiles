@@ -13,9 +13,6 @@ badges:
   - name: "Slack Community"
     image: "https://slack.cloudposse.com/badge.svg"
     url: "https://slack.cloudposse.com"
-  - name: "Twitter"
-    image: "https://img.shields.io/twitter/url/https/twitter.com/fold_left.svg?style=social&label=Follow%20%40cloudposse"
-    url: "https://twitter.com/cloudposse"
 
 related:
   - name: "Geodesic"
