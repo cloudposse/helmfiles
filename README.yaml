@@ -1,0 +1,63 @@
+name: Helmfiles
+license: APACHE2
+github_repo: cloudposse/helmfiles
+
+# Badges to display
+badges:
+  - name: "Codefresh Build Status"
+    image: "https://g.codefresh.io/api/badges/build?repoOwner=cloudposse&repoName=helmfiles&branch=master&pipelineName=helmfiles&accountName=cloudposse&type=cf-1"
+    url: "https://g.codefresh.io/pipelines/helmfiles/builds"
+  - name: "Latest Release"
+    image: "https://img.shields.io/github/release/cloudposse/helmfiles.svg"
+    url: "https://github.com/cloudposse/helmfiles/releases/latest"
+  - name: "Slack Community"
+    image: "https://slack.cloudposse.com/badge.svg"
+    url: "https://slack.cloudposse.com"
+
+related:
+  - name: "Geodesic"
+    description: "Geodesic is the fastest way to get up and running with a rock solid, production grade cloud platform built on strictly Open Source tools."
+    url: "https://github.com/cloudposse/geodesic"
+
+  - name: "Packages"
+    description: "Cloud Posse installer and distribution of native apps"
+    url: "https://github.com/cloudposse/packages"
+
+  - name: "Terraform Root Modules"
+    description: "Collection of Terraform root module invocations for provisioning reference architectures"
+    url: "https://github.com/cloudposse/terraform-root-modules"
+
+  - name: "Build Harness"
+    description: "Collection of Makefiles to facilitate building Golang projects, Dockerfiles, Helm charts, and more"
+    url: "https://github.com/cloudposse/build-harness"
+
+references:
+  - name: "helmfile"
+    description: "Helmfile is a declarative configuration for deploying distributions of helm charts"
+    url: "https://github.com/roboll/helmfile"
+  - name: "helm"
+    description: "The package manager for Kubernetes"
+    url: "https://helm.sh/"
+  - name: "docs"
+    description: "Documentation for how we use helmfile"
+    url: "https://docs.cloudposse.com/tools/helmfile/"
+     
+description: |-
+  Helmfiles is a comprehensive distribution of declarative [`helm`](https://helm.sh/) chart invocations. It makes it really easy to get up and running with a full stack of fully integrated apps for Kubernetes using [`helmfile`](https://github.com/roboll/helmfile). It's also compatible with `helmfile.d`. 
+  
+  Pull Requests are welcome!
+
+# Contributors to this project
+contributors:
+  - name: "Erik Osterman"
+    homepage: "https://github.com/osterman"
+    avatar: "http://s.gravatar.com/avatar/88c480d4f73b813904e00a5695a454cb?s=144"
+    github: "osterman"
+  - name: "Igor Rodionov"
+    homepage: "https://github.com/goruha/"
+    avatar: "http://s.gravatar.com/avatar/bc70834d32ed4517568a1feb0b9be7e2?s=144"
+    github: "goruha"
+  - name: "Andriy Knysh"
+    homepage: "https://github.com/aknysh/"
+    avatar: "https://avatars0.githubusercontent.com/u/7356997?v=4&u=ed9ce1c9151d552d985bdf5546772e14ef7ab617&s=144"
+    github: "aknysh"
