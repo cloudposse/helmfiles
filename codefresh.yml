@@ -32,7 +32,7 @@ steps:
     tags:
       - "${{SEMVERSION_COMMIT_SHORT}}"
 
-  push_image_branch:
+  push_image_branch_to_cfcr:
     title: Push image with branch based semver tags
     type: push
     candidate: ${{build_image}}

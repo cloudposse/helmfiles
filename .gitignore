@@ -1,7 +1,4 @@
 .build-harness
 build-harness
-.terraform
-*.tfstate
-*.tfstate.*
 .idea
 *.iml
