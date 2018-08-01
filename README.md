@@ -2,10 +2,10 @@
 
 [![Cloud Posse](https://cloudposse.com/logo-300x69.svg)](https://cloudposse.com)
 
-# Helmfiles [![Codefresh Build Status](https://g.codefresh.io/api/badges/build?repoOwner=cloudposse&repoName=helmfiles&branch=master&pipelineName=helmfiles&accountName=cloudposse&type=cf-1)](https://g.codefresh.io/pipelines/helmfiles/builds) [![Latest Release](https://img.shields.io/github/release/cloudposse/geodesic.svg)](https://github.com/cloudposse/geodesic/releases/latest) [![Slack Community](https://slack.cloudposse.com/badge.svg)](https://slack.cloudposse.com)
+# Helmfiles [![Codefresh Build Status](https://g.codefresh.io/api/badges/build?repoOwner=cloudposse&repoName=helmfiles&branch=master&pipelineName=helmfiles&accountName=cloudposse&type=cf-1)](https://g.codefresh.io/pipelines/helmfiles/builds) [![Latest Release](https://img.shields.io/github/release/cloudposse/geodesic.svg)](https://github.com/cloudposse/geodesic/releases/latest) [![Slack Community](https://slack.cloudposse.com/badge.svg)](https://slack.cloudposse.com) [![Twitter](https://img.shields.io/twitter/url/https/twitter.com/fold_left.svg?style=social&label=Follow%20%40cloudposse)](https://twitter.com/cloudposse)
 
 
-Helmfiles is a comprehensive distribution of declarative helm chart invocations. It makes it really easy to get up and running with a full stack of fully integrated apps for Kubernetes. It's also compatible with `helmfile.d`. 
+Helmfiles is a comprehensive distribution of declarative [`helm`](https://helm.sh/) chart invocations. It makes it really easy to get up and running with a full stack of fully integrated apps for Kubernetes using [`helmfile`](https://github.com/roboll/helmfile). It's also compatible with `helmfile.d`. 
 
 Pull Requests are welcome!
 
@@ -43,6 +43,16 @@ Check out these related projects.
 - [Terraform Root Modules](https://github.com/cloudposse/terraform-root-modules) - Collection of Terraform root module invocations for provisioning reference architectures
 - [Build Harness](https://github.com/cloudposse/build-harness) - Collection of Makefiles to facilitate building Golang projects, Dockerfiles, Helm charts, and more
 
+
+
+
+## References
+
+For additional context, refer to some of these links. 
+
+- [helmfile](https://github.com/roboll/helmfile) - Helmfile is a declarative configuration for deploying distributions of helm charts
+- [helm](https://helm.sh/) - The package manager for Kubernetes
+- [Documentation](https://docs.cloudposse.com/tools/helmfile/) - Documentation for how we use helmfile
 
 
 ## Help
