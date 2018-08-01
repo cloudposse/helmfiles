@@ -38,7 +38,7 @@ references:
   - name: "helm"
     description: "The package manager for Kubernetes"
     url: "https://helm.sh/"
-  - name: "Documentation"
+  - name: "docs"
     description: "Documentation for how we use helmfile"
     url: "https://docs.cloudposse.com/tools/helmfile/"
      

@@ -52,7 +52,7 @@ For additional context, refer to some of these links.
 
 - [helmfile](https://github.com/roboll/helmfile) - Helmfile is a declarative configuration for deploying distributions of helm charts
 - [helm](https://helm.sh/) - The package manager for Kubernetes
-- [Documentation](https://docs.cloudposse.com/tools/helmfile/) - Documentation for how we use helmfile
+- [docs](https://docs.cloudposse.com/tools/helmfile/) - Documentation for how we use helmfile
 
 
 ## Help
