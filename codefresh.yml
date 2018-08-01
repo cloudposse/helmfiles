@@ -12,8 +12,8 @@ steps:
   build_image:
     title: Build image
     type: build
-    description: Build terraform-root-modules
-    image_name: terraform-root-modules
+    description: Build helmfiles
+    image_name: helmfiles
     dockerfile: Dockerfile
 
   semver:
@@ -47,7 +47,7 @@ steps:
     title: Push image with branch based semver tags
     type: push
     registry: dockerhub
-    image_name: cloudposse/terraform-root-modules
+    image_name: cloudposse/helmfiles
     candidate: ${{build_image}}
     tags:
       - "${{SEMVERSION_BRANCH}}"
@@ -71,7 +71,7 @@ steps:
     title: Push image with tag based semver tags
     type: push
     registry: dockerhub
-    image_name: cloudposse/terraform-root-modules
+    image_name: cloudposse/helmfiles
     candidate: ${{build_image}}
     tag: "${{SEMVERSION_TAG}}"
     when:
@@ -95,7 +95,7 @@ steps:
     title: Push image with latest tag
     type: push
     registry: dockerhub
-    image_name: cloudposse/terraform-root-modules
+    image_name: cloudposse/helmfiles
     candidate: ${{build_image}}
     tag: latest
     when:
