@@ -34,18 +34,13 @@ releases:
         size: 10Gi
         accessModes:
           - ReadWriteOnce
-      sidecar:
-        dashboards:
-          enabled: true
-        datasources:
-          enabled: true
       datasources:
         datasources.yaml:
           apiVersion: 1
           datasources:
             - name: Prometheus
               type: prometheus
-              url: 'http://kube-prometheus-prometheus'
+              url: 'http://kube-prometheus-prometheus:9090'
               access: proxy
               isDefault: true
       dashboardProviders:
