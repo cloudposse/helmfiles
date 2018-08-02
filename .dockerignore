@@ -1,2 +1,6 @@
 .gitignore
 .git
+.build-harness
+build-harness
+.idea
+*.iml

@@ -1,0 +1,55 @@
+helmDefaults:
+  args:
+  - "--wait"
+  - "--recreate-pods"
+  - "--timeout=600"
+  - "--force"
+  - "--reset-values"
+
+repositories:
+# Cloud Posse incubator repo of helm charts
+- name: "cloudposse-incubator"
+  url: "https://charts.cloudposse.com/incubator/"
+
+releases:
+
+#######################################################################################
+## Fluentd to Elasticsearch logs                                                     ##
+## Forward logs to Elasticsearch with fluentd                                        ##
+#######################################################################################
+
+#
+# References:
+#   - https://github.com/cloudposse/charts/blob/master/incubator/fluentd-kubernetes/values.yaml
+#
+
+- name: "fluentd-elasticsearch-logs"
+  namespace: "kube-system"
+  labels:
+    chart: "fluentd-kubernetes"
+    component: "elasticsearch"
+    namespace: "kube-system"
+    default: "false"
+  chart: "cloudposse-incubator/fluentd-kubernetes"
+  version: "0.2.0"
+  values:
+  - image:
+      repository: "fluent/fluentd-kubernetes-daemonset"
+      tag: '{{ env "ELASTICSEARCH_IMAGE_TAG" | default "v0.12.33-elasticsearch" }}'
+      pullPolicy: "Always"
+    resources:
+      limits:
+        cpu: "50m"
+        memory: "512Mi"
+      requests:
+        cpu: "20m"
+        memory: "256Mi"
+    env:
+      open:
+        FLUENT_ELASTICSEARCH_HOST: '{{ env "ELASTICSEARCH_HOST" }}'
+        FLUENT_ELASTICSEARCH_PORT: '{{ env "ELASTICSEARCH_PORT" }}'
+        FLUENT_UID: "0"
+      secret:
+        FLUENT_ELASTICSEARCH_USER: '{{ env "ELASTICSEARCH_USER" }}'
+        FLUENT_ELASTICSEARCH_PASSWORD: '{{ env "ELASTICSEARCH_PASSWORD" }}'
+    configDir: /tmp/conf
