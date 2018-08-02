@@ -1,0 +1,39 @@
+helmDefaults:
+  args:
+    - "--wait"
+    - "--recreate-pods"
+    - "--timeout=600" 
+    - "--force"
+    - "--reset-values"
+
+repositories:
+# Stable repo of official helm charts
+- name: "stable"
+  url: "https://kubernetes-charts.storage.googleapis.com"
+
+
+releases:
+
+################################################################################
+## CERT-MANAGER - Automatic Let's Encrypt for Ingress  #########################
+################################################################################
+
+- name: "cert-manager"
+  namespace: "kube-system"
+  labels:
+    chart: "cert-manager"
+    component: "ingress"
+    namespace: "kube-system"
+    vendor: "jetstack"
+    default: "true"
+  chart: "stable/cert-manager"
+  version: "v0.4.0"
+  values:
+    - rbac:
+        create: true
+      ingressShim:
+        defaultIssuerName: "letsencrypt-prod"
+        defaultIssuerKind: "ClusterIssuer"
+      tolerations:
+        - key: "node-role.kubernetes.io/node"
+          effect: "NoSchedule"
