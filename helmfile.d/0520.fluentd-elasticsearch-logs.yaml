@@ -32,42 +32,24 @@ releases:
     default: "false"
   chart: "cloudposse-incubator/fluentd-kubernetes"
   version: "0.2.0"
-  set:
-  - name: "image.repository"
-    value: "fluent/fluentd-kubernetes-daemonset"
-
-  - name: "image.tag"
-    value: "v0.12.33-elasticsearch"
-
-  - name: "image.pullPolicy"
-    value: "Always"
-
-  - name: "resources.limits.cpu"
-    value: "50m"
-
-  - name: "resources.limits.memory"
-    value: "512Mi"
-
-  - name: "resources.requests.cpu"
-    value: "5m"
-
-  - name: "resources.requests.memory"
-    value: "256Mi"
-
-  - name: "env.open.FLUENT_ELASTICSEARCH_HOST"
-    value: '{{ env "ELASTICSEARCH_HOST" }}'
-
-  - name: "env.open.FLUENT_ELASTICSEARCH_PORT"
-    value: '{{ env "ELASTICSEARCH_PORT" }}'
-
-  - name: "env.open.FLUENT_UID"
-    value: "0"
-
-  - name: "env.secret.FLUENT_ELASTICSEARCH_USER"
-    value: '{{ env "ELASTICSEARCH_USER" }}'
-
-  - name: "env.secret.FLUENT_ELASTICSEARCH_PASSWORD"
-    value: '{{ env "ELASTICSEARCH_PASSWORD" }}'
-
-  - name: "configDir"
-    value: "/tmp/conf"
+  values:
+  - image:
+      repository: "fluent/fluentd-kubernetes-daemonset"
+      tag: '{{ env "ELASTICSEARCH_IMAGE_TAG" | default "v0.12.33-elasticsearch" }}'
+      pullPolicy: "Always"
+    resources:
+      limits:
+        cpu: "50m"
+        memory: "512Mi"
+      requests:
+        cpu: "20m"
+        memory: "256Mi"
+    env:
+      open:
+        FLUENT_ELASTICSEARCH_HOST: '{{ env "ELASTICSEARCH_HOST" }}'
+        FLUENT_ELASTICSEARCH_PORT: '{{ env "ELASTICSEARCH_PORT" }}'
+        FLUENT_UID: "0"
+      secret:
+        FLUENT_ELASTICSEARCH_USER: '{{ env "ELASTICSEARCH_USER" }}'
+        FLUENT_ELASTICSEARCH_PASSWORD: '{{ env "ELASTICSEARCH_PASSWORD" }}'
+    configDir: /tmp/conf
