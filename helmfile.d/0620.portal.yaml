@@ -65,11 +65,6 @@ releases:
           ### Optional: PORTAL_BACKEND_DOCS_ENDPOINT;
           endpoint: '{{ env "PORTAL_BACKEND_DOCS_ENDPOINT" | default "https://docs.cloudposse.com/" }}'
           external: true
-        kibana:
-          ### Optional: PORTAL_BACKEND_GRAFANA_NAME;
-          name: '{{ env "PORTAL_BACKEND_KIBANA_NAME" | default "Kibana" }}'
-          endpoint: '{{ env "PORTAL_BACKEND_KIBANA_ENDPOINT" | default "https://kibana.cloudposse.co" }}'
-          external: false
       config:
         ### Required: PORTAL_TITLE;
         title: '{{ env "PORTAL_TITLE" }}'
