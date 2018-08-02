@@ -2,7 +2,7 @@ helmDefaults:
   args:
     - "--wait"
     - "--recreate-pods"
-    - "--timeout=600" 
+    - "--timeout=600"
     - "--force"
     - "--reset-values"
 

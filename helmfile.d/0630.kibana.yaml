@@ -34,11 +34,11 @@ releases:
   version: "0.10.0"
   values:
   - replicaCount: {{ env "KIBANA_REPLICA_COUNT" | default 1 }}
-  - image:
+    image:
       repository: "docker.elastic.co/kibana/kibana-oss"
       tag: {{ env "KIBANA_IMAGE_TAG" | default "6.3.1" }}
       pullPolicy: "IfNotPresent"
-  - service:
+    service:
       type: ClusterIP
       externalPort: 443
       internalPort: {{ env "KIBANA_SERVER_PORT" | default "5601" }}
@@ -47,14 +47,14 @@ releases:
       labels:
         # Show service URL in `kubectl cluster-info`
         kubernetes.io/cluster-service: "true"
-  - resources:
+    resources:
       limits:
         cpu: 500m
         memory: 1024Mi
       requests:
         cpu: 200m
         memory: 512Mi
-  - ingress:
+    ingress:
       enabled: "true"
       annotations:
         kubernetes.io/ingress.class: "nginx"
@@ -68,7 +68,7 @@ releases:
       - secretName: {{ env "KIBANA_SECRET_NAME" | default "kibana-server-tls" }}
         hosts:
         - {{ env "KIBANA_HOSTNAME" }}
-  - files:
+    files:
       kibana.yml:
         ## Default Kibana configuration from kibana-docker.
         server.name: kibana
@@ -80,7 +80,7 @@ releases:
         server.port: {{ env "KIBANA_SERVER_PORT" | default "5601" }}
         logging.verbose: "false"
         server.defaultRoute: "/app/kibana"
-  - env:
+    env:
     # All Kibana configuration options are adjustable via env vars.
     # To adjust a config option to an env var uppercase + replace `.` with `_`
     # Ref: https://www.elastic.co/guide/en/kibana/current/settings.html

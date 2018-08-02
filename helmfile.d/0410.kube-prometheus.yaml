@@ -40,7 +40,6 @@ releases:
   chart: "coreos-stable/kube-prometheus"
   version: "0.0.66"
   values:
-    - "values/kube-prometheus.grafana.dashboards.yaml"
     - global:
         rbacEnable: false
       deployExporterNode: true
