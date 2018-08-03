@@ -1,7 +1,6 @@
 helmDefaults:
   args:
     - "--wait"
-    - "--recreate-pods"
     - "--timeout=600" 
     - "--force"
     - "--reset-values"
@@ -40,7 +39,8 @@ releases:
   chart: "coreos-stable/kube-prometheus"
   version: "0.0.66"
   values:
-    - "values/kube-prometheus.grafana.dashboards.yaml"
+    ### Optional: KUBE_PROMETHEUS_EXTERNAL_VALUES_FILE;
+    - '{{ env "KUBE_PROMETHEUS_EXTERNAL_VALUES_FILE" | default "values/kube-prometheus.grafana.dashboards.yaml" }}'
     - global:
         rbacEnable: false
       deployExporterNode: true
