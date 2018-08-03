@@ -1,0 +1,15 @@
+# grafana:
+#   serverDashboardFiles:
+#     unique_file_name-dashboard.json: |-
+#       {
+#         "dashboard": {...},
+#         "inputs": [
+#           {
+#               "name": "DS_PROMETHEUS",
+#               "pluginId": "prometheus",
+#               "type": "datasource",
+#               "value": "prometheus"
+#           }
+#         ],
+#         "overwrite": true
+#       }

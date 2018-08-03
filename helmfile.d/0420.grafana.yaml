@@ -1,0 +1,93 @@
+helmDefaults:
+  args:
+    - "--wait"
+    - "--timeout=600" 
+    - "--force"
+    - "--reset-values"
+
+repositories:
+# Stable repo of official helm charts
+- name: "stable"
+  url: "https://kubernetes-charts.storage.googleapis.com"
+
+releases:
+
+#######################################################################################
+## Grafana                                                                           ##
+#######################################################################################
+
+- name: "grafana"
+  namespace: "monitoring"
+  labels:
+    chart: "grafana"
+    component: "monitoring"
+    namespace: "monitoring"
+    vendor: "kubernetes"
+    default: "false"
+  chart: "stable/grafana"
+  version: "1.12.0"
+  values:
+    ### Optional: GRAFANA_EXTERNAL_VALUES_FILE;
+    - '{{ env "GRAFANA_EXTERNAL_VALUES_FILE" | default "values/grafana.dashboards.yaml" }}'
+    - persistence:
+        enabled: true
+        ### Optional: GRAFANA_PERSISTENCE_SIZE;
+        size: '{{ env "GRAFANA_PERSISTENCE_SIZE" | default "10Gi" }}'
+        accessModes:
+          - ReadWriteOnce
+      datasources:
+        datasources.yaml:
+          apiVersion: 1
+          datasources:
+            - name: Prometheus
+              type: prometheus
+              ### Optional: GRAFANA_PROMETHEUS_ENDPOINT;
+              url: '{{ env "GRAFANA_PROMETHEUS_ENDPOINT" | default "http://kube-prometheus-prometheus:9090" }}'
+              access: proxy
+              isDefault: true
+      dashboardProviders:
+        dashboardproviders.yaml:
+          apiVersion: 1
+          providers:
+          - name: 'default'
+            orgId: 1
+            folder: ''
+            type: file
+            disableDeletion: false
+            editable: true
+            options:
+              path: /var/lib/grafana/dashboards/default
+      dashboards:
+        default: {}
+      resources:
+        limits:
+          cpu: "50m"
+          memory: "64Mi"
+        requests:
+          cpu: "10m"
+          memory: "64Mi"
+      serviceAccount:
+        ### Optional: GRAFANA_SERVICE_ACCOUT_CREATE;
+        create: '{{ env "GRAFANA_SERVICE_ACCOUT_CREATE" | default "true" }}'
+        ### Optional: GRAFANA_SERVICE_ACCOUT_NAME;
+        name: '{{ env "GRAFANA_SERVICE_ACCOUT_NAME" | default "grafana" }}'
+      ingress:
+        ### Optional: GRAFANA_INGRESS_ENABLED;
+        enabled: '{{ env "GRAFANA_INGRESS_ENABLED" | default "false" }}'
+        annotations:
+          kubernetes.io/ingress.class: "nginx"
+          kubernetes.io/tls-acme: "true"
+          external-dns.alpha.kubernetes.io/ttl: "60"
+          ### Required: GRAFANA_INGRESS;
+          external-dns.alpha.kubernetes.io/target: '{{ env "GRAFANA_INGRESS" }}'
+          ### Required: GRAFANA_HOSTNAME;
+          external-dns.alpha.kubernetes.io/hostname: '{{ env "GRAFANA_HOSTNAME" }}'
+        hosts:
+          ### Required: GRAFANA_HOSTNAME;
+          - '{{ env "GRAFANA_HOSTNAME" }}'
+        tls:
+            ### Optional: GRAFANA_SECRET_NAME;
+          - secretName: '{{ env "GRAFANA_SECRET_NAME" | default "grafana-server-tls" }}'
+            hosts:
+              ### Required: GRAFANA_HOSTNAME;
+              - '{{ env "GRAFANA_HOSTNAME" }}'
