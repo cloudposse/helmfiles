@@ -58,7 +58,11 @@ releases:
             options:
               path: /var/lib/grafana/dashboards/default
       dashboards:
-        default: {}
+        default:
+          nginx-ingress-stats:
+            gnetId: 7173
+            revision: 1
+            datasource: Prometheus
       resources:
         limits:
           cpu: "50m"

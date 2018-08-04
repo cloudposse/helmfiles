@@ -6,8 +6,6 @@
 #       datasource: Prometheus
 #     some-dashboard:
 #       json: |-
-#         {
-
-#         }
+#         {...}
 #     local-dashboard:
 #       url: https://example.com/repository/test.json
