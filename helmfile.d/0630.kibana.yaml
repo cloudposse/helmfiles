@@ -71,18 +71,21 @@ releases:
     files:
       kibana.yml:
         ## Default Kibana configuration from kibana-docker.
-        server.name: kibana
-        server.host: "localhost"
-        elasticsearch.url: {{ env "ELASTICSEARCH_HOST" }}:{{ env "ELASTICSEARCH_PORT" }}
+        server:
+          name: "kibana"
+          host: '{{ env "KIBANA_SERVER_HOST" | default "localhost" }}'
+          port: {{ env "KIBANA_SERVER_PORT" | default "5601" }}
+          defaultRoute: "/app/kibana"
+        elasticsearch:
+          url: '{{ env "ELASTICSEARCH_HOST" | default "elasticsearch" }}:{{ env "ELASTICSEARCH_PORT" | default "80" }}'
 
         ## Custom config properties
         ## Ref: https://www.elastic.co/guide/en/kibana/current/settings.html
-        server.port: {{ env "KIBANA_SERVER_PORT" | default "5601" }}
-        logging.verbose: "false"
-        server.defaultRoute: "/app/kibana"
+        logging:
+          verbose: "false"
     env:
-    # All Kibana configuration options are adjustable via env vars.
-    # To adjust a config option to an env var uppercase + replace `.` with `_`
-    # Ref: https://www.elastic.co/guide/en/kibana/current/settings.html
-    ELASTICSEARCH_URL: {{ env "ELASTICSEARCH_HOST" }}:{{ env "ELASTICSEARCH_PORT" }}
-    SERVER_PORT: {{ env "KIBANA_SERVER_PORT" | default "5601" }}
+      # All Kibana configuration options are adjustable via env vars.
+      # To adjust a config option to an env var uppercase + replace `.` with `_`
+      # Ref: https://www.elastic.co/guide/en/kibana/current/settings.html
+      ELASTICSEARCH_URL: '{{ env "ELASTICSEARCH_HOST" | default "elasticsearch" }}:{{ env "ELASTICSEARCH_PORT" | default "80" }}'
+      SERVER_PORT: '{{ env "KIBANA_SERVER_PORT" | default "5601" }}'
