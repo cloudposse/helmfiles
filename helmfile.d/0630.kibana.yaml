@@ -1,7 +1,6 @@
 helmDefaults:
   args:
   - "--wait"
-  - "--recreate-pods"
   - "--timeout=600"
   - "--force"
   - "--reset-values"
@@ -33,48 +32,48 @@ releases:
   chart: "stable/kibana"
   version: "0.10.0"
   values:
-  - replicaCount: {{ env "KIBANA_REPLICA_COUNT" | default 1 }}
+  - replicaCount: '{{ env "KIBANA_REPLICA_COUNT" | default 1 }}'
     image:
       repository: "docker.elastic.co/kibana/kibana-oss"
-      tag: {{ env "KIBANA_IMAGE_TAG" | default "6.3.1" }}
+      tag: '{{ env "KIBANA_IMAGE_TAG" | default "6.3.1" }}'
       pullPolicy: "IfNotPresent"
     service:
       type: ClusterIP
-      externalPort: 443
-      internalPort: {{ env "KIBANA_SERVER_PORT" | default "5601" }}
+      externalPort: "443"
+      internalPort: '{{ env "KIBANA_SERVER_PORT" | default "5601" }}'
       annotations:
-        iam.amazonaws.com/role: {{ env "ELASTICSEARCH_IAM_ROLE" }}
+        iam.amazonaws.com/role: '{{ env "ELASTICSEARCH_IAM_ROLE" }}'
       labels:
         # Show service URL in `kubectl cluster-info`
         kubernetes.io/cluster-service: "true"
     resources:
       limits:
-        cpu: 500m
-        memory: 1024Mi
+        cpu: "500m"
+        memory: "1024Mi"
       requests:
-        cpu: 200m
-        memory: 512Mi
+        cpu: "200m"
+        memory: "512Mi"
     ingress:
       enabled: "true"
       annotations:
         kubernetes.io/ingress.class: "nginx"
         kubernetes.io/tls-acme: "true"
         external-dns.alpha.kubernetes.io/ttl: "60"
-        external-dns.alpha.kubernetes.io/target: {{ env "KIBANA_INGRESS" }}
-        external-dns.alpha.kubernetes.io/hostname: {{ env "KIBANA_HOSTNAME" }}
+        external-dns.alpha.kubernetes.io/target: '{{ env "KIBANA_INGRESS" }}'
+        external-dns.alpha.kubernetes.io/hostname: '{{ env "KIBANA_HOSTNAME" }}'
       hosts:
-      - {{ env "KIBANA_HOSTNAME" }}
+      - '{{ env "KIBANA_HOSTNAME" }}'
       tls:
-      - secretName: {{ env "KIBANA_SECRET_NAME" | default "kibana-server-tls" }}
+      - secretName: '{{ env "KIBANA_SECRET_NAME" | default "kibana-server-tls" }}'
         hosts:
-        - {{ env "KIBANA_HOSTNAME" }}
+        - '{{ env "KIBANA_HOSTNAME" }}'
     files:
       kibana.yml:
         ## Default Kibana configuration from kibana-docker.
         server:
           name: "kibana"
           host: '{{ env "KIBANA_SERVER_HOST" | default "localhost" }}'
-          port: {{ env "KIBANA_SERVER_PORT" | default "5601" }}
+          port: '{{ env "KIBANA_SERVER_PORT" | default "5601" }}'
           defaultRoute: "/app/kibana"
         elasticsearch:
           url: '{{ env "ELASTICSEARCH_HOST" | default "elasticsearch" }}:{{ env "ELASTICSEARCH_PORT" | default "80" }}'
