@@ -8,7 +8,8 @@ helmDefaults:
 repositories:
 # Cloud Posse incubator repo of helm charts
 - name: "cloudposse-incubator"
-  url: "https://charts.cloudposse.com/incubator/"
+  #  url: "https://charts.cloudposse.com/incubator/"
+  url: "https://charts.dev.cloudposse.com/fix/gh151/portal-url-paths/incubator/"
 
 releases:
 
@@ -31,16 +32,17 @@ releases:
     vendor: "cloudposse"
     default: "true"
   chart: "cloudposse-incubator/portal"
-  version: "0.1.0"
+  version: "0.2.2"
   values:
   - backends:
-      ### Optional: PORTAL_BACKEND_K8S_DASHBOARD_ENABLED
-      {{ if eq (env "PORTAL_BACKEND_K8S_DASHBOARD_ENABLED" | default "true") "true" }}
+      ### Optional: PORTAL_BACKEND_DASHBOARD_ENABLED
+      {{ if eq (env "PORTAL_BACKEND_DASHBOARD_ENABLED" | default "true") "true" }}
       dashboard:
-        ### Optional: PORTAL_BACKEND_K8S_DASHBOARD_NAME
-        name: '{{ env "PORTAL_BACKEND_K8S_DASHBOARD_NAME" | default "Kubernetes" }}'
-        ### Optional: PORTAL_BACKEND_K8S_DASHBOARD_ENDPOINT;
-        endpoint: '{{ env "PORTAL_BACKEND_K8S_DASHBOARD_ENDPOINT" | default "https://kubernetes-dashboard.kube-system:443" }}'
+        ### Optional: PORTAL_BACKEND_DASHBOARD_NAME
+        name: '{{ env "PORTAL_BACKEND_DASHBOARD_NAME" | default "Kubernetes" }}'
+        externalName: 'kubernetes-dashboard.kube-system.svc.cluster.local'
+        servicePort: 443
+        tls: true
         external: false
       {{ end }}
       ### Optional: PORTAL_BACKEND_GRAFANA_ENABLED
@@ -48,8 +50,8 @@ releases:
       grafana:
         ### Optional: PORTAL_BACKEND_GRAFANA_NAME
         name: '{{ env "PORTAL_BACKEND_GRAFANA_NAME" | default "Grafana" }}'
-        ### Optional: PORTAL_BACKEND_GRAFANA_ENDPOINT
-        endpoint: '{{ env "PORTAL_BACKEND_GRAFANA_ENDPOINT" | default "http://kube-prometheus-grafana.monitoring:80" }}'
+        serviceName: 'kube-prometheus-grafana'
+        servicePort: 80
         external: false
       {{ end }}
       ### Optional: PORTAL_BACKEND_ALERTS_ENABLED
@@ -57,8 +59,8 @@ releases:
       alerts:
         ### Optional: PORTAL_BACKEND_ALERTS_NAME
         name: '{{ env "PORTAL_BACKEND_ALERTS_NAME" | default "Alerts" }}'
-        ### Optional: PORTAL_BACKEND_ALERTS_ENDPOINT
-        endpoint: '{{ env "PORTAL_BACKEND_ALERTS_ENDPOINT" | default "http://kube-prometheus-alertmanager.monitoring:9093" }}'
+        serviceName: 'kube-prometheus-alertmanager'
+        servicePort: 9093
         external: false
       {{ end }}
       ### Optional: PORTAL_BACKEND_PROMETHEUS_ENABLED
@@ -66,8 +68,8 @@ releases:
       prometheus:
         ### Optional: PORTAL_BACKEND_PROMETHEUS_NAME
         name: '{{ env "PORTAL_BACKEND_PROMETHEUS_NAME" | default "Prometheus" }}'
-        ### Optional: PORTAL_BACKEND_PROMETHEUS_ENDPOINT
-        endpoint: '{{ env "PORTAL_BACKEND_PROMETHEUS_ENDPOINT" | default "http://kube-prometheus-prometheus.monitoring:9090" }}'
+        serviceName: 'kube-prometheus-prometheus'
+        servicePort: 9090
         external: false
       {{ end }}
       ### Optional: PORTAL_BACKEND_DOCS_ENABLED
@@ -85,7 +87,10 @@ releases:
         ### Optional: PORTAL_BACKEND_KIBANA_NAME
         name: '{{ env "PORTAL_BACKEND_KIBANA_NAME" | default "Kibana" }}'
         ### Optional: PORTAL_BACKEND_KIBANA_ENDPOINT
-        endpoint: '{{ env "PORTAL_BACKEND_KIBANA_ENDPOINT" | default "http://kibana.monitoring:80" }}'
+        externalName: '{{ env "PORTAL_BACKEND_KIBANA_EXTERNAL_NAME" | default "kibana.monitoring" }}'
+        servicePort: 443
+        path: '/_plugin/kibana'
+        tls: true
         external: false
       {{ end }}
   - config:
