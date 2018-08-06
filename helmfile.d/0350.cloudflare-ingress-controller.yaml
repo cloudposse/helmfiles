@@ -1,0 +1,70 @@
+helmDefaults:
+  args:
+    - "--wait"
+    - "--timeout=600"
+    - "--force"
+    - "--reset-values"
+
+repositories:
+# Cloud Posse incubator repo of helm charts
+- name: "cloudposse-incubator"
+  url: "https://charts.cloudposse.com/incubator/"
+
+releases:
+
+################################################################################
+## CloudFlare Ingress Controller ###############################################
+################################################################################
+
+#
+# References:
+#   - https://github.com/cloudflare/cloudflare-ingress-controller/blob/master/chart/values.yaml
+#
+- name: "argo"
+  namespace: "kube-system"
+  labels:
+    chart: "cloudflare-ingress-controller"
+    component: "ingress"
+    namespace: "kube-system"
+    vendor: "cloudflare"
+    default: "false"
+  chart: "cloudposse/cloudflare-ingress-controller"
+  version: "0.5.1"
+  values:
+    # Default values for cloudflare-argo-ingress.
+    # replicaCount is used only when cloudflare loadbalancing is enabled
+    - replicaCount: 1
+
+      image:
+        repository: "gcr.io/stackpoint-public/argot"
+        tag: "0.5.1"
+        pullPolicy: "IfNotPresent"
+
+      resources:
+        limits:
+          cpu: "100m"
+          memory: "128Mi"
+        requests:
+          cpu: "100m"
+          memory: "128Mi"
+
+      rbac:
+        install: false
+        serviceAccount: "cloudflare-argo"
+        roleName: "cloudflare-argo"
+
+      ## Cloudflare account details
+
+      # The secret contains the base64-encoded origin certificate for your cloudflare domain.
+      # Set the install flag false to configure manually in the cluster later.
+      # See https://developers.cloudflare.com/argo-tunnel/quickstart/quickstart/ for information on
+      # obtaining the origin certificate
+      secret:
+        install: true
+        domain: '{{ env "ARGO_SECRET_DOMAIN" }}'
+        # base64 -w0 /localhost/.cloudflared/cert.pem | chamber write kops ARGO_SECRET_CERTIFICATE_B64  -
+        certificate_b64: '{{ env "ARGO_SECRET_CERTIFICATE_B64" }}'
+
+      loadbalancing:
+        enabled: false
+
