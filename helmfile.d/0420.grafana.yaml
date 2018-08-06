@@ -29,36 +29,50 @@ releases:
   values:
     ### Optional: GRAFANA_EXTERNAL_VALUES_FILE;
     - '{{ env "GRAFANA_EXTERNAL_VALUES_FILE" | default "values/grafana.dashboards.yaml" }}'
-    - persistence:
+    - rbac:
+        create: false
+        pspEnabled: false
+      serviceAccount:
+        ### Optional: GRAFANA_SERVICE_ACCOUT_CREATE;
+        create: '{{ env "GRAFANA_SERVICE_ACCOUT_CREATE" | default "true" }}'
+        ### Optional: GRAFANA_SERVICE_ACCOUT_NAME;
+        name: '{{ env "GRAFANA_SERVICE_ACCOUT_NAME" | default "grafana" }}'
+      persistence:
         enabled: true
         ### Optional: GRAFANA_PERSISTENCE_SIZE;
         size: '{{ env "GRAFANA_PERSISTENCE_SIZE" | default "10Gi" }}'
         accessModes:
           - ReadWriteOnce
-      datasources:
-        datasources.yaml:
-          apiVersion: 1
-          datasources:
-            - name: Prometheus
-              type: prometheus
-              ### Optional: GRAFANA_PROMETHEUS_ENDPOINT;
-              url: '{{ env "GRAFANA_PROMETHEUS_ENDPOINT" | default "http://kube-prometheus-prometheus:9090" }}'
-              access: proxy
-              isDefault: true
-      dashboardProviders:
-        dashboardproviders.yaml:
-          apiVersion: 1
-          providers:
-          - name: 'default'
-            orgId: 1
-            folder: ''
-            type: file
-            disableDeletion: false
-            editable: true
-            options:
-              path: /var/lib/grafana/dashboards/default
+      adminUser: '{{ env "GRAFANA_ADMIN_USER" | default "admin" }}'
+      adminPassword: '{{ env "GRAFANA_ADMIN_PASSWORD" | default "changeme" }}'
+
+      # Sidecars that collect the configmaps with specified label and stores the included files them into the respective folders,
+      # require at least Grafana 5 to work and can't be used together with parameters dashboardProviders, datasources and dashboards
+
+      datasources: {}
+      dashboardProviders: {}
       dashboards:
         default: {}
+
+      sidecar:
+        resources:
+      #   limits:
+      #     cpu: 100m
+      #     memory: 100Mi
+      #   requests:
+      #     cpu: 50m
+      #     memory: 50Mi
+        dashboards:
+          enabled: true
+          # label that the configmaps with dashboards are marked with
+          label: grafana_dashboard
+          # folder in the pod that should hold the collected dashboards
+          folder: /tmp/dashboards
+        datasources:
+          enabled: true
+          # label that the configmaps with datasources are marked with
+          label: grafana_datasource
+
       resources:
         limits:
           cpu: "50m"
@@ -66,14 +80,10 @@ releases:
         requests:
           cpu: "10m"
           memory: "64Mi"
-      serviceAccount:
-        ### Optional: GRAFANA_SERVICE_ACCOUT_CREATE;
-        create: '{{ env "GRAFANA_SERVICE_ACCOUT_CREATE" | default "true" }}'
-        ### Optional: GRAFANA_SERVICE_ACCOUT_NAME;
-        name: '{{ env "GRAFANA_SERVICE_ACCOUT_NAME" | default "grafana" }}'
       ingress:
         ### Optional: GRAFANA_INGRESS_ENABLED;
         enabled: '{{ env "GRAFANA_INGRESS_ENABLED" | default "false" }}'
+{{ if eq (env "GRAFANA_INGRESS_ENABLED" | default "false") "true" }}
         annotations:
           kubernetes.io/ingress.class: "nginx"
           kubernetes.io/tls-acme: "true"
@@ -91,3 +101,4 @@ releases:
             hosts:
               ### Required: GRAFANA_HOSTNAME;
               - '{{ env "GRAFANA_HOSTNAME" }}'
+{{ end }}
