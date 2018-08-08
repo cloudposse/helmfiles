@@ -58,6 +58,9 @@ releases:
           - key: "node-role.kubernetes.io/master"
             effect: "NoSchedule"
             operator: "Exists"
+        extraEnv:
+          GRPC_GO_LOG_SEVERITY_LEVEL: '{{ env "GRPC_GO_LOG_SEVERITY_LEVEL" | default "info" }}'
+          GRPC_GO_LOG_VERBOSITY_LEVEL: '{{ env "GRPC_GO_LOG_VERBOSITY_LEVEL" | default "8" }}'
         extraHostPathMounts:
           - name: "ssl-certs"
             mountPath: "/etc/ssl/certs"
