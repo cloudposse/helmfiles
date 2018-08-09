@@ -35,7 +35,7 @@ releases:
     - image:
         repository: "jetstack/kube-lego"
         ### Optional: KUBE_LEGO_IMAGE_TAG; e.g. 0.1.2
-        tag: '{{ env "KUBE_LEGO_IMAGE_TAG" | default "0.1.5" }}'
+        tag: '{{ env "KUBE_LEGO_IMAGE_TAG" | default "0.1.7" }}'
         pullPolicy: "IfNotPresent"
 
       ### Optional: KUBE_LEGO_REPLICA_COUNT; e.g. 1
