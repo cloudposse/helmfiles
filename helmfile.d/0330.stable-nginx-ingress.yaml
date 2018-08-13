@@ -49,7 +49,7 @@ releases:
           enabled: {{ env "NGINX_INGRESS_CONTROLLER_METRICS_ENABLED" | default "true" }}
         service:
           annotations:
-            ### Required: NGINX_INGRESS_HOSTNAME; e.g. ingress.us-west-2.cloudposse.org
+            ### Required: NGINX_INGRESS_HOSTNAME; e.g. ingress.us-west-2.cloudposse.co
             external-dns.alpha.kubernetes.io/hostname: '{{ env "NGINX_INGRESS_HOSTNAME" }}'
             ### Optional: NGINX_INGRESS_TTL; e.g. 60
             external-dns.alpha.kubernetes.io/ttl: '{{ env "NGINX_INGRESS_TTL" | default "60" }}'
@@ -65,7 +65,7 @@ releases:
             memory: "128Mi"
         service:
           annotations:
-            ### Required: NGINX_INGRESS_HOSTNAME; e.g. ingress.us-west-2.cloudposse.org
+            ### Required: NGINX_INGRESS_HOSTNAME; e.g. ingress.us-west-2.cloudposse.co
             external-dns.alpha.kubernetes.io/hostname: '{{ env "NGINX_INGRESS_HOSTNAME" }}'
             ### Optional: NGINX_INGRESS_TTL; e.g. 60
             external-dns.alpha.kubernetes.io/ttl: '{{ env "NGINX_INGRESS_TTL" | default "60" }}'
