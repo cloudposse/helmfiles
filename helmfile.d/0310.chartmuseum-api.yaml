@@ -20,6 +20,7 @@ releases:
   namespace: "kube-system"
   labels:
     chart: "chartmuseum"
+    repo: "stable"
     component: "platform"
     namespace: "kube-system"
     vendor: "kubernetes-helm"

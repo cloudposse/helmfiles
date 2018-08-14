@@ -25,6 +25,7 @@ releases:
   namespace: "monitoring"
   labels:
     chart: "kibana"
+    repo: "stable"
     component: "monitoring"
     namespace: "monitoring"
     vendor: "kubernetes-helm"
