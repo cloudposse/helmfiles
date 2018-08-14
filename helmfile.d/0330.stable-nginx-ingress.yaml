@@ -1,0 +1,79 @@
+helmDefaults:
+  args:
+    - "--wait"
+    - "--timeout=600"
+    - "--force"
+    - "--reset-values"
+
+repositories:
+# Stable repo of official helm charts
+- name: "stable"
+  url: "https://kubernetes-charts.storage.googleapis.com"
+
+releases:
+
+################################################################################
+## NGINX Ingress Controller ####################################################
+################################################################################
+
+#
+# References:
+#   - https://github.com/cloudposse/charts/blob/master/incubator/nginx-ingress/values.yaml
+#
+- name: "ingress"
+  namespace: "kube-system"
+  labels:
+    chart: "nginx-ingress"
+    component: "ingress"
+    namespace: "kube-system"
+    vendor: "kubernetes"
+    default: "false"
+  chart: "stable/nginx-ingress"
+  version: "0.24.0"
+  values:
+    - controller:
+        ### Optional: NGINX_INGRESS_CONTROLLER_REPLICA_COUNT; e.g. 2
+        replicaCount: {{ env "NGINX_INGRESS_CONTROLLER_REPLICA_COUNT" | default "4" }}
+        resources:
+          limits:
+            cpu: "200m"
+            memory: "256Mi"
+          requests:
+            cpu: "50m"
+            memory: "128Mi"
+        stats:
+          ### Optional: NGINX_INGRESS_CONTROLLER_STATS_ENABLED;
+          enabled: {{ env "NGINX_INGRESS_CONTROLLER_STATS_ENABLED" | default "true" }}
+        metrics:
+          ### Optional: NGINX_INGRESS_CONTROLLER_METRICS_ENABLED; enable Prometheus metrics (controller.stats.enabled must be true as well)
+          enabled: {{ env "NGINX_INGRESS_CONTROLLER_METRICS_ENABLED" | default "true" }}
+        service:
+          annotations:
+            ### Required: NGINX_INGRESS_HOSTNAME; e.g. ingress.us-west-2.cloudposse.co
+            external-dns.alpha.kubernetes.io/hostname: '{{ env "NGINX_INGRESS_HOSTNAME" }}'
+            ### Optional: NGINX_INGRESS_TTL; e.g. 60
+            external-dns.alpha.kubernetes.io/ttl: '{{ env "NGINX_INGRESS_TTL" | default "60" }}'
+      defaultBackend:
+        ### Optional: NGINX_INGRESS_BACKEND_REPLICA_COUNT; e.g. 2
+        replicaCount: {{ env "NGINX_INGRESS_DEFAULT_BACKEND_REPLICA_COUNT" | default "2" }}
+        resources:
+          limits:
+            cpu: "200m"
+            memory: "256Mi"
+          requests:
+            cpu: "50m"
+            memory: "128Mi"
+        service:
+          annotations:
+            ### Required: NGINX_INGRESS_HOSTNAME; e.g. ingress.us-west-2.cloudposse.co
+            external-dns.alpha.kubernetes.io/hostname: '{{ env "NGINX_INGRESS_HOSTNAME" }}'
+            ### Optional: NGINX_INGRESS_TTL; e.g. 60
+            external-dns.alpha.kubernetes.io/ttl: '{{ env "NGINX_INGRESS_TTL" | default "60" }}'
+      rbac:
+        ### Optional: NGINX_INGRESS_RBAC_CREATE;
+        create: {{ env "NGINX_INGRESS_RBAC_CREATE" | default "true" }}
+      serviceAccount:
+        ### Optional: NGINX_INGRESS_SERVICE_ACCOUNT_CREATE;
+        create: {{ env "NGINX_INGRESS_SERVICE_ACCOUNT_CREATE" | default "true" }}
+        ### Optional: NGINX_INGRESS_SERVICE_ACCOUNT_NAME;
+        name: '{{ env "NGINX_INGRESS_SERVICE_ACCOUNT_NAME" | default "" }}'
