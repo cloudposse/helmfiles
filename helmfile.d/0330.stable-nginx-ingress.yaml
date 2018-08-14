@@ -20,7 +20,7 @@ releases:
 # References:
 #   - https://github.com/cloudposse/charts/blob/master/incubator/nginx-ingress/values.yaml
 #
-- name: "ingress"
+- name: "stable-ingress"
   namespace: "kube-system"
   labels:
     chart: "nginx-ingress"
