@@ -20,10 +20,11 @@ releases:
 # References:
 #   - https://github.com/cloudposse/charts/blob/master/incubator/nginx-ingress/values.yaml
 #
-- name: "stable-ingress"
+- name: "ingress"
   namespace: "kube-system"
   labels:
     chart: "nginx-ingress"
+    repo: "stable"
     component: "ingress"
     namespace: "kube-system"
     vendor: "kubernetes"

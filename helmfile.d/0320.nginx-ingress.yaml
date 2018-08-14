@@ -24,6 +24,7 @@ releases:
   namespace: "kube-system"
   labels:
     chart: "nginx-ingress"
+    repo: "cloudposse-incubator"
     component: "ingress"
     namespace: "kube-system"
     vendor: "kubernetes"
