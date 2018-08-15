@@ -26,6 +26,7 @@ releases:
   namespace: "kube-system"
   labels:
     chart: "fluentd-kubernetes"
+    repo: "cloudposse-incubator"
     component: "elasticsearch"
     namespace: "kube-system"
     default: "false"

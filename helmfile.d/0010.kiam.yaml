@@ -25,6 +25,7 @@ releases:
   namespace: "kube-system"
   labels:
     chart: "kiam"
+    repo: "stable"
     component: "iam"
     namespace: "kube-system"
     vendor: "uswitch"
@@ -65,7 +66,7 @@ releases:
           - name: "ssl-certs"
             mountPath: "/etc/ssl/certs"
             hostPath: '{{ env "KIAM_HOST_CERT_PATH" | default "/etc/ssl/certs" }}'
-            readOnly: true 
+            readOnly: true
         tlsFiles:
           ### Required: KIAM_AGENT_TLS_CA; e.g. base64-encoded ca.pem
           ca: '{{ env "KIAM_SERVER_TLS_CA" }}'

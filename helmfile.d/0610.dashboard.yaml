@@ -26,6 +26,7 @@ releases:
   namespace: "kube-system"
   labels:
     chart: "kubernetes-dashboard"
+    repo: "stable"
     component: "monitoring"
     namespace: "kube-system"
     vendor: "kubernetes"

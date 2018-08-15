@@ -1,7 +1,7 @@
 helmDefaults:
   args:
     - "--wait"
-    - "--timeout=600" 
+    - "--timeout=600"
     - "--force"
     - "--reset-values"
 
@@ -20,6 +20,7 @@ releases:
   namespace: "monitoring"
   labels:
     chart: "grafana"
+    repo: "stable"
     component: "monitoring"
     namespace: "monitoring"
     vendor: "kubernetes"

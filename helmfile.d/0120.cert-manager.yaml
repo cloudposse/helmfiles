@@ -1,7 +1,7 @@
 helmDefaults:
   args:
     - "--wait"
-    - "--timeout=600" 
+    - "--timeout=600"
     - "--force"
     - "--reset-values"
 
@@ -21,6 +21,7 @@ releases:
   namespace: "kube-system"
   labels:
     chart: "cert-manager"
+    repo: "stable"
     component: "ingress"
     namespace: "kube-system"
     vendor: "jetstack"

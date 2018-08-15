@@ -25,6 +25,7 @@ releases:
   namespace: "kube-system"
   labels:
     chart: "kube-lego"
+    repo: "cloudposse-incubator"
     component: "ingress"
     namespace: "kube-system"
     vendor: "jetstack"

@@ -26,6 +26,7 @@ releases:
   namespace: "monitoring"
   labels:
     chart: "datadog"
+    repo: "stable"
     component: "monitoring"
     namespace: "monitoring"
     vendor: "datadog"
