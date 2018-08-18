@@ -26,6 +26,7 @@ releases:
   namespace: "kube-system"
   labels:
     chart: "heapster"
+    repo: "stable"
     component: "monitoring"
     namespace: "kube-system"
     vendor: "kubernetes"

@@ -25,6 +25,7 @@ releases:
   namespace: "kube-system"
   labels:
     chart: "kiam"
+    repo: "stable"
     component: "iam"
     namespace: "kube-system"
     vendor: "uswitch"
@@ -58,11 +59,14 @@ releases:
           - key: "node-role.kubernetes.io/master"
             effect: "NoSchedule"
             operator: "Exists"
+        extraEnv:
+          GRPC_GO_LOG_SEVERITY_LEVEL: '{{ env "GRPC_GO_LOG_SEVERITY_LEVEL" | default "info" }}'
+          GRPC_GO_LOG_VERBOSITY_LEVEL: '{{ env "GRPC_GO_LOG_VERBOSITY_LEVEL" | default "8" }}'
         extraHostPathMounts:
           - name: "ssl-certs"
             mountPath: "/etc/ssl/certs"
             hostPath: '{{ env "KIAM_HOST_CERT_PATH" | default "/etc/ssl/certs" }}'
-            readOnly: true 
+            readOnly: true
         tlsFiles:
           ### Required: KIAM_AGENT_TLS_CA; e.g. base64-encoded ca.pem
           ca: '{{ env "KIAM_SERVER_TLS_CA" }}'

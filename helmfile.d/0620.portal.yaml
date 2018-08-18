@@ -27,6 +27,7 @@ releases:
   namespace: "monitoring"
   labels:
     chart: "portal"
+    repo: "cloudposse-incubator"
     component: "monitoring"
     namespace: "monitoring"
     vendor: "cloudposse"

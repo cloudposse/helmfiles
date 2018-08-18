@@ -24,6 +24,7 @@ releases:
   namespace: "kube-system"
   labels:
     chart: "kube2iam"
+    repo: "stable"
     component: "iam"
     namespace: "kube-system"
     vendor: "jtblin"

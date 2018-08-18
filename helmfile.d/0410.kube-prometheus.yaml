@@ -1,7 +1,7 @@
 helmDefaults:
   args:
     - "--wait"
-    - "--timeout=600" 
+    - "--timeout=600"
     - "--force"
     - "--reset-values"
 
@@ -32,6 +32,7 @@ releases:
   namespace: "monitoring"
   labels:
     chart: "kube-prometheus"
+    repo: "coreos-stable"
     component: "monitoring"
     namespace: "monitoring"
     vendor: "coreos"
