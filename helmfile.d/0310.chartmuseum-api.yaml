@@ -20,6 +20,7 @@ releases:
   namespace: "kube-system"
   labels:
     chart: "chartmuseum"
+    repo: "stable"
     component: "platform"
     namespace: "kube-system"
     vendor: "kubernetes-helm"
@@ -73,9 +74,12 @@ releases:
           '{{ env "CHARTMUSEUM_API_HOSTNAME" }}':
             ### Required: CHARTMUSEUM_API_HOSTNAME; e.g. api.charts.us-west-2.staging.cloudposse.org
             - "/api"
+        ### Optional: CHARTMUSEUM_API_TLS_ENABLED;
+        {{- if env "CHARTMUSEUM_API_TLS_ENABLED" | default "true" | eq "true" }}
         tls:
-            ### Optional: CHARTMUSEUM_SECRET_NAME; e.g. chartmuseum-server-tls
-          - secretName: '{{ env "CHARTMUSEUM_SECRET_NAME" | default "chartmuseum-server-tls" }}'
+            ### Optional: CHARTMUSEUM_API_SECRET_NAME; e.g. chartmuseum-api-server-tls
+          - secretName: '{{ env "CHARTMUSEUM_API_SECRET_NAME" | default "chartmuseum-api-server-tls" }}'
             ### Required: CHARTMUSEUM_API_HOSTNAME; e.g. api.charts.us-west-2.staging.cloudposse.org
             hosts:
               - '{{ env "CHARTMUSEUM_API_HOSTNAME" }}'
+        {{- end }}

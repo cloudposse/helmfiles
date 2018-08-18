@@ -26,6 +26,7 @@ releases:
   namespace: "kube-system"
   labels:
     chart: "prometheus-operator"
+    repo: "coreos-stable"
     component: "monitoring"
     namespace: "kube-system"
     vendor: "coreos"

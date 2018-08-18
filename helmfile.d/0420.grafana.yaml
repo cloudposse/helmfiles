@@ -1,7 +1,7 @@
 helmDefaults:
   args:
     - "--wait"
-    - "--timeout=600" 
+    - "--timeout=600"
     - "--force"
     - "--reset-values"
 
@@ -20,6 +20,7 @@ releases:
   namespace: "monitoring"
   labels:
     chart: "grafana"
+    repo: "stable"
     component: "monitoring"
     namespace: "monitoring"
     vendor: "kubernetes"
@@ -67,13 +68,13 @@ releases:
           cpu: "10m"
           memory: "64Mi"
       serviceAccount:
-        ### Optional: GRAFANA_SERVICE_ACCOUT_CREATE;
-        create: '{{ env "GRAFANA_SERVICE_ACCOUT_CREATE" | default "true" }}'
-        ### Optional: GRAFANA_SERVICE_ACCOUT_NAME;
-        name: '{{ env "GRAFANA_SERVICE_ACCOUT_NAME" | default "grafana" }}'
+        ### Optional: GRAFANA_SERVICE_ACCOUNT_CREATE;
+        create: {{ env "GRAFANA_SERVICE_ACCOUNT_CREATE" | default "true" }}
+        ### Optional: GRAFANA_SERVICE_ACCOUNT_NAME;
+        name: '{{ env "GRAFANA_SERVICE_ACCOUNT_NAME" | default "grafana" }}'
       ingress:
         ### Optional: GRAFANA_INGRESS_ENABLED;
-        enabled: '{{ env "GRAFANA_INGRESS_ENABLED" | default "false" }}'
+        enabled: {{ env "GRAFANA_INGRESS_ENABLED" | default "false" }}
         annotations:
           kubernetes.io/ingress.class: "nginx"
           kubernetes.io/tls-acme: "true"
