@@ -64,7 +64,7 @@ releases:
       create: {{ env "FLUENTD_ELASTICSEARCH_SERVICE_ACCOUNT_CREATE" | default "true" }}
       # The name of the ServiceAccount to use.
       # If not set and create is true, a name is generated using the fullname template
-      name:
+      name: '{{ env "FLUENTD_ELASTICSEARCH_SERVICE_ACCOUNT_NAME" | default "" }}'
 
     livenessProbe:
       enabled: {{ env "FLUENTD_ELASTICSEARCH_LIVENESS_PROBE_ENABLED" | default "true" }}
