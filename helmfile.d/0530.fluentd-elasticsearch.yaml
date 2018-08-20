@@ -455,7 +455,6 @@ releases:
         <filter kubernetes.**>
           @type kubernetes_metadata
         </filter>
-
         <match **>
           @id elasticsearch
           @type elasticsearch
