@@ -39,7 +39,7 @@ releases:
       ## Specify an imagePullPolicy (Required)
       ## It's recommended to change this to 'Always' if the image tag is 'latest'
       ## ref: http://kubernetes.io/docs/user-guide/images/#updating-images
-      tag: '{{ env "FLUENTD_ELASTICSEARCH_IMAGE_TAG" | default " v2.2.0" }}'
+      tag: '{{ env "FLUENTD_ELASTICSEARCH_IMAGE_TAG" | default "v2.2.0" }}'
       pullPolicy: IfNotPresent
 
     resources:
@@ -52,7 +52,7 @@ releases:
 
     elasticsearch:
       host: '{{ env "FLUENTD_ELASTICSEARCH_HOST" }}'
-      port: '{{ env "FLUENTD_ELASTICSEARCH_PORT" }}'
+      port: {{ env "FLUENTD_ELASTICSEARCH_PORT" }}
       buffer_chunk_limit: 2M
       buffer_queue_limit: 8
 
@@ -78,20 +78,21 @@ releases:
     #   operator: Exists
     #   effect: NoSchedule
 
-    service: {}
-    # type: ClusterIP
-    # ports:
-    #   - name: "monitor-agent"
-    #     port: 24231
+    service:
+      type: ClusterIP
+      ports:
+      - name: "monitor-agent"
+        port: 24231
 
     extraVolumes:
-    - name: es-certs
+    - name: "es-certs"
       secret:
         defaultMode: 420
-        secretName: es-certs
+        secretName: "es-certs"
+
     extraVolumeMounts:
-    - name: es-certs
-      mountPath: /certs
+    - name: "es-certs"
+      mountPath: "/certs"
       readOnly: true
 
     configMaps:
