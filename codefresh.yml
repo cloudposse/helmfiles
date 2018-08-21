@@ -21,7 +21,6 @@ steps:
     image: cloudposse/build-harness:${{BUILD_HARNESS_VERSION}}
     working_directory: ${{build_image}}
     commands:
-      - make semver/show
       - make semver/export >> ${{CF_VOLUME_PATH}}/env_vars_to_export
 
   push_image_commit:
