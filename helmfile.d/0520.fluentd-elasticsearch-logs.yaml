@@ -8,8 +8,7 @@ helmDefaults:
 repositories:
 # Cloud Posse incubator repo of helm charts
 - name: "cloudposse-incubator"
-#  url: "https://charts.cloudposse.com/incubator/"
-  url: "https://charts.dev.cloudposse.com/feature-fix-fluentd-chart/incubator/"
+  url: "https://charts.cloudposse.com/incubator/"
 
 releases:
 
@@ -49,9 +48,9 @@ releases:
       open:
         FLUENT_ELASTICSEARCH_HOST: '{{ env "ELASTICSEARCH_HOST" }}'
         FLUENT_ELASTICSEARCH_PORT: '{{ env "ELASTICSEARCH_PORT" }}'
-        FLUENT_ELASTICSEARCH_SCHEME: '{{ env "ELASTICSEARCH_SCHEME" }}'
+        FLUENT_ELASTICSEARCH_SCHEME: '{{ env "ELASTICSEARCH_SCHEME" | default "http"}}'
         FLUENT_UID: "0"
-#      secret:
-#        FLUENT_ELASTICSEARCH_USER: '{{ env "ELASTICSEARCH_USER" }}'
-#        FLUENT_ELASTICSEARCH_PASSWORD: '{{ env "ELASTICSEARCH_PASSWORD" }}'
+      secret:
+        FLUENT_ELASTICSEARCH_USER: '{{ env "ELASTICSEARCH_USER" }}'
+        FLUENT_ELASTICSEARCH_PASSWORD: '{{ env "ELASTICSEARCH_PASSWORD" }}'
     configDir: /tmp/conf
