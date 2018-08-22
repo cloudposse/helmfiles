@@ -51,6 +51,6 @@ releases:
         FLUENT_ELASTICSEARCH_SCHEME: '{{ env "ELASTICSEARCH_SCHEME" | default "http"}}'
         FLUENT_UID: "0"
       secret:
-        FLUENT_ELASTICSEARCH_USER: '{{ env "ELASTICSEARCH_USER" }}'
-        FLUENT_ELASTICSEARCH_PASSWORD: '{{ env "ELASTICSEARCH_PASSWORD" }}'
+        FLUENT_ELASTICSEARCH_USER: '{{ env "ELASTICSEARCH_USER" | default "" }}'
+        FLUENT_ELASTICSEARCH_PASSWORD: '{{ env "ELASTICSEARCH_PASSWORD" | default "" }}'
     configDir: /tmp/conf
