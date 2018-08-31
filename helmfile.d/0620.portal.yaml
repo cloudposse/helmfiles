@@ -54,7 +54,7 @@ releases:
       {{ end }}
       ### Optional: PORTAL_BACKEND_ALERTS_ENABLED
       {{ if eq (env "PORTAL_BACKEND_ALERTS_ENABLED" | default "true") "true" }}
-      alerts:
+      {{ env "KUBE_PROMETHEUS_ALERT_MANAGER_SUBHOST" | default "alerts" }}:
         ### Optional: PORTAL_BACKEND_ALERTS_NAME
         name: '{{ env "PORTAL_BACKEND_ALERTS_NAME" | default "Alerts" }}'
         ### Optional: PORTAL_BACKEND_ALERTS_ENDPOINT
@@ -63,11 +63,11 @@ releases:
       {{ end }}
       ### Optional: PORTAL_BACKEND_PROMETHEUS_ENABLED
       {{ if eq (env "PORTAL_BACKEND_PROMETHEUS_ENABLED" | default "true") "true" }}
-      prometheus:
+      {{ env "KUBE_PROMETHEUS_SUBHOST" | default "prometheus" }}:
         ### Optional: PORTAL_BACKEND_PROMETHEUS_NAME
         name: '{{ env "PORTAL_BACKEND_PROMETHEUS_NAME" | default "Prometheus" }}'
         ### Optional: PORTAL_BACKEND_PROMETHEUS_ENDPOINT
-        endpoint: '{{ env "PORTAL_BACKEND_PROMETHEUS_ENDPOINT" | default "http://kube-prometheus-prometheus.monitoring:9090" }}'
+        endpoint: '{{ env "PORTAL_BACKEND_PROMETHEUS_ENDPOINT" | default "http://kube-prometheus.monitoring:9090" }}'
         external: false
       {{ end }}
       ### Optional: PORTAL_BACKEND_DOCS_ENABLED
