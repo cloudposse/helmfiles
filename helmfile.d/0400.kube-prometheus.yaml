@@ -209,19 +209,19 @@ releases:
   - name: "configMaps.dashboards.files.statefulset\\.json"
     file: https://raw.githubusercontent.com/cloudposse/grafana-dashboards/feature-kube-prometheus-dashboards/kube-prometheus/statefulset-dashboard.json
   values:
-    - configMaps:
-        datasource:
-          labels:
-            grafana_datasource: "true"
-          files_yaml:
-            prometheus.yaml:
-              apiVersion: 1
-              datasources:
-              - name: Prometheus
-                type: prometheus
-                url: http://kube-prometheus:9090
-                access: proxy
-                isDefault: true
-        dashboards:
-          labels:
-            grafana_dashboard: "true"
+  - configMaps:
+      datasource:
+        labels:
+          grafana_datasource: "true"
+        files_yaml:
+          prometheus.yaml:
+            apiVersion: 1
+            datasources:
+            - name: Prometheus
+              type: prometheus
+              url: http://kube-prometheus:9090
+              access: proxy
+              isDefault: true
+      dashboards:
+        labels:
+          grafana_dashboard: "true"

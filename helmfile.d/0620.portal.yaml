@@ -33,6 +33,7 @@ releases:
   chart: "cloudposse-incubator/portal"
   version: "0.1.0"
   values:
+  - '{{ env "PORTAL_BACKENDS_VALUES_FILE" | default "values/portal.backends.yaml" }}'
   - backends:
       ### Optional: PORTAL_BACKEND_K8S_DASHBOARD_ENABLED
       {{ if eq (env "PORTAL_BACKEND_K8S_DASHBOARD_ENABLED" | default "true") "true" }}

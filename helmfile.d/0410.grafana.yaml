@@ -56,6 +56,8 @@ releases:
         auth.anonymous:
           enabled: true
           org_role: "Admin"
+
+      plugins: "grafana-kubernetes-app"
       
       # Sidecars that collect the configmaps with specified label and stores the included files them into the respective folders,
       # require at least Grafana 5 to work and can't be used together with parameters dashboardProviders, datasources and dashboards
