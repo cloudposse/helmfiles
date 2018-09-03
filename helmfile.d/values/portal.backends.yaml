@@ -1,7 +1,7 @@
 # backends:
 #   subdomain:
 #     name: "UI Dashboard"
-#    externalName: "kubernetes-dashboard.kube-system.svc.cluster.local"
+#     externalName: "kubernetes-dashboard.kube-system.svc.cluster.local"
 #     servicePort: 443
 #     tls: true
 #     external: false

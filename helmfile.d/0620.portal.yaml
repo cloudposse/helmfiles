@@ -40,8 +40,12 @@ releases:
       dashboard:
         ### Optional: PORTAL_BACKEND_K8S_DASHBOARD_NAME
         name: '{{ env "PORTAL_BACKEND_K8S_DASHBOARD_NAME" | default "Kubernetes" }}'
-        ### Optional: PORTAL_BACKEND_K8S_DASHBOARD_ENDPOINT;
-        endpoint: '{{ env "PORTAL_BACKEND_K8S_DASHBOARD_ENDPOINT" | default "https://kubernetes-dashboard.kube-system:443" }}'
+        ### Optional: PORTAL_BACKEND_K8S_DASHBOARD_EXTERNAL_NAME;
+        externalName: '{{ env "PORTAL_BACKEND_K8S_DASHBOARD_EXTERNAL_NAME" | default "kubernetes-dashboard.kube-system" }}'
+        ### Optional: PORTAL_BACKEND_K8S_DASHBOARD_SERVICE_PORT;
+        servicePort: '{{ env "PORTAL_BACKEND_K8S_DASHBOARD_SERVICE_PORT" | default "443" }}'
+        ### Optional: PORTAL_BACKEND_K8S_DASHBOARD_TLS;
+        tls: '{{ env "PORTAL_BACKEND_K8S_DASHBOARD_TLS" | default "true" }}'
         external: false
       {{ end }}
       ### Optional: PORTAL_BACKEND_GRAFANA_ENABLED
@@ -49,8 +53,12 @@ releases:
       grafana:
         ### Optional: PORTAL_BACKEND_GRAFANA_NAME
         name: '{{ env "PORTAL_BACKEND_GRAFANA_NAME" | default "Grafana" }}'
-        ### Optional: PORTAL_BACKEND_GRAFANA_ENDPOINT
-        endpoint: '{{ env "PORTAL_BACKEND_GRAFANA_ENDPOINT" | default "http://kube-prometheus-grafana.monitoring:80" }}'
+        ### Optional: PORTAL_BACKEND_GRAFANA_EXTERNAL_NAME;
+        externalName: '{{ env "PORTAL_BACKEND_GRAFANA_EXTERNAL_NAME" | default "kube-prometheus-grafana.monitoring" }}'
+        ### Optional: PORTAL_BACKEND_GRAFANA_SERVICE_PORT;
+        servicePort: '{{ env "PORTAL_BACKEND_GRAFANA_SERVICE_PORT" | default "80" }}'
+        ### Optional: PORTAL_BACKEND_GRAFANA_TLS;
+        tls: '{{ env "PORTAL_BACKEND_GRAFANA_TLS" | default "false" }}'
         external: false
       {{ end }}
       ### Optional: PORTAL_BACKEND_ALERTS_ENABLED
@@ -58,8 +66,12 @@ releases:
       {{ env "KUBE_PROMETHEUS_ALERT_MANAGER_SUBHOST" | default "alerts" }}:
         ### Optional: PORTAL_BACKEND_ALERTS_NAME
         name: '{{ env "PORTAL_BACKEND_ALERTS_NAME" | default "Alerts" }}'
-        ### Optional: PORTAL_BACKEND_ALERTS_ENDPOINT
-        endpoint: '{{ env "PORTAL_BACKEND_ALERTS_ENDPOINT" | default "http://kube-prometheus-alertmanager.monitoring:9093" }}'
+        ### Optional: PORTAL_BACKEND_ALERTS_EXTERNAL_NAME;
+        externalName: '{{ env "PORTAL_BACKEND_ALERTS_EXTERNAL_NAME" | default "kube-prometheus-alertmanager.monitoring" }}'
+        ### Optional: PORTAL_BACKEND_ALERTS_SERVICE_PORT;
+        servicePort: '{{ env "PORTAL_BACKEND_ALERTS_SERVICE_PORT" | default "9093" }}'
+        ### Optional: PORTAL_BACKEND_ALERTS_TLS;
+        tls: '{{ env "PORTAL_BACKEND_ALERTS_TLS" | default "false" }}'
         external: false
       {{ end }}
       ### Optional: PORTAL_BACKEND_PROMETHEUS_ENABLED
@@ -67,8 +79,12 @@ releases:
       {{ env "KUBE_PROMETHEUS_SUBHOST" | default "prometheus" }}:
         ### Optional: PORTAL_BACKEND_PROMETHEUS_NAME
         name: '{{ env "PORTAL_BACKEND_PROMETHEUS_NAME" | default "Prometheus" }}'
-        ### Optional: PORTAL_BACKEND_PROMETHEUS_ENDPOINT
-        endpoint: '{{ env "PORTAL_BACKEND_PROMETHEUS_ENDPOINT" | default "http://kube-prometheus.monitoring:9090" }}'
+        ### Optional: PORTAL_BACKEND_PROMETHEUS_EXTERNAL_NAME;
+        externalName: '{{ env "PORTAL_BACKEND_PROMETHEUS_EXTERNAL_NAME" | default "kube-prometheus.monitoring" }}'
+        ### Optional: PORTAL_BACKEND_PROMETHEUS_SERVICE_PORT;
+        servicePort: '{{ env "PORTAL_BACKEND_PROMETHEUS_SERVICE_PORT" | default "9090" }}'
+        ### Optional: PORTAL_BACKEND_PROMETHEUS_TLS;
+        tls: '{{ env "PORTAL_BACKEND_PROMETHEUS_TLS" | default "false" }}'
         external: false
       {{ end }}
       ### Optional: PORTAL_BACKEND_DOCS_ENABLED
@@ -85,8 +101,12 @@ releases:
       kibana:
         ### Optional: PORTAL_BACKEND_KIBANA_NAME
         name: '{{ env "PORTAL_BACKEND_KIBANA_NAME" | default "Kibana" }}'
-        ### Optional: PORTAL_BACKEND_KIBANA_ENDPOINT
-        endpoint: '{{ env "PORTAL_BACKEND_KIBANA_ENDPOINT" | default "http://kibana.monitoring:80" }}'
+        ### Optional: PORTAL_BACKEND_KIBANA_EXTERNAL_NAME;
+        externalName: '{{ env "PORTAL_BACKEND_KIBANA_EXTERNAL_NAME" | default "kibana.monitoring" }}'
+        ### Optional: PORTAL_BACKEND_KIBANA_SERVICE_PORT;
+        servicePort: '{{ env "PORTAL_BACKEND_KIBANA_SERVICE_PORT" | default "80" }}'
+        ### Optional: PORTAL_BACKEND_KIBANA_TLS;
+        tls: '{{ env "PORTAL_BACKEND_KIBANA_TLS" | default "false" }}'
         external: false
       {{ end }}
   - config:
