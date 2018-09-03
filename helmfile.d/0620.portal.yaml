@@ -67,7 +67,7 @@ releases:
         ### Optional: PORTAL_BACKEND_ALERTS_NAME
         name: '{{ env "PORTAL_BACKEND_ALERTS_NAME" | default "Alerts" }}'
         ### Optional: PORTAL_BACKEND_ALERTS_EXTERNAL_NAME;
-        externalName: '{{ env "PORTAL_BACKEND_ALERTS_EXTERNAL_NAME" | default "kube-prometheus-alertmanager.monitoring.svc.cluster.local" }}'
+        externalName: '{{ env "PORTAL_BACKEND_ALERTS_EXTERNAL_NAME" | default "alertmanager-operated.monitoring.svc.cluster.local" }}'
         ### Optional: PORTAL_BACKEND_ALERTS_SERVICE_PORT;
         servicePort: '{{ env "PORTAL_BACKEND_ALERTS_SERVICE_PORT" | default "9093" }}'
         ### Optional: PORTAL_BACKEND_ALERTS_TLS;
@@ -80,7 +80,7 @@ releases:
         ### Optional: PORTAL_BACKEND_PROMETHEUS_NAME
         name: '{{ env "PORTAL_BACKEND_PROMETHEUS_NAME" | default "Prometheus" }}'
         ### Optional: PORTAL_BACKEND_PROMETHEUS_EXTERNAL_NAME;
-        externalName: '{{ env "PORTAL_BACKEND_PROMETHEUS_EXTERNAL_NAME" | default "kube-prometheus.monitoring.svc.cluster.local" }}'
+        externalName: '{{ env "PORTAL_BACKEND_PROMETHEUS_EXTERNAL_NAME" | default "prometheus-operated.monitoring.svc.cluster.local" }}'
         ### Optional: PORTAL_BACKEND_PROMETHEUS_SERVICE_PORT;
         servicePort: '{{ env "PORTAL_BACKEND_PROMETHEUS_SERVICE_PORT" | default "9090" }}'
         ### Optional: PORTAL_BACKEND_PROMETHEUS_TLS;
