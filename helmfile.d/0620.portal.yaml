@@ -41,7 +41,7 @@ releases:
         ### Optional: PORTAL_BACKEND_K8S_DASHBOARD_NAME
         name: '{{ env "PORTAL_BACKEND_K8S_DASHBOARD_NAME" | default "Kubernetes" }}'
         ### Optional: PORTAL_BACKEND_K8S_DASHBOARD_EXTERNAL_NAME;
-        externalName: '{{ env "PORTAL_BACKEND_K8S_DASHBOARD_EXTERNAL_NAME" | default "kubernetes-dashboard.kube-system" }}'
+        externalName: '{{ env "PORTAL_BACKEND_K8S_DASHBOARD_EXTERNAL_NAME" | default "kubernetes-dashboard.kube-system.svc.cluster.local" }}'
         ### Optional: PORTAL_BACKEND_K8S_DASHBOARD_SERVICE_PORT;
         servicePort: '{{ env "PORTAL_BACKEND_K8S_DASHBOARD_SERVICE_PORT" | default "443" }}'
         ### Optional: PORTAL_BACKEND_K8S_DASHBOARD_TLS;
