@@ -166,7 +166,7 @@ releases:
 
 
 #######################################################################################
-## grafana-kube-prometheus                                                           ##
+## kube-prometheus-grafana                                                           ##
 ## Integrates kube-prometheus with external grafana                                  ##
 #######################################################################################
 
@@ -179,10 +179,10 @@ releases:
 #   - https://www.weave.works/blog/monitoring-kubernetes-infrastructure
 #   - https://www.datadoghq.com/blog/how-to-collect-and-graph-kubernetes-metrics
 #
-- name: "grafana-kube-prometheus"
+- name: "kube-prometheus-grafana"
   namespace: "monitoring"
   labels:
-    chart: "grafana-kube-prometheus"
+    chart: "kube-prometheus-grafana"
     component: "monitoring"
     namespace: "monitoring"
     vendor: "cloudposse"

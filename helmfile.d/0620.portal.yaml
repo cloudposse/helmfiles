@@ -31,7 +31,7 @@ releases:
     vendor: "cloudposse"
     default: "true"
   chart: "cloudposse-incubator/portal"
-  version: "0.1.0"
+  version: "0.2.0"
   values:
   - '{{ env "PORTAL_BACKENDS_VALUES_FILE" | default "values/portal.backends.yaml" }}'
   - backends:

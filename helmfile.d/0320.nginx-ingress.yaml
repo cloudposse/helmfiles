@@ -109,7 +109,7 @@ releases:
           - "504"
 
 #######################################################################################
-## nginx-ingress-kube-prometheus                                                     ##
+## ingress-monitoring                                                                ##
 ## Integrates kube-prometheus with nginx ingress                                     ##
 #######################################################################################
 
@@ -122,10 +122,10 @@ releases:
 #   - https://www.weave.works/blog/monitoring-kubernetes-infrastructure
 #   - https://www.datadoghq.com/blog/how-to-collect-and-graph-kubernetes-metrics
 #
-- name: "nginx-ingress-kube-prometheus"
+- name: "ingress-monitoring"
   namespace: "monitoring"
   labels:
-    chart: "nginx-ingress-kube-prometheus"
+    chart: "ingress-monitoring"
     component: "monitoring"
     namespace: "monitoring"
     vendor: "cloudposse"
@@ -138,6 +138,7 @@ releases:
   values:
   - configMaps:
       dashboards:
+        mountPath: '/'
         labels:
           grafana_dashboard: "true"
 
@@ -152,7 +153,7 @@ releases:
             annotations:
               description: Test nginx-ingress prometheus alerts.
               summary: NginxIngressAlertTest
-            expr: min( vector(1)) < 0
+            expr: min(vector(1)) < 0
             labels:
               severity: none
 
