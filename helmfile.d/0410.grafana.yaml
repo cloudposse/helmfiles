@@ -107,4 +107,3 @@ releases:
             hosts:
               ### Required: GRAFANA_HOSTNAME;
               - '{{ env "GRAFANA_HOSTNAME" }}'
-{{ end }}
