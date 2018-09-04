@@ -1,10 +1,3 @@
-helmDefaults:
-  args:
-    - "--wait"
-    - "--timeout=600"
-    - "--force"
-    - "--reset-values"
-
 repositories:
 # Stable repo of official helm charts
 - name: "stable"
@@ -26,12 +19,14 @@ releases:
   namespace: "monitoring"
   labels:
     chart: "datadog"
+    repo: "stable"
     component: "monitoring"
     namespace: "monitoring"
     vendor: "datadog"
     default: "false"
   chart: "stable/datadog"
   version: "0.16.0"
+  wait: true
   values:
     - image:
         repository: "datadog/agent"
@@ -50,7 +45,7 @@ releases:
         apiKey: '{{ env "DATADOG_API_KEY" }}'
         collectEvents: true
         ### Optional: DATADOG_APM_ENABLED; e.g. true
-        apmEnabled: '{{ env "DATADOG_APM_ENABLED" | default "false" }}'
+        apmEnabled: {{ env "DATADOG_APM_ENABLED" | default "false" }}
       rbac:
         create: false
       kube-state-metrics:
@@ -58,6 +53,6 @@ releases:
           create: false
       daemonset:
         ### Optional: DATADOG_USE_HOST_PORT; e.g. false
-        useHostPort: '{{ env "DATADOG_USE_HOST_PORT" | default "true" }}'
+        useHostPort: {{ env "DATADOG_USE_HOST_PORT" | default "true" }}
         ### Optional: DATADOG_UPDATE_STRATEGY; e.g. RollingUpdate
         updateStrategy: '{{ env "DATADOG_UPDATE_STRATEGY" | default "OnDelete" }}'

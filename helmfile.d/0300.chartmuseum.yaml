@@ -1,10 +1,3 @@
-helmDefaults:
-  args:
-    - "--wait"
-    - "--timeout=600"
-    - "--force"
-    - "--reset-values"
-
 repositories:
 # Stable repo of official helm charts
 - name: "stable"
@@ -20,12 +13,14 @@ releases:
   namespace: "kube-system"
   labels:
     chart: "chartmuseum"
+    repo: "stable"
     component: "platform"
     namespace: "kube-system"
     vendor: "kubernetes-helm"
     default: "true"
   chart: "stable/chartmuseum"
   version: "1.4.0"
+  wait: true
   values:
     - replicaCount: 1
       env:
@@ -77,9 +72,12 @@ releases:
             - "/charts"
             ### Required: CHARTMUSEUM_HOSTNAME; e.g. charts.us-west-2.staging.cloudposse.org
             - "/index.yaml"
+        ### Optional: CHARTMUSEUM_TLS_ENABLED;
+        {{- if env "CHARTMUSEUM_TLS_ENABLED" | default "true" | eq "true" }}
         tls:
             ### Optional: CHARTMUSEUM_SECRET_NAME; e.g. chartmuseum-server-tls
           - secretName: '{{ env "CHARTMUSEUM_SECRET_NAME" | default "chartmuseum-server-tls" }}'
             ### Required: CHARTMUSEUM_HOSTNAME; e.g. charts.us-west-2.staging.cloudposse.org
             hosts:
               - '{{ env "CHARTMUSEUM_HOSTNAME" }}'
+        {{- end }}

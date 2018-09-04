@@ -1,10 +1,3 @@
-helmDefaults:
-  args:
-    - "--wait"
-    - "--timeout=600" 
-    - "--force"
-    - "--reset-values"
-
 repositories:
 # Stable repo of official helm charts
 - name: "stable"
@@ -21,16 +14,18 @@ releases:
   namespace: "kube-system"
   labels:
     chart: "cert-manager"
+    repo: "stable"
     component: "ingress"
     namespace: "kube-system"
     vendor: "jetstack"
     default: "false"
   chart: "stable/cert-manager"
   version: "v0.4.0"
+  wait: true
   values:
     - rbac:
         ### Optional: CERT_MANAGER_RBAC_CREATE;
-        create: '{{ env "CERT_MANAGER_RBAC_CREATE" | default "true" }}'
+        create: {{ env "CERT_MANAGER_RBAC_CREATE" | default "true" }}
       ingressShim:
         ### Optional: CERT_MANAGER_INGRESS_SHIM_DEFAULT_ISSUER_NAME;
         defaultIssuerName: '{{ env "CERT_MANAGER_INGRESS_SHIM_DEFAULT_ISSUER_NAME" | default "letsencrypt-prod" }}'
@@ -42,7 +37,7 @@ releases:
       serviceAccount:
         # Specifies whether a service account should be created
         ### Optional: CERT_MANAGER_SERVICE_ACCOUNT_CREATE;
-        create: '{{ env "CERT_MANAGER_SERVICE_ACCOUNT_CREATE" | default "true" }}'
+        create: {{ env "CERT_MANAGER_SERVICE_ACCOUNT_CREATE" | default "true" }}
         # The name of the service account to use.
         # If not set and create is true, a name is generated using the fullname template
         ### Optional: CERT_MANAGER_SERVICE_ACCOUNT_CREATE;

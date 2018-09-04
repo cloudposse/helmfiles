@@ -1,10 +1,3 @@
-helmDefaults:
-  args:
-  - "--wait"
-  - "--timeout=600"
-  - "--force"
-  - "--reset-values"
-
 repositories:
 # Stable repo of official helm charts
 - name: "stable"
@@ -25,12 +18,14 @@ releases:
   namespace: "monitoring"
   labels:
     chart: "kibana"
+    repo: "stable"
     component: "monitoring"
     namespace: "monitoring"
     vendor: "kubernetes-helm"
     default: "false"
   chart: "stable/kibana"
   version: "0.10.0"
+  wait: true
   values:
   - replicaCount: '{{ env "KIBANA_REPLICA_COUNT" | default 1 }}'
     image:
@@ -54,7 +49,7 @@ releases:
         cpu: "200m"
         memory: "512Mi"
     ingress:
-      enabled: "true"
+      enabled: true
       annotations:
         kubernetes.io/ingress.class: "nginx"
         kubernetes.io/tls-acme: "true"

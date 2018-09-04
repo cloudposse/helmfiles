@@ -1,10 +1,3 @@
-helmDefaults:
-  args:
-    - "--wait"
-    - "--timeout=600"
-    - "--force"
-    - "--reset-values"
-
 repositories:
 # Stable repo of official helm charts
 - name: "stable"
@@ -29,12 +22,14 @@ releases:
   namespace: "kube-system"
   labels:
     chart: "nginx-ingress"
+    repo: "cloudposse-incubator"
     component: "ingress"
     namespace: "kube-system"
     vendor: "kubernetes"
     default: "true"
   chart: "stable/nginx-ingress"
   version: "0.25.1"
+  wait: true
   values:
     - controller:
         image:
@@ -84,6 +79,7 @@ releases:
     default: "true"
   chart: "cloudposse-incubator/nginx-default-backend"
   version: "0.2.2"
+  wait: true
   values:
     - nameOverride: default
       ### Optional: NGINX_INGRESS_BACKEND_REPLICA_COUNT; e.g. 2
@@ -132,6 +128,7 @@ releases:
     default: '{{ env "NGINX_INGRESS_METRICS_ENABLED" | default "false" }}'
   chart: "cloudposse-incubator/monochart"
   version: "0.1.0"
+  wait: true
   set:
   - name: "configMaps.dashboards.files.nginx\\.json"
     file: https://raw.githubusercontent.com/cloudposse/grafana-dashboards/feature-kube-prometheus-dashboards/nginx-ingress/nginx.json

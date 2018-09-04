@@ -1,10 +1,3 @@
-helmDefaults:
-  args:
-    - "--wait"
-    - "--timeout=600"
-    - "--force"
-    - "--reset-values"
-
 repositories:
 # CoreOS Stable helm charts
 - name: "coreos-stable"
@@ -13,7 +6,7 @@ repositories:
 # Cloud Posse incubator repo of helm charts
 - name: "cloudposse-incubator"
   #url: "https://charts.cloudposse.com/incubator/"
-  url: "https://charts.dev.cloudposse.com/feature/monochart-2/incubator"
+  url: "https://charts.dev.cloudposse.com/feature/monochart-2-rebase/incubator"
 
 releases:
 
@@ -37,12 +30,14 @@ releases:
   namespace: "monitoring"
   labels:
     chart: "kube-prometheus"
+    repo: "coreos-stable"
     component: "monitoring"
     namespace: "monitoring"
     vendor: "coreos"
     default: "true"
   chart: "coreos-stable/kube-prometheus"
   version: "0.0.105"
+  wait: true
   values:
     ### Optional: KUBE_PROMETHEUS_EXTERNAL_VALUES_FILE;
     - '{{ env "KUBE_PROMETHEUS_EXTERNAL_VALUES_FILE" | default "values/kube-prometheus.grafana.dashboards.yaml" }}'
@@ -189,6 +184,7 @@ releases:
     default: '{{ env "KUBE_PROMETHEUS_GRAFANA_INTERNAL_ENABLED" | not | default "false" }}'
   chart: "cloudposse-incubator/monochart"
   version: "0.1.0"
+  wait: true
   set:
   - name: "configMaps.dashboards.files.deployment\\.json"
     file: https://raw.githubusercontent.com/cloudposse/grafana-dashboards/feature-kube-prometheus-dashboards/kube-prometheus/deployment-dashboard.json

@@ -1,10 +1,3 @@
-helmDefaults:
-  args:
-    - "--wait"
-    - "--timeout=600"
-    - "--force"
-    - "--reset-values"
-
 repositories:
 # Cloud Posse incubator repo of helm charts
 - name: "cloudposse-incubator"
@@ -25,12 +18,14 @@ releases:
   namespace: "kube-system"
   labels:
     chart: "kube-lego"
+    repo: "cloudposse-incubator"
     component: "ingress"
     namespace: "kube-system"
     vendor: "jetstack"
     default: "true"
   chart: "cloudposse-incubator/kube-lego"
   version: "0.1.2"
+  wait: true
   values:
     - image:
         repository: "jetstack/kube-lego"
@@ -39,15 +34,15 @@ releases:
         pullPolicy: "IfNotPresent"
 
       ### Optional: KUBE_LEGO_REPLICA_COUNT; e.g. 1
-      replicaCount: '{{ env "KUBE_LEGO_REPLICA_COUNT" | default "1" }}'
+      replicaCount: {{ env "KUBE_LEGO_REPLICA_COUNT" | default "1" }}
       ### Optional: KUBE_LEGO_DEBUG; e.g. false
-      debug: '{{ env "KUBE_LEGO_DEBUG" | default "false" }}'
+      debug: {{ env "KUBE_LEGO_DEBUG" | default "false" }}
       # Lego Settings
       lego:
         ### Required: KUBE_LEGO_EMAIL; e.g. ops@cloudposse.org
         email: '{{ env "KUBE_LEGO_EMAIL" }}'
         ### Optional: KUBE_LEGO_PROD; e.g. true
-        prod: '{{ env "KUBE_LEGO_PROD" | default "true" }}'
+        prod: {{ env "KUBE_LEGO_PROD" | default "true" }}
       # Pod Settings
       pod:
         internalPort: "8080"

@@ -1,10 +1,3 @@
-helmDefaults:
-  args:
-    - "--wait"
-    - "--timeout=600"
-    - "--force"
-    - "--reset-values"
-
 repositories:
 # Stable repo of official helm charts
 - name: "stable"
@@ -24,12 +17,14 @@ releases:
   namespace: "kube-system"
   labels:
     chart: "kube2iam"
+    repo: "stable"
     component: "iam"
     namespace: "kube-system"
     vendor: "jtblin"
     default: "false"
   chart: "stable/kube2iam"
   version: "0.8.5"
+  wait: true
   values:
     - tolerations:
         - key: "node-role.kubernetes.io/master"

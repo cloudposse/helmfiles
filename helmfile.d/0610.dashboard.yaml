@@ -1,10 +1,3 @@
-helmDefaults:
-  args:
-    - "--wait"
-    - "--timeout=600"
-    - "--force"
-    - "--reset-values"
-
 repositories:
 # Stable repo of official helm charts
 - name: "stable"
@@ -26,12 +19,14 @@ releases:
   namespace: "kube-system"
   labels:
     chart: "kubernetes-dashboard"
+    repo: "stable"
     component: "monitoring"
     namespace: "kube-system"
     vendor: "kubernetes"
     default: "true"
   chart: "stable/kubernetes-dashboard"
   version: "0.6.7"
+  wait: true
   values:
     - image:
         repository: "k8s.gcr.io/kubernetes-dashboard-amd64"
