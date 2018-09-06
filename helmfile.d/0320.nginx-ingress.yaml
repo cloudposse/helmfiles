@@ -145,11 +145,11 @@ releases:
         groups:
         - name: nginx-ingress.rules
           rules:
-          - alert: NginxIngressAlertTest
+          - alert: NginxIngressControllerError
             annotations:
-              description: Test nginx-ingress prometheus alerts.
-              summary: NginxIngressAlertTest
-            expr: min(vector(1)) < 0
+              description: Nginx ingress controller error.
+              summary: NginxIngressControllerError
+            expr: nginx_ingress_controller_errors > 0
             labels:
               severity: none
 
