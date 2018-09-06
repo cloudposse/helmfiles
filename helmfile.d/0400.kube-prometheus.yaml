@@ -5,8 +5,7 @@ repositories:
 
 # Cloud Posse incubator repo of helm charts
 - name: "cloudposse-incubator"
-  #url: "https://charts.cloudposse.com/incubator/"
-  url: "https://charts.dev.cloudposse.com/feature/monochart-2-rebase/incubator"
+  url: "https://charts.cloudposse.com/incubator/"
 
 releases:
 
@@ -173,6 +172,8 @@ releases:
 #   - https://medium.com/@timfpark/simple-kubernetes-cluster-monitoring-with-prometheus-and-grafana-dd27edb1641
 #   - https://www.weave.works/blog/monitoring-kubernetes-infrastructure
 #   - https://www.datadoghq.com/blog/how-to-collect-and-graph-kubernetes-metrics
+#   - https://grafana.com/grafana
+#   - https://github.com/helm/charts/tree/master/stable/grafana
 #
 - name: "kube-prometheus-grafana"
   namespace: "monitoring"
@@ -183,27 +184,27 @@ releases:
     vendor: "cloudposse"
     default: '{{ env "KUBE_PROMETHEUS_GRAFANA_INTERNAL_ENABLED" | not | default "false" }}'
   chart: "cloudposse-incubator/monochart"
-  version: "0.1.0"
+  version: "0.4.0"
   wait: true
   set:
   - name: "configMaps.dashboards.files.deployment\\.json"
-    file: https://raw.githubusercontent.com/cloudposse/grafana-dashboards/feature-kube-prometheus-dashboards/kube-prometheus/deployment-dashboard.json
+    file: https://raw.githubusercontent.com/cloudposse/grafana-dashboards/{{ env "GRAFANA_DASHBOARDS_VERSION" | default "1.0" }}/kube-prometheus/deployment-dashboard.json
   - name: "configMaps.dashboards.files.kubernetes-capacity-planning\\.json"
-    file: https://raw.githubusercontent.com/cloudposse/grafana-dashboards/feature-kube-prometheus-dashboards/kube-prometheus/kubernetes-capacity-planning-dashboard.json
+    file: https://raw.githubusercontent.com/cloudposse/grafana-dashboards/{{ env "GRAFANA_DASHBOARDS_VERSION" | default "1.0" }}/kube-prometheus/kubernetes-capacity-planning-dashboard.json
   - name: "configMaps.dashboards.files.kubernetes-cluster-health\\.json"
-    file: https://raw.githubusercontent.com/cloudposse/grafana-dashboards/feature-kube-prometheus-dashboards/kube-prometheus/kubernetes-cluster-health-dashboard.json
+    file: https://raw.githubusercontent.com/cloudposse/grafana-dashboards/{{ env "GRAFANA_DASHBOARDS_VERSION" | default "1.0" }}/kube-prometheus/kubernetes-cluster-health-dashboard.json
   - name: "configMaps.dashboards.files.kubernetes-cluster-status\\.json"
-    file: https://raw.githubusercontent.com/cloudposse/grafana-dashboards/feature-kube-prometheus-dashboards/kube-prometheus/kubernetes-cluster-status-dashboard.json
+    file: https://raw.githubusercontent.com/cloudposse/grafana-dashboards/{{ env "GRAFANA_DASHBOARDS_VERSION" | default "1.0" }}/kube-prometheus/kubernetes-cluster-status-dashboard.json
   - name: "configMaps.dashboards.files.kubernetes-control-plane-status\\.json"
-    file: https://raw.githubusercontent.com/cloudposse/grafana-dashboards/feature-kube-prometheus-dashboards/kube-prometheus/kubernetes-control-plane-status-dashboard.json
+    file: https://raw.githubusercontent.com/cloudposse/grafana-dashboards/{{ env "GRAFANA_DASHBOARDS_VERSION" | default "1.0" }}/kube-prometheus/kubernetes-control-plane-status-dashboard.json
   - name: "configMaps.dashboards.files.kubernetes-resource-requests\\.json"
-    file: https://raw.githubusercontent.com/cloudposse/grafana-dashboards/feature-kube-prometheus-dashboards/kube-prometheus/kubernetes-resource-requests-dashboard.json
+    file: https://raw.githubusercontent.com/cloudposse/grafana-dashboards/{{ env "GRAFANA_DASHBOARDS_VERSION" | default "1.0" }}/kube-prometheus/kubernetes-resource-requests-dashboard.json
   - name: "configMaps.dashboards.files.nodes\\.json"
-    file: https://raw.githubusercontent.com/cloudposse/grafana-dashboards/feature-kube-prometheus-dashboards/kube-prometheus/nodes-dashboard.json
+    file: https://raw.githubusercontent.com/cloudposse/grafana-dashboards/{{ env "GRAFANA_DASHBOARDS_VERSION" | default "1.0" }}/kube-prometheus/nodes-dashboard.json
   - name: "configMaps.dashboards.files.pods\\.json"
-    file: https://raw.githubusercontent.com/cloudposse/grafana-dashboards/feature-kube-prometheus-dashboards/kube-prometheus/pods-dashboard.json
+    file: https://raw.githubusercontent.com/cloudposse/grafana-dashboards/{{ env "GRAFANA_DASHBOARDS_VERSION" | default "1.0" }}/kube-prometheus/pods-dashboard.json
   - name: "configMaps.dashboards.files.statefulset\\.json"
-    file: https://raw.githubusercontent.com/cloudposse/grafana-dashboards/feature-kube-prometheus-dashboards/kube-prometheus/statefulset-dashboard.json
+    file: https://raw.githubusercontent.com/cloudposse/grafana-dashboards/{{ env "GRAFANA_DASHBOARDS_VERSION" | default "1.0" }}/kube-prometheus/statefulset-dashboard.json
   values:
   - configMaps:
       datasource:

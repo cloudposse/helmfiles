@@ -4,8 +4,7 @@ repositories:
   url: "https://kubernetes-charts.storage.googleapis.com"
 # Cloud Posse incubator repo of helm charts
 - name: "cloudposse-incubator"
-#  url: "https://charts.cloudposse.com/incubator/"
-  url: "https://charts.dev.cloudposse.com/feature/monochart-2/incubator"
+  url: "https://charts.cloudposse.com/incubator/"
 
 
 
@@ -31,6 +30,9 @@ releases:
   chart: "stable/nginx-ingress"
   version: "0.25.1"
   wait: true
+  set:
+  - name: "controller.config.template"
+    file: ./helmfile.d/values/ingress.nginx.template.yaml
   values:
     - controller:
         image:
@@ -68,7 +70,9 @@ releases:
         create: {{ env "NGINX_INGRESS_RBAC_ENABLED" | default "false" }}
       serviceAccount:
         create: {{ env "NGINX_INGRESS_RBAC_ENABLED" | default "false" }}
-    - values/ingress.nginx.template.yaml
+      customTemplate:
+        configMapName: "ingress-nginx-ingress-controller"
+        configMapKey: "template"
 
 - name: "ingress-backend"
   namespace: "kube-system"
@@ -107,7 +111,7 @@ releases:
 
 #######################################################################################
 ## ingress-monitoring                                                                ##
-## Integrates kube-prometheus with nginx ingress                                     ##
+## Integrates kube-prometheus and grafana with nginx ingress                         ##
 #######################################################################################
 
 #
@@ -118,25 +122,26 @@ releases:
 #   - https://medium.com/@timfpark/simple-kubernetes-cluster-monitoring-with-prometheus-and-grafana-dd27edb1641
 #   - https://www.weave.works/blog/monitoring-kubernetes-infrastructure
 #   - https://www.datadoghq.com/blog/how-to-collect-and-graph-kubernetes-metrics
+#   - https://grafana.com/grafana
+#   - https://github.com/helm/charts/tree/master/stable/grafana
 #
 - name: "ingress-monitoring"
   namespace: "monitoring"
   labels:
-    chart: "ingress-monitoring"
+    chart: "monochart"
     component: "monitoring"
     namespace: "monitoring"
     vendor: "cloudposse"
     default: '{{ env "NGINX_INGRESS_METRICS_ENABLED" | default "false" }}'
   chart: "cloudposse-incubator/monochart"
-  version: "0.1.0"
+  version: "0.4.0"
   wait: true
   set:
   - name: "configMaps.dashboards.files.nginx\\.json"
-    file: https://raw.githubusercontent.com/cloudposse/grafana-dashboards/feature-kube-prometheus-dashboards/nginx-ingress/nginx.json
+    file: https://raw.githubusercontent.com/cloudposse/grafana-dashboards/{{ env "GRAFANA_DASHBOARDS_VERSION" | default "1.0" }}/nginx-ingress/nginx.json
   values:
   - configMaps:
       dashboards:
-        mountPath: '/'
         labels:
           grafana_dashboard: "true"
 

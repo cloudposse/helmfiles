@@ -53,7 +53,7 @@ releases:
       {{ end }}
       ### Optional: PORTAL_BACKEND_ALERTS_ENABLED
       {{ if eq (env "PORTAL_BACKEND_ALERTS_ENABLED" | default "true") "true" }}
-      {{ env "KUBE_PROMETHEUS_ALERT_MANAGER_SUBHOST" | default "alerts" }}:
+      alerts:
         ### Optional: PORTAL_BACKEND_ALERTS_NAME
         name: '{{ env "PORTAL_BACKEND_ALERTS_NAME" | default "Alerts" }}'
         ### Optional: PORTAL_BACKEND_ALERTS_SERVICE_NAME
@@ -64,7 +64,7 @@ releases:
       {{ end }}
       ### Optional: PORTAL_BACKEND_PROMETHEUS_ENABLED
       {{ if eq (env "PORTAL_BACKEND_PROMETHEUS_ENABLED" | default "true") "true" }}
-      {{ env "KUBE_PROMETHEUS_SUBHOST" | default "prometheus" }}:
+      prometheus:
         ### Optional: PORTAL_BACKEND_PROMETHEUS_NAME
         name: '{{ env "PORTAL_BACKEND_PROMETHEUS_NAME" | default "Prometheus" }}'
         ### Optional: PORTAL_BACKEND_PROMETHEUS_SERVICE_NAME
