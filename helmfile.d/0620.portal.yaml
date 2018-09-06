@@ -28,6 +28,7 @@ releases:
   version: "0.2.2"
   wait: true
   values:
+  - values/portal.backends.yaml
   - backends:
       ### Optional: PORTAL_BACKEND_DASHBOARD_ENABLED
       {{ if eq (env "PORTAL_BACKEND_DASHBOARD_ENABLED" | default "true") "true" }}
