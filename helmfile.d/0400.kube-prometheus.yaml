@@ -115,8 +115,8 @@ releases:
           port: "80"
         ingress:
           enabled: false
-{{ if eq (env "PORTAL_BACKEND_ALERTS_ENABLED" | default "true") "true" }}
-        externalUrl: 'https://{{ env "KUBE_PROMETHEUS_ALERT_MANAGER_SUBHOST" | default "alerts" }}.{{ env "PORTAL_HOSTNAME" }}'
+{{ if empty ( env "KUBE_PROMETHEUS_ALERT_MANAGER_URL" ) }}
+        externalUrl: '{{ env "KUBE_PROMETHEUS_ALERT_MANAGER_URL" }}'
 {{ end }}
       prometheus:
         retention: "31d"
@@ -154,8 +154,8 @@ releases:
           port: "80"
         ingress:
           enabled: false
-{{ if eq (env "PORTAL_BACKEND_PROMETHEUS_ENABLED" | default "true") "true" }}
-        externalUrl: 'https://{{ env "KUBE_PROMETHEUS_SUBHOST" | default "prometheus" }}.{{ env "PORTAL_HOSTNAME" }}'
+{{ if empty ( env "KUBE_PROMETHEUS_URL" ) }}
+        externalUrl: '{{ env "KUBE_PROMETHEUS_URL" }}'
 {{ end }}
 
 
@@ -182,10 +182,27 @@ releases:
     component: "monitoring"
     namespace: "monitoring"
     vendor: "cloudposse"
-    default: '{{ env "KUBE_PROMETHEUS_GRAFANA_INTERNAL_ENABLED" | not | default "false" }}'
+    default: '{{ env "KUBE_PROMETHEUS_GRAFANA_INTERNAL_ENABLED" | default "true" | not }}'
   chart: "cloudposse-incubator/monochart"
   version: "0.4.0"
   wait: true
+  values:
+  - configMaps:
+      datasource:
+        labels:
+          grafana_datasource: "true"
+        files_yaml:
+          prometheus.yaml:
+            apiVersion: 1
+            datasources:
+            - name: Prometheus
+              type: prometheus
+              url: http://kube-prometheus:9090
+              access: proxy
+              isDefault: true
+      dashboards:
+        labels:
+          grafana_dashboard: "true"
   set:
   - name: "configMaps.dashboards.files.deployment\\.json"
     file: https://raw.githubusercontent.com/cloudposse/grafana-dashboards/{{ env "GRAFANA_DASHBOARDS_VERSION" | default "1.0" }}/kube-prometheus/deployment-dashboard.json
@@ -205,20 +222,3 @@ releases:
     file: https://raw.githubusercontent.com/cloudposse/grafana-dashboards/{{ env "GRAFANA_DASHBOARDS_VERSION" | default "1.0" }}/kube-prometheus/pods-dashboard.json
   - name: "configMaps.dashboards.files.statefulset\\.json"
     file: https://raw.githubusercontent.com/cloudposse/grafana-dashboards/{{ env "GRAFANA_DASHBOARDS_VERSION" | default "1.0" }}/kube-prometheus/statefulset-dashboard.json
-  values:
-  - configMaps:
-      datasource:
-        labels:
-          grafana_datasource: "true"
-        files_yaml:
-          prometheus.yaml:
-            apiVersion: 1
-            datasources:
-            - name: Prometheus
-              type: prometheus
-              url: http://kube-prometheus:9090
-              access: proxy
-              isDefault: true
-      dashboards:
-        labels:
-          grafana_dashboard: "true"
