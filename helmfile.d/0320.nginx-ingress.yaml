@@ -1,7 +1,11 @@
 repositories:
+# Stable repo of official helm charts
+- name: "stable"
+  url: "https://kubernetes-charts.storage.googleapis.com"
 # Cloud Posse incubator repo of helm charts
 - name: "cloudposse-incubator"
   url: "https://charts.cloudposse.com/incubator/"
+
 
 releases:
 
@@ -22,27 +26,18 @@ releases:
     namespace: "kube-system"
     vendor: "kubernetes"
     default: "true"
-  chart: "cloudposse-incubator/nginx-ingress"
-  version: "0.1.7"
+  chart: "stable/nginx-ingress"
+  version: "0.25.1"
   wait: true
   values:
-    - image:
-        repository: "quay.io/kubernetes-ingress-controller/nginx-ingress-controller"
-        ### Optional: NGINX_INGRESS_IMAGE_TAG; e.g. 0.11.0
-        tag: '{{ env "NGINX_INGRESS_IMAGE_TAG" | default "0.11.0" }}'
-        pullPolicy: "IfNotPresent"
-      ### Optional: NGINX_INGRESS_REPLICA_COUNT; e.g. 4
-      replicaCount: '{{ env "NGINX_INGRESS_REPLICA_COUNT" | default "4" }}'
-      resources:
-        limits:
-          cpu: "200m"
-          memory: "256Mi"
-        requests:
-          cpu: "50m"
-          memory: "128Mi"
-      nginx-default-backend:
-        ### Optional: NGINX_INGRESS_BACKEND_REPLICA_COUNT; e.g. 2
-        replicaCount: '{{ env "NGINX_INGRESS_BACKEND_REPLICA_COUNT" | default "2" }}'
+    - controller:
+        image:
+          repository: "quay.io/kubernetes-ingress-controller/nginx-ingress-controller"
+          ### Optional: NGINX_INGRESS_IMAGE_TAG; e.g. 0.17.1
+          tag: '{{ env "NGINX_INGRESS_IMAGE_TAG" | default "0.17.1" }}'
+          pullPolicy: "IfNotPresent"
+        ### Optional: NGINX_INGRESS_REPLICA_COUNT; Used only if `kind=Deployment` e.g. 4
+        replicaCount: '{{ env "NGINX_INGRESS_REPLICA_COUNT" | default "4" }}'
         resources:
           limits:
             cpu: "200m"
@@ -50,9 +45,60 @@ releases:
           requests:
             cpu: "50m"
             memory: "128Mi"
-      service:
-        annotations:
-          ### Required: NGINX_INGRESS_HOSTNAME; e.g. ingress.us-west-2.cloudposse.org
-          external-dns.alpha.kubernetes.io/hostname: '{{ env "NGINX_INGRESS_HOSTNAME" }}'
-          ### Optional: NGINX_INGRESS_TTL; e.g. 60
-          external-dns.alpha.kubernetes.io/ttl: '{{ env "NGINX_INGRESS_TTL" | default "60" }}'
+        ## Optional: NGINX_INGRESS_KIND; Valid values: DaemonSet or Deployment
+        kind: '{{ env "NGINX_INGRESS_KIND" | default "Deployment" }}'
+        defaultBackendService: "kube-system/ingress-backend-default"
+        config:
+          custom-http-errors: 404,500,502,503,504
+        service:
+          annotations:
+            ### Required: NGINX_INGRESS_HOSTNAME; e.g. ingress.us-west-2.cloudposse.org
+            external-dns.alpha.kubernetes.io/hostname: '{{ env "NGINX_INGRESS_HOSTNAME" }}'
+            ### Optional: NGINX_INGRESS_TTL; e.g. 60
+            external-dns.alpha.kubernetes.io/ttl: '{{ env "NGINX_INGRESS_TTL" | default "60" }}'
+        stats:
+          enabled: {{ env "NGINX_INGRESS_METRICS_ENABLED" | default "false" }}
+        metrics:
+          enabled: {{ env "NGINX_INGRESS_METRICS_ENABLED" | default "false" }}
+      defaultBackend:
+        enabled: false
+      rbac:
+        create: {{ env "NGINX_INGRESS_RBAC_ENABLED" | default "false" }}
+      serviceAccount:
+        create: {{ env "NGINX_INGRESS_RBAC_ENABLED" | default "false" }}
+    - values/ingress.nginx.template.yaml
+
+- name: "ingress-backend"
+  namespace: "kube-system"
+  labels:
+    chart: "nginx-default-backend"
+    component: "ingress"
+    namespace: "kube-system"
+    vendor: "kubernetes"
+    default: "true"
+  chart: "cloudposse-incubator/nginx-default-backend"
+  version: "0.2.2"
+  wait: true
+  values:
+    - nameOverride: default
+      ### Optional: NGINX_INGRESS_BACKEND_REPLICA_COUNT; e.g. 2
+      replicaCount: '{{ env "NGINX_INGRESS_BACKEND_REPLICA_COUNT" | default "2" }}'
+      resources:
+        limits:
+          cpu: "200m"
+          memory: "256Mi"
+        requests:
+          cpu: "50m"
+          memory: "128Mi"
+      errors:
+        configmap: default
+        default:
+          email: '{{ env "NGINX_INGRESS_SUPPORT_EMAIL" | default "hello@cloudposse.com" }}'
+          site: /
+        client:
+          - "404"
+        server:
+          - "500"
+          - "502"
+          - "503"
+          - "504"
