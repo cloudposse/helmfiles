@@ -30,9 +30,6 @@ releases:
   chart: "stable/nginx-ingress"
   version: "0.25.1"
   wait: true
-  set:
-  - name: "controller.config.template"
-    file: ./helmfile.d/values/ingress.nginx.template.yaml
   values:
     - controller:
         image:
@@ -70,9 +67,14 @@ releases:
         create: {{ env "NGINX_INGRESS_RBAC_ENABLED" | default "false" }}
       serviceAccount:
         create: {{ env "NGINX_INGRESS_RBAC_ENABLED" | default "false" }}
+## Workaround untill https://github.com/kubernetes/ingress-nginx/pull/2989 would be merged
       customTemplate:
         configMapName: "ingress-nginx-ingress-controller"
         configMapKey: "template"
+## Workaround untill https://github.com/kubernetes/ingress-nginx/pull/2989 would be merged
+  set:
+  - name: "controller.config.template"
+    file: ./helmfile.d/values/ingress.nginx.template
 
 - name: "ingress-backend"
   namespace: "kube-system"
