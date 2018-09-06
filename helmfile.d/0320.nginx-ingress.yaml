@@ -8,6 +8,7 @@ repositories:
   url: "https://charts.dev.cloudposse.com/feature/monochart-2/incubator"
 
 
+
 releases:
 
 ################################################################################
@@ -64,9 +65,9 @@ releases:
       defaultBackend:
         enabled: false
       rbac:
-        create: {{ env "NGINX_INGRESS_RBAC_ENABLED" | default "true" }}
+        create: {{ env "NGINX_INGRESS_RBAC_ENABLED" | default "false" }}
       serviceAccount:
-        create: {{ env "NGINX_INGRESS_RBAC_ENABLED" | default "true" }}
+        create: {{ env "NGINX_INGRESS_RBAC_ENABLED" | default "false" }}
     - values/ingress.nginx.template.yaml
 
 - name: "ingress-backend"
