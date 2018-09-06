@@ -115,7 +115,7 @@ releases:
           port: "80"
         ingress:
           enabled: false
-{{ if empty ( env "KUBE_PROMETHEUS_ALERT_MANAGER_URL" ) }}
+{{ if not ( env "KUBE_PROMETHEUS_ALERT_MANAGER_URL" | empty ) }}
         externalUrl: '{{ env "KUBE_PROMETHEUS_ALERT_MANAGER_URL" }}'
 {{ end }}
       prometheus:
@@ -154,7 +154,7 @@ releases:
           port: "80"
         ingress:
           enabled: false
-{{ if empty ( env "KUBE_PROMETHEUS_URL" ) }}
+{{ if not ( env "KUBE_PROMETHEUS_URL" | empty ) }}
         externalUrl: '{{ env "KUBE_PROMETHEUS_URL" }}'
 {{ end }}
 
