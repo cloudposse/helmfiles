@@ -137,16 +137,8 @@ releases:
   chart: "cloudposse-incubator/monochart"
   version: "0.4.0"
   wait: true
-  set:
-  - name: "configMaps.dashboards.files.nginx\\.json"
-    file: https://raw.githubusercontent.com/cloudposse/grafana-dashboards/{{ env "GRAFANA_DASHBOARDS_VERSION" | default "1.0" }}/nginx-ingress/nginx.json
   values:
-  - configMaps:
-      dashboards:
-        labels:
-          grafana_dashboard: "true"
-
-    prometheusRules:
+  - prometheusRules:
       nginx-ingress:
         labels:
           prometheus: kube-prometheus
@@ -175,3 +167,12 @@ releases:
         endpoints:
           - port: "metrics"
             interval: 15s
+
+    configMaps:
+      dashboards:
+        labels:
+          grafana_dashboard: "true"
+
+  set:
+  - name: "configMaps.dashboards.files.nginx\\.json"
+    file: https://raw.githubusercontent.com/cloudposse/grafana-dashboards/{{ env "GRAFANA_DASHBOARDS_VERSION" | default "1.0" }}/nginx-ingress/nginx.json
