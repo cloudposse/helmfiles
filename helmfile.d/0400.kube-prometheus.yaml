@@ -185,11 +185,6 @@ releases:
   - serviceAccount:
       create: {{ env "KUBE_PROMETHEUS_SERVICE_ACCOUNT_CREATE" | default "false" }}
     replicaCount: {{ env "KUBE_PROMETHEUS_PUSH_GATEWAY_REPLICA_COUNT" | default "1" }}
-    podAnnotations:
-      prometheus: kube-prometheus
-      component: pushgateway
-      endpoint: default
-
 
 #######################################################################################
 ## kube-prometheus-pushgateway-monitor                                               ##
