@@ -189,6 +189,7 @@ releases:
   values:
   - configMaps:
       datasource:
+        enabled: true
         labels:
           grafana_datasource: "true"
         files_yaml:
@@ -197,10 +198,11 @@ releases:
             datasources:
             - name: Prometheus
               type: prometheus
-              url: http://kube-prometheus:9090
+              url: http://kube-prometheus.monitoring:9090
               access: proxy
               isDefault: true
       dashboards:
+        enabled: true
         labels:
           grafana_dashboard: "true"
   set:

@@ -66,14 +66,16 @@ releases:
         create: {{ env "NGINX_INGRESS_RBAC_ENABLED" | default "false" }}
       serviceAccount:
         create: {{ env "NGINX_INGRESS_RBAC_ENABLED" | default "false" }}
+
 ## Workaround untill https://github.com/kubernetes/ingress-nginx/pull/2989 would be merged
-      customTemplate:
-        configMapName: "ingress-nginx-ingress-controller"
-        configMapKey: "template"
-## Workaround untill https://github.com/kubernetes/ingress-nginx/pull/2989 would be merged
+    - controller:
+        customTemplate:
+          configMapName: "ingress-nginx-ingress-controller"
+          configMapKey: "template"
   set:
   - name: "controller.config.template"
     file: ./helmfile.d/values/ingress.nginx.template
+## Workaround untill https://github.com/kubernetes/ingress-nginx/pull/2989 would be merged
 
 - name: "ingress-backend"
   namespace: "kube-system"
@@ -170,6 +172,7 @@ releases:
 
     configMaps:
       dashboards:
+        enabled: true
         labels:
           grafana_dashboard: "true"
 
