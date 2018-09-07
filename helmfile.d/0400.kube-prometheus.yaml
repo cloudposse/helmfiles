@@ -160,7 +160,7 @@ releases:
 
 
 #######################################################################################
-## kube-prometheus-push-gateway                                                      ##
+## kube-prometheus-pushgateway                                                       ##
 ## Provide kube-prometheus default push gateway                                      ##
 #######################################################################################
 
@@ -189,9 +189,11 @@ releases:
       prometheus: kube-prometheus
       component: pushgateway
       endpoint: default
+
+
 #######################################################################################
-## kube-prometheus-push-gateway                                                      ##
-## Provide kube-prometheus default push gateway                                      ##
+## kube-prometheus-pushgateway-monitor                                               ##
+## Provide kube-prometheus service monitor for  push gateway                         ##
 #######################################################################################
 
 #
@@ -199,7 +201,7 @@ releases:
 #   - https://github.com/coreos/prometheus-operator/tree/master/helm/kube-prometheus
 #   - https://github.com/coreos/prometheus-operator/tree/master/contrib/kube-prometheus
 #
-- name: "kube-prometheus-pushgateway-scraper"
+- name: "kube-prometheus-pushgateway-monitor"
   namespace: "monitoring"
   labels:
     chart: "prometheus-pushgateway"
