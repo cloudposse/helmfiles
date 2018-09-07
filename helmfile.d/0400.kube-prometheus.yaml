@@ -161,7 +161,7 @@ releases:
 
 #######################################################################################
 ## kube-prometheus-pushgateway                                                       ##
-## Provide kube-prometheus default push gateway                                      ##
+## Provides kube-prometheus default push gateway                                      ##
 #######################################################################################
 
 #
@@ -188,7 +188,7 @@ releases:
 
 #######################################################################################
 ## kube-prometheus-pushgateway-monitor                                               ##
-## Provide kube-prometheus service monitor for  push gateway                         ##
+## Provides kube-prometheus service monitor for  push gateway                         ##
 #######################################################################################
 
 #
