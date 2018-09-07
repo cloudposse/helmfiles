@@ -82,11 +82,6 @@ releases:
         requests:
           cpu: "10m"
           memory: "64Mi"
-      serviceAccount:
-        ### Optional: GRAFANA_SERVICE_ACCOUNT_CREATE;
-        create: {{ env "GRAFANA_SERVICE_ACCOUNT_CREATE" | default "true" }}
-        ### Optional: GRAFANA_SERVICE_ACCOUNT_NAME;
-        name: '{{ env "GRAFANA_SERVICE_ACCOUNT_NAME" | default "grafana" }}'
       ingress:
         ### Optional: GRAFANA_INGRESS_ENABLED;
         enabled: {{ env "GRAFANA_INGRESS_ENABLED" | default "false" }}
