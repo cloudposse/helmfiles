@@ -1,10 +1,3 @@
-helmDefaults:
-  args:
-    - "--wait"
-    - "--timeout=600"
-    - "--force"
-    - "--reset-values"
-
 repositories:
 # CoreOS Stable helm charts
 - name: "coreos-stable"
@@ -32,14 +25,15 @@ releases:
     vendor: "coreos"
     default: "true"
   chart: "coreos-stable/prometheus-operator"
-  version: "0.0.23"
+  version: "0.0.29"
+  wait: true
   values:
     - rbacEnable: false
       jobLabel: "prometheus-operator"
       image:
         repository: "quay.io/coreos/prometheus-operator"
-        ### Optional: PROMETHEUS_OPERATOR_IMAGE_TAG; e.g. v0.17.0
-        tag: '{{ env "PROMETHEUS_OPERATOR_IMAGE_TAG" | default "v0.17.0" }}'
+        ### Optional: PROMETHEUS_OPERATOR_IMAGE_TAG; e.g. v0.20.0
+        tag: '{{ env "PROMETHEUS_OPERATOR_IMAGE_TAG" | default "v0.20.0" }}'
         pullPolicy: "IfNotPresent"
       resources:
         limits:
@@ -56,8 +50,8 @@ releases:
           pullPolicy: "IfNotPresent"
       prometheusConfigReloader:
         repository: "quay.io/coreos/prometheus-config-reloader"
-        ### Optional: PROMETHEUS_OPERATOR_PROMETHEUS_CONFIG_RELOADER_IMAGE_TAG; e.g. v0.0.3
-        tag: '{{ env "PROMETHEUS_OPERATOR_PROMETHEUS_CONFIG_RELOADER_IMAGE_TAG" | default "v0.0.3" }}'
+        ### Optional: PROMETHEUS_OPERATOR_PROMETHEUS_CONFIG_RELOADER_IMAGE_TAG; e.g. v0.20.0
+        tag: '{{ env "PROMETHEUS_OPERATOR_PROMETHEUS_CONFIG_RELOADER_IMAGE_TAG" | default "v0.20.0" }}'
       configmapReload:
         repository: "quay.io/coreos/configmap-reload"
         ### Optional: PROMETHEUS_OPERATOR_CONFIGMAP_RELOAD_IMAGE_TAG; e.g. v0.0.1
