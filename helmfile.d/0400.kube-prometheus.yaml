@@ -160,6 +160,74 @@ releases:
 
 
 #######################################################################################
+## kube-prometheus-push-gateway                                                      ##
+## Provide kube-prometheus default push gateway                                      ##
+#######################################################################################
+
+#
+# References:
+#   - https://github.com/coreos/prometheus-operator/tree/master/helm/kube-prometheus
+#   - https://github.com/coreos/prometheus-operator/tree/master/contrib/kube-prometheus
+#   - https://github.com/helm/charts/tree/master/stable/prometheus-pushgateway
+#
+- name: "kube-prometheus-pushgateway"
+  namespace: "monitoring"
+  labels:
+    chart: "prometheus-pushgateway"
+    component: "monitoring"
+    namespace: "monitoring"
+    vendor: "kubernetes"
+    default: 'true'
+  chart: "stable/prometheus-pushgateway"
+  version: "0.1.2"
+  wait: true
+  values:
+  - serviceAccount:
+      create: {{ env "KUBE_PROMETHEUS_SERVICE_ACCOUNT_CREATE" | default "false" }}
+    replicaCount: {{ env "KUBE_PROMETHEUS_PUSH_GATEWAY_REPLICA_COUNT" | default "1" }}
+    podAnnotations:
+      prometheus: kube-prometheus
+      component: pushgateway
+      endpoint: default
+#######################################################################################
+## kube-prometheus-push-gateway                                                      ##
+## Provide kube-prometheus default push gateway                                      ##
+#######################################################################################
+
+#
+# References:
+#   - https://github.com/coreos/prometheus-operator/tree/master/helm/kube-prometheus
+#   - https://github.com/coreos/prometheus-operator/tree/master/contrib/kube-prometheus
+#
+- name: "kube-prometheus-pushgateway-scraper"
+  namespace: "monitoring"
+  labels:
+    chart: "prometheus-pushgateway"
+    component: "monitoring"
+    namespace: "monitoring"
+    vendor: "cloudposse"
+    default: "true"
+  chart: "cloudposse-incubator/monochart"
+  version: "0.4.0"
+  wait: true
+  values:
+  - serviceMonitors:
+      nginx-ingress:
+        labels:
+          prometheus: kube-prometheus
+        selector:
+          matchLabels:
+            app: prometheus-pushgateway
+            release: kube-prometheus-pushgateway
+        namespaceSelector:
+          matchNames:
+          - monitoring
+        endpoints:
+          - port: "metrics"
+            interavl: 15s
+
+
+#######################################################################################
 ## kube-prometheus-grafana                                                           ##
 ## Integrates kube-prometheus with external grafana                                  ##
 #######################################################################################
