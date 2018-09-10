@@ -1,8 +1,7 @@
 repositories:
 # Cloud Posse incubator repo of helm charts
 - name: "cloudposse-incubator"
-  #url: "https://charts.cloudposse.com/incubator/"
-  url: "https://charts.dev.cloudposse.com/feature/op-51/portal-proxy-auth-headers/incubator/"
+  url: "https://charts.cloudposse.com/incubator/"
 
 releases:
 
