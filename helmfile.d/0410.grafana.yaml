@@ -56,7 +56,7 @@ releases:
         database:
           type: mysql
           host: grafana-db-mysql
-          name: '{{ env "GRAFANA_DB_DATABASE_NAME" | default "grafana"}}'
+          name: '{{ env "GRAFANA_DB_NAME" | default "grafana"}}'
           user: '{{ env "GRAFANA_DB_USER" | default "grafana" }}'
           password: '{{ env "GRAFANA_DB_PASSWORD" | default "grafana"}}'
         session:
@@ -155,5 +155,5 @@ releases:
   - mysqlUser: '{{ env "GRAFANA_DB_USER" | default "grafana" }}'
     mysqlPassword: '{{ env "GRAFANA_DB_PASSWORD" | default "grafana"}}'
     mysqlRootPassword: '{{ env "GRAFANA_DB_ROOT_PASSWORD" | default "grafana"}}'
-    mysqlDatabase: '{{ env "GRAFANA_DB_DATABASE_NAME" | default "grafana"}}'
+    mysqlDatabase: '{{ env "GRAFANA_DB_NAME" | default "grafana"}}'
     mysqlAllowEmptyPassword: false
