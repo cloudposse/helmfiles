@@ -25,7 +25,7 @@ releases:
     vendor: "cloudposse"
     default: "true"
   chart: "cloudposse-incubator/portal"
-  version: "0.2.3"
+  version: "0.2.4"
   wait: true
   values:
   - values/portal.backends.yaml
@@ -146,6 +146,7 @@ releases:
         passAccessToken: false
         passBasicAuth: false
         passHostHeader: true
+        setXAuthRequest: true
         ### Required: PORTAL_OAUTH2_PROXY_COOKIE_NAME
         cookieName: '{{ env "PORTAL_OAUTH2_PROXY_COOKIE_NAME" }}'
         ### Required: PORTAL_OAUTH2_PROXY_COOKIE_SECRET
