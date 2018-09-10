@@ -1,7 +1,8 @@
 repositories:
 # Cloud Posse incubator repo of helm charts
 - name: "cloudposse-incubator"
-  url: "https://charts.cloudposse.com/incubator/"
+  #url: "https://charts.cloudposse.com/incubator/"
+  url: "https://charts.dev.cloudposse.com/feature/op-51/portal-proxy-auth-headers/incubator/"
 
 releases:
 
@@ -133,14 +134,22 @@ releases:
         useSSL: false
         upstreams:
         - "file:///dev/null"
-        provider: "github"
-        ### Required: PORTAL_OAUTH2_PROXY_GITHUB_CLIENT_ID
-        clientID: '{{ env "PORTAL_OAUTH2_PROXY_GITHUB_CLIENT_ID" }}'
-        ### Required: PORTAL_OAUTH2_PROXY_GITHUB_CLIENT_SECRET
-        clientSecret: '{{ env "PORTAL_OAUTH2_PROXY_GITHUB_CLIENT_SECRET" }}'
-        ### Required: PORTAL_OAUTH2_PROXY_GITHUB_ORGANIZATION
+        provider: '{{ env "PORTAL_OAUTH2_PROXY_PROVIDER" | default "github" }}'
+        ### Required: PORTAL_OAUTH2_PROXY_CLIENT_ID
+        clientID: '{{ env "PORTAL_OAUTH2_PROXY_CLIENT_ID" }}'
+        ### Required: PORTAL_OAUTH2_PROXY_CLIENT_SECRET
+        clientSecret: '{{ env "PORTAL_OAUTH2_PROXY_CLIENT_SECRET" }}'
+        ### Optional: PORTAL_OAUTH2_PROXY_LOGIN_URL
+        loginUrl: '{{ env "PORTAL_OAUTH2_PROXY_LOGIN_URL" }}'
+        ### Optional: PORTAL_OAUTH2_PROXY_REDEEM_URL
+        redeemUrl: '{{ env "PORTAL_OAUTH2_PROXY_REDEEM_URL" }}'
+        ### Optional: PORTAL_OAUTH2_PROXY_VALIDATE_URL
+        validateUrl: '{{ env "PORTAL_OAUTH2_PROXY_VALIDATE_URL" }}'
+        ### Optional: PORTAL_OAUTH2_PROXY_REDIRECT_URL
+        redirectUrl: '{{ env "PORTAL_OAUTH2_PROXY_REDIRECT_URL" }}'
+        ### Optional: PORTAL_OAUTH2_PROXY_GITHUB_ORGANIZATION
         githubOrg: '{{ env "PORTAL_OAUTH2_PROXY_GITHUB_ORGANIZATION" }}'
-        ### Required: PORTAL_OAUTH2_PROXY_GITHUB_TEAM
+        ### Optional: PORTAL_OAUTH2_PROXY_GITHUB_TEAM
         githubTeam: '{{ env "PORTAL_OAUTH2_PROXY_GITHUB_TEAM" }}'
         requestLogging: false
         passAccessToken: false
