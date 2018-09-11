@@ -257,7 +257,7 @@ releases:
         enabled: true
         labels:
           grafana_datasource: "true"
-        files_yaml:
+        files:
           prometheus.yaml:
             apiVersion: 1
             datasources:

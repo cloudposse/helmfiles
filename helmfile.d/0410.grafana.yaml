@@ -34,12 +34,8 @@ releases:
         create: {{ env "GRAFANA_SERVICE_ACCOUNT_CREATE" | default "false" }}
         ### Optional: GRAFANA_SERVICE_ACCOUNT_NAME;
         name: '{{ env "GRAFANA_SERVICE_ACCOUNT_NAME" }}'
-      persistence:
-        enabled: true
-        ### Optional: GRAFANA_PERSISTENCE_SIZE;
-        size: '{{ env "GRAFANA_PERSISTENCE_SIZE" | default "10Gi" }}'
-        accessModes:
-          - ReadWriteOnce
+
+      replicas: '{{ env "GRAFANA_REPLICA_COUNT" | default 1 }}'
       adminUser: '{{ env "GRAFANA_ADMIN_USER" | default "admin" }}'
       adminPassword: '{{ env "GRAFANA_ADMIN_PASSWORD" | default "admin" }}'
 
@@ -48,9 +44,44 @@ releases:
       dashboards: {}
 
       grafana.ini:
+        users:
+          allow_sign_up: '{{ env "GRAFANA_ALLOW_SIGN_UP" | default "false"}}'
+          auto_assign_org: '{{ env "GRAFANA_AUTO_ASSIGN_ORG" | default "true"}}'
+          auto_assign_org_id: '{{ env "GRAFANA_AUTO_ASSIGN_ORG_ID" | default "1"}}'
+          auto_assign_org_role: '{{ env "GRAFANA_AUTO_ASSIGN_ORG_ROLE" | default "Viewer"}}'
+          viewers_can_edit: '{{ env "GRAFANA_VIEWERS_CAN_EDIT" | default "true"}}'
         auth.anonymous:
           enabled: true
-          org_role: "Admin"
+          org_role: "Viewer"
+        database:
+          type: mysql
+          host: grafana-db-mysql
+          name: '{{ env "GRAFANA_DB_NAME" | default "grafana"}}'
+          user: '{{ env "GRAFANA_DB_USER" | default "grafana" }}'
+          password: '{{ env "GRAFANA_DB_PASSWORD" | default "grafana"}}'
+        session:
+          provider: mysql
+          provider_config: {{ env "GRAFANA_DB_USER" | default "grafana" }}:{{ env "GRAFANA_DB_PASSWORD" | default "grafana"}}@tcp(grafana-db-mysql:3306)/{{ env "GRAFANA_DB_DATABASE_NAME" | default "grafana"}}
+          cookie_name: grafana_sess
+
+        auth.proxy:
+          # Defaults to false, but set to true to enable this feature
+          enabled: '{{ env "GRAFANA_AUTH_PROXY_ENABLED" | default "true" }}'
+          # HTTP Header name that will contain the username or email
+          header_name: '{{ env "GRAFANA_AUTH_PROXY_HEADER_NAME" | default "X-Auth-Request-User" }}'
+          # HTTP Header property, defaults to `username` but can also be `email`
+          header_property: '{{ env "GRAFANA_AUTH_PROXY_HEADER_PROPERTY" | default "username" }}'
+          # Set to `true` to enable auto sign up of users who do not exist in Grafana DB. Defaults to `true`.
+          auto_sign_up: '{{ env "GRAFANA_AUTH_PROXY_AUTO_SIGN_UP" | default "true" }}'
+          # Optionally define more headers to sync other user attributes
+          # Example `headers = Name:X-WEBAUTH-NAME Email:X-WEBAUTH-EMAIL``
+          headers: '{{ env "GRAFANA_AUTH_PROXY_HEADERS" | default "Name:X-Auth-Request-User Email:X-Auth-Request-Email" }}'
+
+        metrics:
+          enabled: false
+
+        alerting:
+          enabled: false
 
       plugins: '{{ env "GRAFANA_PLUGINS" }}'
       
@@ -102,3 +133,27 @@ releases:
             hosts:
               ### Required: GRAFANA_HOSTNAME;
               - '{{ env "GRAFANA_HOSTNAME" }}'
+
+
+#######################################################################################
+## Grafana DB                                                                        ##
+#######################################################################################
+
+- name: "grafana-db"
+  namespace: "monitoring"
+  labels:
+    chart: "mysql"
+    repo: "stable"
+    component: "monitoring"
+    namespace: "monitoring"
+    vendor: "kubernetes"
+    default: "false"
+  chart: "stable/mysql"
+  version: "0.10.1"
+  wait: true
+  values:
+  - mysqlUser: '{{ env "GRAFANA_DB_USER" | default "grafana" }}'
+    mysqlPassword: '{{ env "GRAFANA_DB_PASSWORD" | default "grafana"}}'
+    mysqlRootPassword: '{{ env "GRAFANA_DB_ROOT_PASSWORD" | default "grafana"}}'
+    mysqlDatabase: '{{ env "GRAFANA_DB_NAME" | default "grafana"}}'
+    mysqlAllowEmptyPassword: false
