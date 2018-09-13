@@ -6,13 +6,14 @@ repositories:
 
 releases:
 
-################################################################################
-## NGINX Ingress Controller ####################################################
-################################################################################
+#######################################################################################
+## Teleport                                                                          ##
+#######################################################################################
 
 #
 # References:
-#   - https://github.com/cloudposse/charts/blob/master/incubator/nginx-ingress/values.yaml
+#   _ https://github.com/gravitational/teleport
+#   - https://github.com/cloudposse/charts/tree/master/incubator/teleport
 #
 - name: "teleport"
   namespace: "kube-system"
