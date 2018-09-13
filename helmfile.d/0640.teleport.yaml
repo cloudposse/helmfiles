@@ -1,0 +1,27 @@
+repositories:
+# Cloud Posse incubator repo of helm charts
+- name: "cloudposse-incubator"
+  url: "https://charts.cloudposse.com/incubator/"
+
+
+releases:
+
+################################################################################
+## NGINX Ingress Controller ####################################################
+################################################################################
+
+#
+# References:
+#   - https://github.com/cloudposse/charts/blob/master/incubator/nginx-ingress/values.yaml
+#
+- name: "teleport"
+  namespace: "kube-system"
+  labels:
+    chart: "teleport"
+    repo: "cloudposse-incubator"
+    namespace: "kube-system"
+    vendor: "gravitational"
+    default: "true"
+  chart: "cloudposse-incubator/teleport"
+  version: "0.0.2"
+  wait: true
