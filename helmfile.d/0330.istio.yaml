@@ -1,0 +1,28 @@
+repositories:
+# Cloud Posse incubator repo of helm charts
+- name: "cloudposse-incubator"
+  url: "https://charts.cloudposse.com/incubator/"
+
+
+releases:
+
+#######################################################################################
+## Istio                                                                             ##
+#######################################################################################
+
+#
+# References:
+#   _ https://istio.io/docs/
+#   - https://github.com/cloudposse/charts/tree/master/incubator/istio
+#
+- name: "istio"
+  namespace: "kube-system"
+  labels:
+    chart: "istio"
+    repo: "cloudposse-incubator"
+    namespace: "kube-system"
+    vendor: "istio"
+    default: "false"
+  chart: "cloudposse-incubator/istio"
+  version: "1.1.0"
+  wait: true
