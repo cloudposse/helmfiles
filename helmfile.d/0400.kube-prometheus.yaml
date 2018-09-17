@@ -110,6 +110,8 @@ releases:
                   ### Required: KUBE_PROMETHEUS_ALERT_MANAGER_SLACK_CHANNEL; e.g. #alerts-staging
                   channel: '{{ env "KUBE_PROMETHEUS_ALERT_MANAGER_SLACK_CHANNEL" }}'
                   send_resolved: true
+          templates:
+            - ./*.tmpl
         service:
           type: "ClusterIP"
           port: "80"
@@ -157,7 +159,9 @@ releases:
 {{ if not ( env "KUBE_PROMETHEUS_URL" | empty ) }}
         externalUrl: '{{ env "KUBE_PROMETHEUS_URL" }}'
 {{ end }}
-
+  set:
+  - name: "alertmanager.templateFiles.deployment\\.tmpl"
+    file: ./helmfile.d/values/kube-prometheus.alerts.template
 
 #######################################################################################
 ## kube-prometheus-pushgateway                                                       ##

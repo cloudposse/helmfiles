@@ -149,11 +149,11 @@ releases:
           rules:
           - alert: NginxIngressControllerError
             annotations:
-              description: Nginx ingress controller error.
+              description: Nginx ingress controller error
               summary: NginxIngressControllerError
-            expr: nginx_ingress_controller_errors > 0
+            expr: nginx_ingress_controller_requests > 100000
             labels:
-              severity: none
+              severity: warning
 
     serviceMonitors:
       nginx-ingress:
