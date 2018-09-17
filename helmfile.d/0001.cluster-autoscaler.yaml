@@ -1,0 +1,34 @@
+repositories:
+# Stable repo of official helm charts
+- name: "stable"
+  url: "https://kubernetes-charts.storage.googleapis.com"
+
+releases:
+
+################################################################################
+## cluster-autoscaler ####################################################
+################################################################################
+
+#
+# References:
+#   - https://github.com/helm/charts/tree/master/stable/cluster-autoscaler
+#   - https://github.com/kubernetes/autoscaler/tree/master/cluster-autoscaler
+#
+- name: "cluster-autoscaler"
+  namespace: "kube-system"
+  labels:
+    chart: "cluster-autoscaler"
+    repo: "stable"
+    namespace: "kube-system"
+    vendor: "kubernetes"
+    default: '{{ env "KOPS_CLUSTER_AUTOSCALER_ENABLED" | default "false" }}'
+  chart: "stable/cluster-autoscaler"
+  version: "0.7.0"
+  wait: true
+  values:
+    - image:
+        tag: '{{ env "CLUSTER_AUTOSCALER_IMAGE_TAG" | default "v1.2.2" }}'
+      autoDiscovery:
+        ### Required: KOPS_CLUSTER_NAME; e.g. cluster.k8s.local
+        clusterName: '{{ env "KOPS_CLUSTER_NAME" }}'
+      cloudProvider: aws
