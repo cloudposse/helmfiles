@@ -60,6 +60,15 @@ releases:
           enabled: {{ env "NGINX_INGRESS_METRICS_ENABLED" | default "false" }}
         metrics:
           enabled: {{ env "NGINX_INGRESS_METRICS_ENABLED" | default "false" }}
+      tcp:
+      {{- range env "NGINX_INGRESS_TCP" | splitList "," }}
+        {{ regexReplaceAll "(\\d*):(.*)" . "$1: $2" }}
+      {{- end }}
+      udp:
+      {{- range env "NGINX_INGRESS_UDP" | splitList "," }}
+        {{ regexReplaceAll "(\\d*):(.*)" . "$1: $2" }}
+      {{- end }}
+
       defaultBackend:
         enabled: false
       rbac:
