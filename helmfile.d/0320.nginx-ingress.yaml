@@ -60,11 +60,21 @@ releases:
           enabled: {{ env "NGINX_INGRESS_METRICS_ENABLED" | default "false" }}
         metrics:
           enabled: {{ env "NGINX_INGRESS_METRICS_ENABLED" | default "false" }}
+      ### Regexp used to map
+      ### 8080:default/example-tcp-svc:9000,8081:staging/example-tcp-svc:9000
+      ### to
+      ### 8080: default/example-tcp-svc:9000
+      ### 8081: staging/example-tcp-svc:9000
       ### Optional: NGINX_INGRESS_TCP; e.g. 8080:default/example-tcp-svc:9000,8081:staging/example-tcp-svc:9000
       tcp:
       {{- range env "NGINX_INGRESS_TCP" | splitList "," }}
         {{ regexReplaceAll "(\\d*:)(.*)" . "$1 $2" }}
       {{- end }}
+      ### Regexp used to map
+      ### 8080:default/example-udp-svc:9000,8081:staging/example-udp-svc:9000
+      ### to
+      ### 8080: default/example-udp-svc:9000
+      ### 8081: staging/example-udp-svc:9000
       ### Optional: NGINX_INGRESS_UDP; e.g. 8080:default/example-udp-svc:9000,8081:staging/example-udp-svc:9000
       udp:
       {{- range env "NGINX_INGRESS_UDP" | splitList "," }}
