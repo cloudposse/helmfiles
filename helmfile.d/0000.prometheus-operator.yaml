@@ -29,7 +29,7 @@ releases:
   wait: true
   values:
       ### Optional: PROMETHEUS_OPERATOR_RBAC_ENABLED;
-    - rbacEnable: {{ and (env "KOPS_AUTHORIZATION_RBAC_ENABLED" | default "false") (env "PROMETHEUS_OPERATOR_RBAC_ENABLED" | default "false") }}
+    - rbacEnable: {{ env "PROMETHEUS_OPERATOR_RBAC_ENABLED" | default "false" }}
       jobLabel: "prometheus-operator"
       image:
         repository: "quay.io/coreos/prometheus-operator"
