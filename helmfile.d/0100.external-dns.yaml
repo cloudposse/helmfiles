@@ -44,3 +44,13 @@ releases:
         requests:
           cpu: "100m"
           memory: "128Mi"
+      rbac:
+        ## If true, create & use RBAC resources
+        ##
+        ### Optional: EXTERNAL_DNS_RBAC_ENABLED;
+        create: {{ and (env "KOPS_AUTHORIZATION_RBAC_ENABLED" | default "false") (env "EXTERNAL_DNS_RBAC_ENABLED" | default "false") }}
+        ## Ignored if rbac.create is true
+        ##
+        ### Optional: EXTERNAL_DNS_RBAC_SERVICE_ACCOUNT_NAME;
+        serviceAccountName: '{{ env "EXTERNAL_DNS_RBAC_SERVICE_ACCOUNT_NAME" | default "default" }}'
+
