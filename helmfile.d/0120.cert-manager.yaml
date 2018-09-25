@@ -10,6 +10,10 @@ releases:
 ## CERT-MANAGER - Automatic Let's Encrypt for Ingress  #########################
 ################################################################################
 
+#
+# References:
+#   - https://github.com/helm/charts/blob/master/stable/cert-manager/values.yaml
+#
 - name: "cert-manager"
   namespace: "kube-system"
   labels:
@@ -24,8 +28,8 @@ releases:
   wait: true
   values:
     - rbac:
-        ### Optional: CERT_MANAGER_RBAC_CREATE;
-        create: {{ env "CERT_MANAGER_RBAC_CREATE" | default "true" }}
+        ### Optional: CERT_MANAGER_RBAC_ENABLED;
+        create: {{ and (env "KOPS_AUTHORIZATION_RBAC_ENABLED" | default "false") (env "CERT_MANAGER_RBAC_ENABLED" | default "false") }}
       ingressShim:
         ### Optional: CERT_MANAGER_INGRESS_SHIM_DEFAULT_ISSUER_NAME;
         defaultIssuerName: '{{ env "CERT_MANAGER_INGRESS_SHIM_DEFAULT_ISSUER_NAME" | default "letsencrypt-prod" }}'
@@ -40,7 +44,7 @@ releases:
         create: {{ env "CERT_MANAGER_SERVICE_ACCOUNT_CREATE" | default "true" }}
         # The name of the service account to use.
         # If not set and create is true, a name is generated using the fullname template
-        ### Optional: CERT_MANAGER_SERVICE_ACCOUNT_CREATE;
+        ### Optional: CERT_MANAGER_SERVICE_ACCOUNT_NAME;
         name: '{{ env "CERT_MANAGER_SERVICE_ACCOUNT_NAME" | default "" }}'
       resources:
         limits:
