@@ -9,6 +9,10 @@ releases:
 ## Chart Museum API ############################################################
 ################################################################################
 
+#
+# References:
+#   - https://github.com/helm/charts/blob/master/stable/chartmuseum/values.yaml
+#
 - name: "charts-api"
   namespace: "kube-system"
   labels:
