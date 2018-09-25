@@ -27,8 +27,22 @@ releases:
   wait: true
   values:
     - image:
+        ### Optional: CLUSTER_AUTOSCALER_IMAGE_TAG;
         tag: '{{ env "CLUSTER_AUTOSCALER_IMAGE_TAG" | default "v1.2.2" }}'
       autoDiscovery:
         ### Required: KOPS_CLUSTER_NAME; e.g. cluster.k8s.local
         clusterName: '{{ env "KOPS_CLUSTER_NAME" }}'
       cloudProvider: aws
+      rbac:
+        ## If true, create & use RBAC resources
+        ##
+        ### Optional: CLUSTER_AUTOSCALER_RBAC_ENABLED;
+        create: {{ and (env "KOPS_AUTHORIZATION_RBAC_ENABLED" | default "false") (env "CLUSTER_AUTOSCALER_RBAC_ENABLED" | default "false") }}
+        ## If true, create & use Pod Security Policy resources
+        ## https://kubernetes.io/docs/concepts/policy/pod-security-policy/
+        ### Optional: CLUSTER_AUTOSCALER_RBAC_PSP_ENABLED;
+        pspEnabled: {{ env "CLUSTER_AUTOSCALER_RBAC_PSP_ENABLED" | default "false" }}
+        ## Ignored if rbac.create is true
+        ##
+        ### Optional: CLUSTER_AUTOSCALER_RBAC_SERVICE_ACCOUNT_NAME;
+        serviceAccountName: '{{ env "CLUSTER_AUTOSCALER_RBAC_SERVICE_ACCOUNT_NAME" | default "default" }}'
