@@ -47,8 +47,8 @@ releases:
       rbac:
         ## If true, create & use RBAC resources
         ##
-        ### Optional: EXTERNAL_DNS_RBAC_ENABLED;
-        create: {{ env "EXTERNAL_DNS_RBAC_ENABLED" | default "false" }}
+        ### Optional: RBAC_ENABLED;
+        create: {{ env "RBAC_ENABLED" | default "false" }}
         ## Ignored if rbac.create is true
         ##
         ### Optional: EXTERNAL_DNS_RBAC_SERVICE_ACCOUNT_NAME;

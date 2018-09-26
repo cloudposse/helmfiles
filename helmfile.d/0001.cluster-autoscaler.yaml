@@ -36,8 +36,8 @@ releases:
       rbac:
         ## If true, create & use RBAC resources
         ##
-        ### Optional: CLUSTER_AUTOSCALER_RBAC_ENABLED;
-        create: {{ env "CLUSTER_AUTOSCALER_RBAC_ENABLED" | default "false" }}
+        ### Optional: RBAC_ENABLED;
+        create: {{ env "RBAC_ENABLED" | default "false" }}
         ## If true, create & use Pod Security Policy resources
         ## https://kubernetes.io/docs/concepts/policy/pod-security-policy/
         ### Optional: CLUSTER_AUTOSCALER_RBAC_PSP_ENABLED;

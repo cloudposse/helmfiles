@@ -28,8 +28,8 @@ releases:
   wait: true
   values:
     - rbac:
-        ### Optional: CERT_MANAGER_RBAC_ENABLED;
-        create: {{ env "CERT_MANAGER_RBAC_ENABLED" | default "false" }}
+        ### Optional: RBAC_ENABLED;
+        create: {{ env "RBAC_ENABLED" | default "false" }}
       ingressShim:
         ### Optional: CERT_MANAGER_INGRESS_SHIM_DEFAULT_ISSUER_NAME;
         defaultIssuerName: '{{ env "CERT_MANAGER_INGRESS_SHIM_DEFAULT_ISSUER_NAME" | default "letsencrypt-prod" }}'

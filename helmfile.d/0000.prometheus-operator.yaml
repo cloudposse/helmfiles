@@ -28,8 +28,8 @@ releases:
   version: "0.0.29"
   wait: true
   values:
-      ### Optional: PROMETHEUS_OPERATOR_RBAC_ENABLED;
-    - rbacEnable: {{ env "PROMETHEUS_OPERATOR_RBAC_ENABLED" | default "false" }}
+      ### Optional: RBAC_ENABLED;
+    - rbacEnable: {{ env "RBAC_ENABLED" | default "false" }}
       jobLabel: "prometheus-operator"
       image:
         repository: "quay.io/coreos/prometheus-operator"

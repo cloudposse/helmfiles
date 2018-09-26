@@ -47,8 +47,8 @@ releases:
       rbac:
         ## If true, create & use RBAC resources
         ##
-        ### Optional: KUBE2IAM_RBAC_ENABLED;
-        create: {{ env "KUBE2IAM_RBAC_ENABLED" | default "false" }}
+        ### Optional: RBAC_ENABLED;
+        create: {{ env "RBAC_ENABLED" | default "false" }}
         ## Ignored if rbac.create is true
         ##
         ### Optional: KUBE2IAM_RBAC_SERVICE_ACCOUNT_NAME;

@@ -28,8 +28,8 @@ releases:
   wait: true
   values:
     - rbac:
-        ### Optional: KIAM_RBAC_ENABLED;
-        create: {{ env "KIAM_RBAC_ENABLED" | default "false" }}
+        ### Optional: RBAC_ENABLED;
+        create: {{ env "RBAC_ENABLED" | default "false" }}
       agent:
         gatewayTimeoutCreation: "5s"
         host:

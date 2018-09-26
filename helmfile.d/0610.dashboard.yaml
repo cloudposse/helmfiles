@@ -43,8 +43,8 @@ releases:
       rbac:
         ## If true, create & use RBAC resources
         ##
-        ### Optional: KUBERNETES_DASHBOARD_RBAC_ENABLED;
-        create: {{ env "KUBERNETES_DASHBOARD_RBAC_ENABLED" | default "false" }}
+        ### Optional: RBAC_ENABLED;
+        create: {{ env "RBAC_ENABLED" | default "false" }}
       serviceAccount:
         # Specifies whether a service account should be created
         ### Optional: KUBERNETES_DASHBOARD_SERVICE_ACCOUNT_CREATE;
