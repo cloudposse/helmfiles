@@ -44,7 +44,10 @@ releases:
         FLUENT_ELASTICSEARCH_PORT: '{{ env "ELASTICSEARCH_PORT" }}'
         FLUENT_ELASTICSEARCH_SCHEME: '{{ env "ELASTICSEARCH_SCHEME" | default "http"}}'
         FLUENT_UID: "0"
+        FLUENT_ELASTICSEARCH_BUFFER_CHUNK_LIMIT_SIZE: '{{ env "FLUENT_ELASTICSEARCH_BUFFER_CHUNK_LIMIT_SIZE" | default "8M"}}'
+        FLUENT_ELASTICSEARCH_BUFFER_QUEUE_LIMIT_LENGTH: '{{ env "FLUENT_ELASTICSEARCH_BUFFER_QUEUE_LIMIT_LENGTH" | default "128"}}'
       secret:
         FLUENT_ELASTICSEARCH_USER: '{{ env "ELASTICSEARCH_USER" | default "" }}'
         FLUENT_ELASTICSEARCH_PASSWORD: '{{ env "ELASTICSEARCH_PASSWORD" | default "" }}'
-    configDir: /tmp/conf
+    configDir: /fluentd/etc/
+  - ./values/fluentd-elasticsearch-logs-configs.yaml
