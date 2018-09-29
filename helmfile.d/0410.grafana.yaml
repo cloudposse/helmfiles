@@ -30,8 +30,8 @@ releases:
         ### Optional: GRAFANA_RBAC_PSP_ENABLED;
         pspEnabled: {{ env "GRAFANA_RBAC_PSP_ENABLED" | default "false" }}
       serviceAccount:
-        ### Optional: GRAFANA_SERVICE_ACCOUNT_CREATE;
-        create: {{ env "GRAFANA_SERVICE_ACCOUNT_CREATE" | default "false" }}
+        ### Optional: RBAC_ENABLED;
+        create: {{ env "RBAC_ENABLED" | default "false" }}
         ### Optional: GRAFANA_SERVICE_ACCOUNT_NAME;
         name: '{{ env "GRAFANA_SERVICE_ACCOUNT_NAME" }}'
 

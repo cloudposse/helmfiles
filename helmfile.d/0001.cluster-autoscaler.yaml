@@ -12,6 +12,7 @@ releases:
 #
 # References:
 #   - https://github.com/helm/charts/tree/master/stable/cluster-autoscaler
+#   - https://github.com/helm/charts/blob/master/stable/cluster-autoscaler/values.yaml
 #   - https://github.com/kubernetes/autoscaler/tree/master/cluster-autoscaler
 #
 - name: "cluster-autoscaler"

@@ -30,6 +30,17 @@ releases:
     - rbac:
         ### Optional: RBAC_ENABLED;
         create: {{ env "RBAC_ENABLED" | default "false" }}
+      serviceAccount:
+        agent:
+          ### Optional: RBAC_ENABLED;
+          create: {{ env "RBAC_ENABLED" | default "false" }}
+          ### Optional: KIAM_AGENT_SERVICE_ACCOUNT_NAME;
+          name: '{{ env "KIAM_AGENT_SERVICE_ACCOUNT_NAME" | default "" }}'
+        server:
+          ### Optional: RBAC_ENABLED;
+          create: {{ env "RBAC_ENABLED" | default "false" }}
+          ### Optional: KIAM_SERVER_SERVICE_ACCOUNT_NAME;
+          name: '{{ env "KIAM_SERVER_SERVICE_ACCOUNT_NAME" | default "" }}'
       agent:
         gatewayTimeoutCreation: "5s"
         host:

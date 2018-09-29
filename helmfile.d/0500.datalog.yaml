@@ -47,22 +47,14 @@ releases:
         ### Optional: DATADOG_APM_ENABLED; e.g. true
         apmEnabled: {{ env "DATADOG_APM_ENABLED" | default "false" }}
       rbac:
-        ## If true, create & use RBAC resources
-        ##
         ### Optional: RBAC_ENABLED;
         create: {{ env "RBAC_ENABLED" | default "false" }}
-        ## Ignored if rbac.create is true
-        ##
         ### Optional: DATADOG_RBAC_SERVICE_ACCOUNT_NAME;
         serviceAccountName: '{{ env "DATADOG_RBAC_SERVICE_ACCOUNT_NAME" | default "default" }}'
       kube-state-metrics:
         rbac:
-          ## If true, create & use RBAC resources
-          ##
           ### Optional: RBAC_ENABLED;
           create: {{ env "RBAC_ENABLED" | default "false" }}
-          ## Ignored if rbac.create is true
-          ##
           ### Optional: DATADOG_KUBE_STATE_METRICS_RBAC_SERVICE_ACCOUNT_NAME;
           serviceAccountName: '{{ env "DATADOG_KUBE_STATE_METRICS_RBAC_SERVICE_ACCOUNT_NAME" | default "default" }}'
       daemonset:

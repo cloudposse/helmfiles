@@ -39,11 +39,8 @@ releases:
         - key: "node-role.kubernetes.io/node"
           effect: "NoSchedule"
       serviceAccount:
-        # Specifies whether a service account should be created
-        ### Optional: CERT_MANAGER_SERVICE_ACCOUNT_CREATE;
-        create: {{ env "CERT_MANAGER_SERVICE_ACCOUNT_CREATE" | default "true" }}
-        # The name of the service account to use.
-        # If not set and create is true, a name is generated using the fullname template
+        ### Optional: RBAC_ENABLED;
+        create: {{ env "RBAC_ENABLED" | default "false" }}
         ### Optional: CERT_MANAGER_SERVICE_ACCOUNT_NAME;
         name: '{{ env "CERT_MANAGER_SERVICE_ACCOUNT_NAME" | default "" }}'
       resources:

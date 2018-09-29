@@ -86,7 +86,7 @@ releases:
               - '{{ env "CHARTMUSEUM_HOSTNAME" }}'
         {{- end }}
       serviceAccount:
-        ### Optional: CHARTMUSEUM_SERVICE_ACCOUNT_CREATE;
-        create: {{ env "CHARTMUSEUM_SERVICE_ACCOUNT_CREATE" | default "true" }}
+        ### Optional: RBAC_ENABLED;
+        create: {{ env "RBAC_ENABLED" | default "false" }}
         ### Optional: CHARTMUSEUM_SERVICE_ACCOUNT_NAME;
         name: '{{ env "CHARTMUSEUM_SERVICE_ACCOUNT_NAME" | default "" }}'
