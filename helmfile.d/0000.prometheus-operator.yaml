@@ -38,11 +38,11 @@ releases:
         pullPolicy: "IfNotPresent"
       resources:
         limits:
-          cpu: "10m"
-          memory: "64Mi"
+          cpu: '{{ env "PROMETHEUS_OPERATOR_LIMIT_CPU" | default "10m" }}'
+          memory: '{{ env "PROMETHEUS_OPERATOR_LIMIT_MEMORY" | default "64Mi" }}'
         requests:
-          cpu: "5m"
-          memory: "32Mi"
+          cpu: '{{ env "PROMETHEUS_OPERATOR_REQUEST_CPU" | default "5m" }}'
+          memory: '{{ env "PROMETHEUS_OPERATOR_REQUEST_MEMORY" | default "32Mi" }}'
       global:
         hyperkube:
           repository: "quay.io/coreos/hyperkube"
