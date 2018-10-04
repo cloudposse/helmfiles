@@ -42,7 +42,7 @@ releases:
     - '{{ env "KUBE_PROMETHEUS_EXTERNAL_VALUES_FILE" | default "values/kube-prometheus.grafana.dashboards.yaml" }}'
     - global:
         ### Optional: RBAC_ENABLED;
-        rbacEnable: {{ env 'RBAC_ENABLED' | default "false" }}
+        rbacEnable: {{ env "RBAC_ENABLED" | default "false" }}
       deployExporterNode: true
       exporter-node:
         resources:
