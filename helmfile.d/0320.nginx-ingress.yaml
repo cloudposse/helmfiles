@@ -88,7 +88,7 @@ releases:
         create: {{ env "RBAC_ENABLED" | default "false" }}
       serviceAccount:
         ### Optional: RBAC_ENABLED;
-        create: { env "RBAC_ENABLED" | default "false" }}
+        create: {{ env "RBAC_ENABLED" | default "false" }}
         ### Optional: NGINX_INGRESS_SERVICE_ACCOUNT_NAME;
         name: '{{ env "NGINX_INGRESS_SERVICE_ACCOUNT_NAME" | default "" }}'
 
