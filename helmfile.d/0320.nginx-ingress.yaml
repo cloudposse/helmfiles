@@ -60,20 +60,43 @@ releases:
           enabled: {{ env "NGINX_INGRESS_METRICS_ENABLED" | default "false" }}
         metrics:
           enabled: {{ env "NGINX_INGRESS_METRICS_ENABLED" | default "false" }}
+      ### Regexp used to map
+      ### 8080:default/example-tcp-svc:9000,8081:staging/example-tcp-svc:9000
+      ### to
+      ### 8080: default/example-tcp-svc:9000
+      ### 8081: staging/example-tcp-svc:9000
+      ### Optional: NGINX_INGRESS_TCP; e.g. 8080:default/example-tcp-svc:9000,8081:staging/example-tcp-svc:9000
+      tcp:
+      {{- range env "NGINX_INGRESS_TCP" | splitList "," }}
+        {{ regexReplaceAll "(\\d*:)(.*)" . "$1 $2" }}
+      {{- end }}
+      ### Regexp used to map
+      ### 8080:default/example-udp-svc:9000,8081:staging/example-udp-svc:9000
+      ### to
+      ### 8080: default/example-udp-svc:9000
+      ### 8081: staging/example-udp-svc:9000
+      ### Optional: NGINX_INGRESS_UDP; e.g. 8080:default/example-udp-svc:9000,8081:staging/example-udp-svc:9000
+      udp:
+      {{- range env "NGINX_INGRESS_UDP" | splitList "," }}
+        {{ regexReplaceAll "(\\d*:)(.*)" . "$1 $2" }}
+      {{- end }}
+
       defaultBackend:
         enabled: false
       rbac:
         create: {{ env "NGINX_INGRESS_RBAC_ENABLED" | default "false" }}
       serviceAccount:
         create: {{ env "NGINX_INGRESS_RBAC_ENABLED" | default "false" }}
-## Workaround untill https://github.com/kubernetes/ingress-nginx/pull/2989 would be merged
-      customTemplate:
-        configMapName: "ingress-nginx-ingress-controller"
-        configMapKey: "template"
-## Workaround untill https://github.com/kubernetes/ingress-nginx/pull/2989 would be merged
+
+## Workaround until https://github.com/kubernetes/ingress-nginx/pull/2989 would be merged
+    - controller:
+        customTemplate:
+          configMapName: "ingress-nginx-ingress-controller"
+          configMapKey: "template"
   set:
   - name: "controller.config.template"
     file: ./helmfile.d/values/ingress.nginx.template
+## Workaround until https://github.com/kubernetes/ingress-nginx/pull/2989 would be merged
 
 - name: "ingress-backend"
   namespace: "kube-system"
@@ -109,3 +132,71 @@ releases:
           - "502"
           - "503"
           - "504"
+
+#######################################################################################
+## ingress-monitoring                                                                ##
+## Integrates kube-prometheus and grafana with nginx ingress                         ##
+#######################################################################################
+
+#
+# References:
+#   - https://github.com/coreos/prometheus-operator/tree/master/helm/kube-prometheus
+#   - https://github.com/coreos/prometheus-operator/tree/master/contrib/kube-prometheus
+#   - https://prometheus.io/docs/alerting/configuration
+#   - https://medium.com/@timfpark/simple-kubernetes-cluster-monitoring-with-prometheus-and-grafana-dd27edb1641
+#   - https://www.weave.works/blog/monitoring-kubernetes-infrastructure
+#   - https://www.datadoghq.com/blog/how-to-collect-and-graph-kubernetes-metrics
+#   - https://grafana.com/grafana
+#   - https://github.com/helm/charts/tree/master/stable/grafana
+#
+- name: "ingress-monitoring"
+  namespace: "monitoring"
+  labels:
+    chart: "monochart"
+    component: "monitoring"
+    namespace: "monitoring"
+    vendor: "cloudposse"
+    default: '{{ env "NGINX_INGRESS_METRICS_ENABLED" | default "false" }}'
+  chart: "cloudposse-incubator/monochart"
+  version: "0.4.0"
+  wait: true
+  values:
+  - prometheusRules:
+      nginx-ingress:
+        labels:
+          prometheus: kube-prometheus
+        groups:
+        - name: nginx-ingress.rules
+          rules:
+          - alert: NginxIngressControllerError
+            annotations:
+              description: Nginx ingress controller error
+              summary: NginxIngressControllerError
+            expr: nginx_ingress_controller_requests > {{ env "NGINX_INGRESS_METRICS_CONTROLLER_ERROR_ALERT" | default "100000" }}
+            labels:
+              severity: warning
+
+    serviceMonitors:
+      nginx-ingress:
+        labels:
+          prometheus: kube-prometheus
+        selector:
+          matchLabels:
+            app: nginx-ingress
+            component: controller
+        namespaceSelector:
+          matchNames:
+          - kube-system
+        endpoints:
+          - port: "metrics"
+            interval: 15s
+
+    configMaps:
+      dashboards:
+        enabled: true
+        labels:
+          grafana_dashboard: "true"
+
+  set:
+  - name: "configMaps.dashboards.files.nginx\\.json"
+    file: https://raw.githubusercontent.com/cloudposse/grafana-dashboards/{{ env "GRAFANA_DASHBOARDS_VERSION" | default "1.0" }}/nginx-ingress/nginx.json

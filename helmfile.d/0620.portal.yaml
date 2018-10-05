@@ -25,7 +25,7 @@ releases:
     vendor: "cloudposse"
     default: "true"
   chart: "cloudposse-incubator/portal"
-  version: "0.2.2"
+  version: "0.2.4"
   wait: true
   values:
   - values/portal.backends.yaml
@@ -68,7 +68,7 @@ releases:
         ### Optional: PORTAL_BACKEND_PROMETHEUS_NAME
         name: '{{ env "PORTAL_BACKEND_PROMETHEUS_NAME" | default "Prometheus" }}'
         ### Optional: PORTAL_BACKEND_PROMETHEUS_SERVICE_NAME
-        serviceName: '{{ env "PORTAL_BACKEND_PROMETHEUS_SERVICE_NAME" | default "kube-prometheus-prometheus" }}'
+        serviceName: '{{ env "PORTAL_BACKEND_PROMETHEUS_SERVICE_NAME" | default "kube-prometheus" }}'
         ### Optional: PORTAL_BACKEND_PROMETHEUS_SERVICE_PORT
         servicePort: '{{ env "PORTAL_BACKEND_PROMETHEUS_SERVICE_PORT" | default "9090" }}'
         external: false
@@ -128,43 +128,33 @@ releases:
         requests:
           cpu: "3m"
           memory: "8Mi"
-    proxy:
-      enabled: true
-      ### Optional: PORTAL_PROXY_REPLICA_COUNT
-      replicaCount: '{{ env "PORTAL_PROXY_REPLICA_COUNT" | default "2" }}'
-      image:
-        repository: "traefik"
-        ### Optional: PORTAL_PROXY_IMAGE_TAG
-        tag: '{{ env "PORTAL_PROXY_IMAGE_TAG" | default "1.5.4" }}'
-        pullPolicy: "Always"
-      service:
-        externalPort: "80"
-        internalPort: "80"
-      resources:
-        limits:
-          cpu: "5m"
-          memory: "64Mi"
-        requests:
-          cpu: "3m"
-          memory: "32Mi"
     oauth2-proxy:
       app:
         useSSL: false
         upstreams:
         - "file:///dev/null"
-        provider: "github"
-        ### Required: PORTAL_OAUTH2_PROXY_GITHUB_CLIENT_ID
-        clientID: '{{ env "PORTAL_OAUTH2_PROXY_GITHUB_CLIENT_ID" }}'
-        ### Required: PORTAL_OAUTH2_PROXY_GITHUB_CLIENT_SECRET
-        clientSecret: '{{ env "PORTAL_OAUTH2_PROXY_GITHUB_CLIENT_SECRET" }}'
-        ### Required: PORTAL_OAUTH2_PROXY_GITHUB_ORGANIZATION
+        provider: '{{ env "PORTAL_OAUTH2_PROXY_PROVIDER" | default "github" }}'
+        ### Required: PORTAL_OAUTH2_PROXY_CLIENT_ID
+        clientID: '{{ env "PORTAL_OAUTH2_PROXY_CLIENT_ID" }}'
+        ### Required: PORTAL_OAUTH2_PROXY_CLIENT_SECRET
+        clientSecret: '{{ env "PORTAL_OAUTH2_PROXY_CLIENT_SECRET" }}'
+        ### Optional: PORTAL_OAUTH2_PROXY_LOGIN_URL
+        loginUrl: '{{ env "PORTAL_OAUTH2_PROXY_LOGIN_URL" }}'
+        ### Optional: PORTAL_OAUTH2_PROXY_REDEEM_URL
+        redeemUrl: '{{ env "PORTAL_OAUTH2_PROXY_REDEEM_URL" }}'
+        ### Optional: PORTAL_OAUTH2_PROXY_VALIDATE_URL
+        validateUrl: '{{ env "PORTAL_OAUTH2_PROXY_VALIDATE_URL" }}'
+        ### Optional: PORTAL_OAUTH2_PROXY_REDIRECT_URL
+        redirectUrl: '{{ env "PORTAL_OAUTH2_PROXY_REDIRECT_URL" }}'
+        ### Optional: PORTAL_OAUTH2_PROXY_GITHUB_ORGANIZATION
         githubOrg: '{{ env "PORTAL_OAUTH2_PROXY_GITHUB_ORGANIZATION" }}'
-        ### Required: PORTAL_OAUTH2_PROXY_GITHUB_TEAM
+        ### Optional: PORTAL_OAUTH2_PROXY_GITHUB_TEAM
         githubTeam: '{{ env "PORTAL_OAUTH2_PROXY_GITHUB_TEAM" }}'
         requestLogging: false
         passAccessToken: false
         passBasicAuth: false
         passHostHeader: true
+        setXAuthRequest: true
         ### Required: PORTAL_OAUTH2_PROXY_COOKIE_NAME
         cookieName: '{{ env "PORTAL_OAUTH2_PROXY_COOKIE_NAME" }}'
         ### Required: PORTAL_OAUTH2_PROXY_COOKIE_SECRET

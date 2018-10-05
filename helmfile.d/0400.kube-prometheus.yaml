@@ -1,0 +1,295 @@
+repositories:
+# CoreOS Stable helm charts
+- name: "coreos-stable"
+  url: "https://s3-eu-west-1.amazonaws.com/coreos-charts/stable"
+
+# Cloud Posse incubator repo of helm charts
+- name: "cloudposse-incubator"
+  url: "https://charts.cloudposse.com/incubator/"
+
+releases:
+
+#######################################################################################
+## kube-prometheus                                                                   ##
+## Collects Kubernetes manifests, Grafana dashboards, and Prometheus rules           ##
+## combined with documentation and scripts to provide single-command                 ##
+## deployments of end-to-end Kubernetes cluster monitoring with Prometheus operator  ##
+#######################################################################################
+
+#
+# References:
+#   - https://github.com/coreos/prometheus-operator/tree/master/helm/kube-prometheus
+#   - https://github.com/coreos/prometheus-operator/tree/master/contrib/kube-prometheus
+#   - https://prometheus.io/docs/alerting/configuration
+#   - https://medium.com/@timfpark/simple-kubernetes-cluster-monitoring-with-prometheus-and-grafana-dd27edb1641
+#   - https://www.weave.works/blog/monitoring-kubernetes-infrastructure
+#   - https://www.datadoghq.com/blog/how-to-collect-and-graph-kubernetes-metrics
+#
+- name: "kube-prometheus"
+  namespace: "monitoring"
+  labels:
+    chart: "kube-prometheus"
+    repo: "coreos-stable"
+    component: "monitoring"
+    namespace: "monitoring"
+    vendor: "coreos"
+    default: "true"
+  chart: "coreos-stable/kube-prometheus"
+  version: "0.0.105"
+  wait: true
+  values:
+    ### Optional: KUBE_PROMETHEUS_EXTERNAL_VALUES_FILE;
+    - '{{ env "KUBE_PROMETHEUS_EXTERNAL_VALUES_FILE" | default "values/kube-prometheus.grafana.dashboards.yaml" }}'
+    - global:
+        rbacEnable: false
+      deployExporterNode: true
+      exporter-node:
+        resources:
+          limits:
+            cpu: "10m"
+            memory: "32Mi"
+          requests:
+            cpu: "5m"
+            memory: "16Mi"
+      deployGrafana: {{ env "KUBE_PROMETHEUS_GRAFANA_INTERNAL_ENABLED" | default "true" }}
+      grafana:
+        resources:
+          limits:
+            cpu: "50m"
+            memory: "64Mi"
+          requests:
+            cpu: "10m"
+            memory: "64Mi"
+      exporter-kube-state:
+        resources:
+          limits:
+            cpu: "50m"
+            memory: "64Mi"
+          requests:
+            cpu: "10m"
+            memory: "64Mi"
+      deployAlertManager: true
+      alertmanager:
+        paused: false
+        podAntiAffinity: "soft"
+        ### Optional: KUBE_PROMETHEUS_ALERT_MANAGER_REPLICA_COUNT; e.g. 4
+        replicaCount: '{{ env "KUBE_PROMETHEUS_ALERT_MANAGER_REPLICA_COUNT" | default "4" }}'
+        image:
+          repository: "quay.io/prometheus/alertmanager"
+          ### Optional: KUBE_PROMETHEUS_ALERT_MANAGER_IMAGE_TAG; e.g. v0.14.0
+          tag: '{{ env "KUBE_PROMETHEUS_ALERT_MANAGER_IMAGE_TAG" | default "v0.15.1" }}'
+          pullPolicy: "IfNotPresent"
+        resources:
+          limits:
+            cpu: "10m"
+            memory: "64Mi"
+          requests:
+            cpu: "5m"
+            memory: "32Mi"
+        config:
+          global:
+            resolve_timeout: "5m"
+          route:
+            group_by:
+              - "alertname"
+              - "namespace"
+            group_wait: "30s"
+            group_interval: "5m"
+            repeat_interval: "12h"
+            receiver: "slack_general"
+            routes:
+            - match:
+                alertname: "DeadMansSwitch"
+              receiver: "null"
+          receivers:
+            - name: "null"
+            - name: "slack_general"
+              slack_configs:
+                  ### Required: KUBE_PROMETHEUS_ALERT_MANAGER_SLACK_WEBHOOK_URL
+                - api_url: '{{ env "KUBE_PROMETHEUS_ALERT_MANAGER_SLACK_WEBHOOK_URL" }}'
+                  ### Required: KUBE_PROMETHEUS_ALERT_MANAGER_SLACK_CHANNEL; e.g. #alerts-staging
+                  channel: '{{ env "KUBE_PROMETHEUS_ALERT_MANAGER_SLACK_CHANNEL" }}'
+                  send_resolved: true
+          templates:
+            - ./*.tmpl
+        service:
+          type: "ClusterIP"
+          port: "80"
+        ingress:
+          enabled: false
+{{ if not ( env "KUBE_PROMETHEUS_ALERT_MANAGER_URL" | empty ) }}
+        externalUrl: '{{ env "KUBE_PROMETHEUS_ALERT_MANAGER_URL" }}'
+{{ end }}
+      prometheus:
+        retention: "31d"
+        routePrefix: "/"
+        config:
+          specifiedInValues: true
+        rules:
+          specifiedInValues: true
+        paused: false
+        podAntiAffinity: "soft"
+        ### Optional: KUBE_PROMETHEUS_REPLICA_COUNT; e.g. 4
+        replicaCount: '{{ env "KUBE_PROMETHEUS_REPLICA_COUNT" | default "4" }}'
+        image:
+          repository: "quay.io/prometheus/prometheus"
+          ### Optional: KUBE_PROMETHEUS_IMAGE_TAG; e.g. v2.2.1
+          tag: '{{ env "KUBE_PROMETHEUS_IMAGE_TAG" | default "v2.2.1" }}'
+          pullPolicy: "IfNotPresent"
+        resources:
+          limits:
+            cpu: "400m"
+            memory: "2048Mi"
+          requests:
+            cpu: "100m"
+            memory: "512Mi"
+        storageSpec:
+          volumeClaimTemplate:
+            spec:
+              accessModes:
+                - "ReadWrite"
+              resources:
+                requests:
+                  storage: "50Gi"
+        service:
+          type: "ClusterIP"
+          port: "80"
+        ingress:
+          enabled: false
+{{ if not ( env "KUBE_PROMETHEUS_URL" | empty ) }}
+        externalUrl: '{{ env "KUBE_PROMETHEUS_URL" }}'
+{{ end }}
+  set:
+  - name: "alertmanager.templateFiles.deployment\\.tmpl"
+    file: ./helmfile.d/values/kube-prometheus.alerts.template
+
+#######################################################################################
+## kube-prometheus-pushgateway                                                       ##
+## Provides kube-prometheus default push gateway                                      ##
+#######################################################################################
+
+#
+# References:
+#   - https://github.com/coreos/prometheus-operator/tree/master/helm/kube-prometheus
+#   - https://github.com/coreos/prometheus-operator/tree/master/contrib/kube-prometheus
+#   - https://github.com/helm/charts/tree/master/stable/prometheus-pushgateway
+#
+- name: "kube-prometheus-pushgateway"
+  namespace: "monitoring"
+  labels:
+    chart: "prometheus-pushgateway"
+    component: "monitoring"
+    namespace: "monitoring"
+    vendor: "kubernetes"
+    default: 'true'
+  chart: "stable/prometheus-pushgateway"
+  version: "0.1.2"
+  wait: true
+  values:
+  - serviceAccount:
+      create: {{ env "KUBE_PROMETHEUS_SERVICE_ACCOUNT_CREATE" | default "false" }}
+    replicaCount: {{ env "KUBE_PROMETHEUS_PUSH_GATEWAY_REPLICA_COUNT" | default "1" }}
+
+#######################################################################################
+## kube-prometheus-pushgateway-monitor                                               ##
+## Provides kube-prometheus service monitor for  push gateway                         ##
+#######################################################################################
+
+#
+# References:
+#   - https://github.com/coreos/prometheus-operator/tree/master/helm/kube-prometheus
+#   - https://github.com/coreos/prometheus-operator/tree/master/contrib/kube-prometheus
+#
+- name: "kube-prometheus-pushgateway-monitor"
+  namespace: "monitoring"
+  labels:
+    chart: "prometheus-pushgateway"
+    component: "monitoring"
+    namespace: "monitoring"
+    vendor: "cloudposse"
+    default: "true"
+  chart: "cloudposse-incubator/monochart"
+  version: "0.4.0"
+  wait: true
+  values:
+  - serviceMonitors:
+      nginx-ingress:
+        labels:
+          prometheus: kube-prometheus
+        selector:
+          matchLabels:
+            app: prometheus-pushgateway
+            release: kube-prometheus-pushgateway
+        namespaceSelector:
+          matchNames:
+          - monitoring
+        endpoints:
+          - port: "metrics"
+            interavl: 15s
+
+
+#######################################################################################
+## kube-prometheus-grafana                                                           ##
+## Integrates kube-prometheus with external grafana                                  ##
+#######################################################################################
+
+#
+# References:
+#   - https://github.com/coreos/prometheus-operator/tree/master/helm/kube-prometheus
+#   - https://github.com/coreos/prometheus-operator/tree/master/contrib/kube-prometheus
+#   - https://prometheus.io/docs/alerting/configuration
+#   - https://medium.com/@timfpark/simple-kubernetes-cluster-monitoring-with-prometheus-and-grafana-dd27edb1641
+#   - https://www.weave.works/blog/monitoring-kubernetes-infrastructure
+#   - https://www.datadoghq.com/blog/how-to-collect-and-graph-kubernetes-metrics
+#   - https://grafana.com/grafana
+#   - https://github.com/helm/charts/tree/master/stable/grafana
+#
+- name: "kube-prometheus-grafana"
+  namespace: "monitoring"
+  labels:
+    chart: "kube-prometheus-grafana"
+    component: "monitoring"
+    namespace: "monitoring"
+    vendor: "cloudposse"
+    default: '{{ env "KUBE_PROMETHEUS_GRAFANA_INTERNAL_ENABLED" | default "true" | not }}'
+  chart: "cloudposse-incubator/monochart"
+  version: "0.4.0"
+  wait: true
+  values:
+  - configMaps:
+      datasource:
+        enabled: true
+        labels:
+          grafana_datasource: "true"
+        files:
+          prometheus.yaml:
+            apiVersion: 1
+            datasources:
+            - name: Prometheus
+              type: prometheus
+              url: http://kube-prometheus.monitoring:9090
+              access: proxy
+              isDefault: true
+      dashboards:
+        enabled: true
+        labels:
+          grafana_dashboard: "true"
+  set:
+  - name: "configMaps.dashboards.files.deployment\\.json"
+    file: https://raw.githubusercontent.com/cloudposse/grafana-dashboards/{{ env "GRAFANA_DASHBOARDS_VERSION" | default "1.0" }}/kube-prometheus/deployment-dashboard.json
+  - name: "configMaps.dashboards.files.kubernetes-capacity-planning\\.json"
+    file: https://raw.githubusercontent.com/cloudposse/grafana-dashboards/{{ env "GRAFANA_DASHBOARDS_VERSION" | default "1.0" }}/kube-prometheus/kubernetes-capacity-planning-dashboard.json
+  - name: "configMaps.dashboards.files.kubernetes-cluster-health\\.json"
+    file: https://raw.githubusercontent.com/cloudposse/grafana-dashboards/{{ env "GRAFANA_DASHBOARDS_VERSION" | default "1.0" }}/kube-prometheus/kubernetes-cluster-health-dashboard.json
+  - name: "configMaps.dashboards.files.kubernetes-cluster-status\\.json"
+    file: https://raw.githubusercontent.com/cloudposse/grafana-dashboards/{{ env "GRAFANA_DASHBOARDS_VERSION" | default "1.0" }}/kube-prometheus/kubernetes-cluster-status-dashboard.json
+  - name: "configMaps.dashboards.files.kubernetes-control-plane-status\\.json"
+    file: https://raw.githubusercontent.com/cloudposse/grafana-dashboards/{{ env "GRAFANA_DASHBOARDS_VERSION" | default "1.0" }}/kube-prometheus/kubernetes-control-plane-status-dashboard.json
+  - name: "configMaps.dashboards.files.kubernetes-resource-requests\\.json"
+    file: https://raw.githubusercontent.com/cloudposse/grafana-dashboards/{{ env "GRAFANA_DASHBOARDS_VERSION" | default "1.0" }}/kube-prometheus/kubernetes-resource-requests-dashboard.json
+  - name: "configMaps.dashboards.files.nodes\\.json"
+    file: https://raw.githubusercontent.com/cloudposse/grafana-dashboards/{{ env "GRAFANA_DASHBOARDS_VERSION" | default "1.0" }}/kube-prometheus/nodes-dashboard.json
+  - name: "configMaps.dashboards.files.pods\\.json"
+    file: https://raw.githubusercontent.com/cloudposse/grafana-dashboards/{{ env "GRAFANA_DASHBOARDS_VERSION" | default "1.0" }}/kube-prometheus/pods-dashboard.json
+  - name: "configMaps.dashboards.files.statefulset\\.json"
+    file: https://raw.githubusercontent.com/cloudposse/grafana-dashboards/{{ env "GRAFANA_DASHBOARDS_VERSION" | default "1.0" }}/kube-prometheus/statefulset-dashboard.json
