@@ -96,20 +96,27 @@ releases:
             group_wait: "30s"
             group_interval: "5m"
             repeat_interval: "12h"
-            receiver: "slack_general"
+            receiver: "general"
             routes:
             - match:
                 alertname: "DeadMansSwitch"
               receiver: "null"
           receivers:
             - name: "null"
-            - name: "slack_general"
+            - name: "general"
+{{ if not ( env "KUBE_PROMETHEUS_ALERT_MANAGER_SLACK_WEBHOOK_URL" | empty ) }}
               slack_configs:
                   ### Required: KUBE_PROMETHEUS_ALERT_MANAGER_SLACK_WEBHOOK_URL
                 - api_url: '{{ env "KUBE_PROMETHEUS_ALERT_MANAGER_SLACK_WEBHOOK_URL" }}'
                   ### Required: KUBE_PROMETHEUS_ALERT_MANAGER_SLACK_CHANNEL; e.g. #alerts-staging
                   channel: '{{ env "KUBE_PROMETHEUS_ALERT_MANAGER_SLACK_CHANNEL" }}'
                   send_resolved: true
+{{ end }}
+{{ if not ( env "KUBE_PROMETHEUS_ALERT_MANAGER_PAGERDUTY_INTEGRATION_KEY" | empty ) }}
+              pagerduty_configs:
+                - routing_key: '{{ env "KUBE_PROMETHEUS_ALERT_MANAGER_PAGERDUTY_INTEGRATION_KEY" }}'
+                  send_resolved: true
+{{ end }}
           templates:
             - ./*.tmpl
         service:
@@ -226,6 +233,21 @@ releases:
         endpoints:
           - port: "metrics"
             interavl: 15s
+  - prometheusRules:
+      nginx-ingress:
+        labels:
+          prometheus: kube-prometheus
+        groups:
+        - name: pageduty.rules
+          rules:
+          - alert: PagerDutyTestError
+            annotations:
+              description: Pager Duty Test Error
+              summary: PagerDutyTestError
+            expr: nginx_ingress_controller_requests > 0
+            labels:
+              severity: warning
+
 
 
 #######################################################################################
