@@ -121,7 +121,7 @@ releases:
                     resolved: '{{"{{"}} template "pagerduty.default.resolved" . {{"}}"}}'
 {{ end }}
           templates:
-            - ./deployment.tmpl
+            - ./*.tmpl
         service:
           type: "ClusterIP"
           port: "80"
