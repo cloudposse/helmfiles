@@ -38,10 +38,11 @@ releases:
   version: "0.0.105"
   wait: true
   values:
-    ### Optional: KUBE_PROMETHEUS_EXTERNAL_VALUES_FILE;
+      ### Optional: KUBE_PROMETHEUS_EXTERNAL_VALUES_FILE;
     - '{{ env "KUBE_PROMETHEUS_EXTERNAL_VALUES_FILE" | default "values/kube-prometheus.grafana.dashboards.yaml" }}'
     - global:
-        rbacEnable: false
+        ### Optional: RBAC_ENABLED;
+        rbacEnable: {{ env "RBAC_ENABLED" | default "false" }}
       deployExporterNode: true
       exporter-node:
         resources:
@@ -187,7 +188,8 @@ releases:
   wait: true
   values:
   - serviceAccount:
-      create: {{ env "KUBE_PROMETHEUS_SERVICE_ACCOUNT_CREATE" | default "false" }}
+      ### Optional: RBAC_ENABLED;
+      create: {{ env "RBAC_ENABLED" | default "false" }}
     replicaCount: {{ env "KUBE_PROMETHEUS_PUSH_GATEWAY_REPLICA_COUNT" | default "1" }}
 
 #######################################################################################

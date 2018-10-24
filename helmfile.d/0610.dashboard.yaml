@@ -41,6 +41,10 @@ releases:
           cpu: '{{ env "KUBERNETES_DASHBOARD_REQUEST_CPU" | default "50m" }}'
           memory: '{{ env "KUBERNETES_DASHBOARD_REQUEST_MEMORY" | default "50Mi" }}'
       rbac:
-        create: false
+        ### Optional: RBAC_ENABLED;
+        create: {{ env "RBAC_ENABLED" | default "false" }}
       serviceAccount:
-        create: true
+        ### Optional: RBAC_ENABLED;
+        create: {{ env "RBAC_ENABLED" | default "false" }}
+        ### Optional: KUBERNETES_DASHBOARD_SERVICE_ACCOUNT_NAME;
+        name: '{{ env "KUBERNETES_DASHBOARD_SERVICE_ACCOUNT_NAME" | default "" }}'

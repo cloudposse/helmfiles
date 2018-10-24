@@ -9,6 +9,10 @@ releases:
 ## Chart Museum API ############################################################
 ################################################################################
 
+#
+# References:
+#   - https://github.com/helm/charts/blob/master/stable/chartmuseum/values.yaml
+#
 - name: "charts-api"
   namespace: "kube-system"
   labels:
@@ -77,3 +81,8 @@ releases:
             hosts:
               - '{{ env "CHARTMUSEUM_API_HOSTNAME" }}'
         {{- end }}
+      serviceAccount:
+        ### Optional: RBAC_ENABLED;
+        create: {{ env "RBAC_ENABLED" | default "false" }}
+        ### Optional: CHARTMUSEUM_SERVICE_ACCOUNT_NAME;
+        name: '{{ env "CHARTMUSEUM_API_SERVICE_ACCOUNT_NAME" | default "" }}'

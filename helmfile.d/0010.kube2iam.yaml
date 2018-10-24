@@ -44,3 +44,12 @@ releases:
         requests:
           cpu: "50m"
           memory: "128Mi"
+      rbac:
+        ## If true, create & use RBAC resources
+        ##
+        ### Optional: RBAC_ENABLED;
+        create: {{ env "RBAC_ENABLED" | default "false" }}
+        ## Ignored if rbac.create is true
+        ##
+        ### Optional: KUBE2IAM_RBAC_SERVICE_ACCOUNT_NAME;
+        serviceAccountName: '{{ env "KUBE2IAM_RBAC_SERVICE_ACCOUNT_NAME" | default "default" }}'

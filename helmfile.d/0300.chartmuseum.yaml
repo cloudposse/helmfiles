@@ -9,6 +9,10 @@ releases:
 ## Chart Museum ################################################################
 ################################################################################
 
+#
+# References:
+#   - https://github.com/helm/charts/blob/master/stable/chartmuseum/values.yaml
+#
 - name: "charts"
   namespace: "kube-system"
   labels:
@@ -81,3 +85,8 @@ releases:
             hosts:
               - '{{ env "CHARTMUSEUM_HOSTNAME" }}'
         {{- end }}
+      serviceAccount:
+        ### Optional: RBAC_ENABLED;
+        create: {{ env "RBAC_ENABLED" | default "false" }}
+        ### Optional: CHARTMUSEUM_SERVICE_ACCOUNT_NAME;
+        name: '{{ env "CHARTMUSEUM_SERVICE_ACCOUNT_NAME" | default "" }}'
