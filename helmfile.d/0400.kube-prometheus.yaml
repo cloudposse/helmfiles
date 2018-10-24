@@ -116,9 +116,12 @@ releases:
               pagerduty_configs:
                 - routing_key: '{{ env "KUBE_PROMETHEUS_ALERT_MANAGER_PAGERDUTY_INTEGRATION_KEY" }}'
                   send_resolved: true
+                  details:
+                    firing: '{{"{{"}} template "pagerduty.default.firing" . {{"}}"}}'
+                    resolved: '{{"{{"}} template "pagerduty.default.resolved" . {{"}}"}}'
 {{ end }}
           templates:
-            - ./*.tmpl
+            - ./deployment.tmpl
         service:
           type: "ClusterIP"
           port: "80"
@@ -143,6 +146,10 @@ releases:
           ### Optional: KUBE_PROMETHEUS_IMAGE_TAG; e.g. v2.2.1
           tag: '{{ env "KUBE_PROMETHEUS_IMAGE_TAG" | default "v2.2.1" }}'
           pullPolicy: "IfNotPresent"
+        ruleNamespaceSelector:
+          any: true
+        serviceMonitorNamespaceSelector:
+          any: true
         resources:
           limits:
             cpu: "400m"
@@ -233,22 +240,6 @@ releases:
         endpoints:
           - port: "metrics"
             interavl: 15s
-  - prometheusRules:
-      nginx-ingress:
-        labels:
-          prometheus: kube-prometheus
-        groups:
-        - name: pageduty.rules
-          rules:
-          - alert: PagerDutyTestError
-            annotations:
-              description: Pager Duty Test Error
-              summary: PagerDutyTestError
-            expr: nginx_ingress_controller_requests > 0
-            labels:
-              severity: warning
-
-
 
 #######################################################################################
 ## kube-prometheus-grafana                                                           ##
