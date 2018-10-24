@@ -8,7 +8,12 @@ helmDefaults:
 repositories:
 # Cloud Posse incubator repo of helm charts
 - name: "cloudposse-incubator"
-  url: "https://charts.cloudposse.com/incubator/"
+  url: "https://charts.dev.cloudposse.com/monochart-fix-secrets/incubator/"
+
+# Cloud Flare repo of helm charts
+- name: "cloudflare"
+  url: "https://cloudflare.github.io/helm-charts"
+
 
 releases:
 
@@ -28,43 +33,66 @@ releases:
     namespace: "kube-system"
     vendor: "cloudflare"
     default: "false"
-  chart: "cloudposse/cloudflare-ingress-controller"
-  version: "0.5.1"
+  chart: "cloudflare/argo-tunnel"
+  version: "0.5.3"
   values:
     # Default values for cloudflare-argo-ingress.
     # replicaCount is used only when cloudflare loadbalancing is enabled
-    - replicaCount: 1
-
-      image:
-        repository: "gcr.io/stackpoint-public/argot"
-        tag: "0.5.1"
-        pullPolicy: "IfNotPresent"
-
-      resources:
-        limits:
-          cpu: "100m"
-          memory: "128Mi"
-        requests:
-          cpu: "100m"
-          memory: "128Mi"
-
-      rbac:
-        install: false
-        serviceAccount: "cloudflare-argo"
-        roleName: "cloudflare-argo"
-
-      ## Cloudflare account details
-
-      # The secret contains the base64-encoded origin certificate for your cloudflare domain.
-      # Set the install flag false to configure manually in the cluster later.
-      # See https://developers.cloudflare.com/argo-tunnel/quickstart/quickstart/ for information on
-      # obtaining the origin certificate
-      secret:
-        install: true
-        domain: '{{ env "ARGO_SECRET_DOMAIN" }}'
-        # base64 -w0 /localhost/.cloudflared/cert.pem | chamber write kops ARGO_SECRET_CERTIFICATE_B64  -
-        certificate_b64: '{{ env "ARGO_SECRET_CERTIFICATE_B64" }}'
-
+    - controller:
+        name: controller
+        image:
+          repository: "gcr.io/cloudflare-registry/argo-tunnel"
+          tag: "0.5.3"
+          pullPolicy: "IfNotPresent"
+        ingressClass: argo-tunnel
+        logLevel: 4
+        replicaCount: 1
+        resources:
+          limits:
+            cpu: 100m
+            memory: 128Mi
+      # Enable load balancing
+      # requires load balancing enabled on the cloudflare account.
       loadbalancing:
         enabled: false
 
+      rbac:
+        install: false
+        name: "cloudflare-argo"
+
+      serviceAccount:
+        create: true
+        name: "cloudflare-argo"
+
+
+#######################################################################################
+## argo-secret                                                                       ##
+## Provide domain secret for argo                                                    ##
+#######################################################################################
+- name: "argo-secret"
+  namespace: "kube-system"
+  labels:
+    chart: "monochart"
+    component: "ingress"
+    namespace: "kube-system"
+    vendor: "cloudposse"
+    default: "false"
+  chart: "cloudposse-incubator/monochart"
+  version: "0.6.2"
+  wait: true
+  values:
+  - secrets:
+      default:
+        enabled: true
+        ## Cloudflare account details
+
+        # The secret contains the base64-encoded origin certificate for your cloudflare domain.
+        # Set the install flag false to configure manually in the cluster later.
+        # See https://developers.cloudflare.com/argo-tunnel/quickstart/quickstart/ for information on
+        # obtaining the origin certificate
+        labels:
+          cloudflare-argo/domain: '{{ env "ARGO_SECRET_DOMAIN" }}'
+        files:
+          # cat /localhost/.cloudflared/cert.pem | chamber write kops ARGO_SECRET_CERTIFICATE -
+          cert.pem: |-
+{{ env "ARGO_SECRET_CERTIFICATE" | indent 12 }}
