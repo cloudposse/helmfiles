@@ -5,6 +5,16 @@
 {{ define "__description" }}{{ end }}
 
 
+{{ define "__text_alert_common" }}
+*{{ (index .Alerts 0).Labels.severity | title }}:* {{ .CommonAnnotations.description }}
+
+*Source:* {{ (index .Alerts 0).GeneratorURL }}
+
+*Common Labels:*{{ range .CommonLabels.SortedPairs }}
+    • {{ .Name }}: `{{ .Value }}`{{ end }}
+{{ end }}
+
+
 {{ define "slack.default.title" }}{{ template "__subject" . }}{{ end }}
 {{ define "slack.default.username" }}{{ template "__alertmanager" . }}{{ end }}
 {{ define "slack.default.fallback" }}{{ template "slack.default.title" . }} | {{ template "slack.default.titlelink" . }}{{ end }}
@@ -37,3 +47,45 @@
 {{ end }}
 
 {{ define "slack.default.footer" }}{{ end }}
+
+
+{{ define "pagerduty.default.description" }}{{ template "__subject" . }}{{ end }}
+{{ define "pagerduty.default.client" }}{{ template "__alertmanager" . }}{{ end }}
+{{ define "pagerduty.default.clientURL" }}{{ template "__alertmanagerURL" . }}{{ end }}
+
+{{ define "pagerduty.default.firing" }}
+{{- if eq ( .Alerts.Firing | len ) 0}}
+None
+{{- else }}
+{{ template "__text_alert_common" . }}
+*Alerts:*
+--------
+{{- $root :=  . }}
+{{- range .Alerts.Firing }}
+    *Additional Labels:* {{ range ( .Labels.Remove $root.CommonLabels.Names ).SortedPairs }}
+        • {{ .Name }}: `{{ .Value }}`{{ else }}`None`{{ end }}
+    *Additional Annotations:* {{ range ( .Annotations.Remove $root.CommonAnnotations.Names ).SortedPairs }}
+        • {{ .Name }}: `{{ .Value }}`{{ else }}`None`{{ end }}
+--------
+{{- end }}
+{{- end }}
+{{ end }}
+
+
+{{ define "pagerduty.default.resolved" }}
+{{- if eq ( .Alerts.Resolved | len ) 0}}
+None
+{{- else }}
+{{ template "__text_alert_common" . }}
+*Alerts:*
+--------
+{{- $root :=  . }}
+{{- range .Alerts.Resolved }}
+    *Additional Labels:* {{ range ( .Labels.Remove $root.CommonLabels.Names ).SortedPairs }}
+        • {{ .Name }}: `{{ .Value }}`{{ else }}`None`{{ end }}
+    *Additional Annotations:* {{ range ( .Annotations.Remove $root.CommonAnnotations.Names ).SortedPairs }}
+        • {{ .Name }}: `{{ .Value }}`{{ else }}`None`{{ end }}
+--------
+{{- end }}
+{{- end }}
+{{ end }}
