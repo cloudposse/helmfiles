@@ -92,15 +92,15 @@ releases:
         ### Optional: NGINX_INGRESS_SERVICE_ACCOUNT_NAME;
         name: '{{ env "NGINX_INGRESS_SERVICE_ACCOUNT_NAME" | default "" }}'
 
-## Workaround until https://github.com/kubernetes/ingress-nginx/pull/2989 would be merged
+## Workaround until https://github.com/kubernetes/ingress-nginx/pull/2989 is merged
     - controller:
         customTemplate:
           configMapName: "ingress-nginx-ingress-controller"
           configMapKey: "template"
   set:
   - name: "controller.config.template"
-    file: ./helmfile.d/values/ingress.nginx.template
-## Workaround until https://github.com/kubernetes/ingress-nginx/pull/2989 would be merged
+    file: ./values/ingress.nginx.template
+## Workaround until https://github.com/kubernetes/ingress-nginx/pull/2989 is merged
 
 - name: "ingress-backend"
   namespace: "kube-system"
