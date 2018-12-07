@@ -1,0 +1,126 @@
+repositories:
+# Cloud Posse incubator repo of helm charts
+- name: "cloudposse-incubator"
+  url: "https://charts.cloudposse.com/incubator/"
+
+
+releases:
+
+#######################################################################################
+## Atlantis                                                                          ##
+#######################################################################################
+
+#
+# References:
+#   - https://github.com/cloudposse/atlantis/tree/master/helm/atlantis
+#   - https://github.com/cloudposse/charts/blob/master/incubator/monochart
+#
+- name: "atlantis"
+  namespace: "monitoring"
+  labels:
+    chart: "monochart"
+    component: "monitoring"
+    namespace: "monitoring"
+    vendor: "cloudposse"
+    default: "true"
+  chart: "cloudposse-incubator/monochart"
+  version: "0.7.0"
+  wait: true
+  values:
+    - image:
+        repository: cloudposse/root.cloudposse.co
+        tag: "0.2.0"
+        pullPolicy: IfNotPresent  
+
+      statefulset:
+        enabled: true
+        pod:
+          cmd: atlantis
+          args:
+            - server
+      configMapgs:
+        default:
+          env:
+            ATLANTIS_PORT: "4141"
+            ### Required: ATLANTIS_REPO_CONFIG;
+            ATLANTIS_IMAGE: '{{ env "ATLANTIS_IMAGE" }}'
+            ATLANTIS_ALLOW_REPO_CONFIG: "/default/atlantis.yaml"
+            ### Required: ATLANTIS_REPO_CONFIG;
+            ATLANTIS_REPO_CONFIG: '{{ env "ATLANTIS_REPO_CONFIG" }}'
+            ### Optional: ATLANTIS_LOG_LEVEL;
+            ATLANTIS_LOG_LEVEL: '{{ env "ATLANTIS_LOG_LEVEL" | default "debug" }}'
+            ### Required: ATLANTIS_ATLANTIS_URL;
+            ATLANTIS_ATLANTIS_URL: '{{ env "ATLANTIS_ATLANTIS_URL" }}'
+            ### Required: ATLANTIS_WAKE_WORD;
+            ATLANTIS_WAKE_WORD : '{{ env "ATLANTIS_WAKE_WORD " }}'
+            ### Required: ATLANTIS_DOMAIN;
+            ATLANTIS_DOMAIN: '{{ env "ATLANTIS_DOMAIN" }}'
+            ### Required: ATLANTIS_HOSTNAME;
+            ATLANTIS_HOSTNAME: '{{ env "ATLANTIS_HOSTNAME" }}'
+            ### Required: STAGE;
+            STAGE: '{{ env "STAGE" }}'
+
+      secrets:
+        default:
+          enabled: true
+          labels:
+            name: value
+          env:
+            ### Required: ATLANTIS_GH_USER;
+            ATLANTIS_GH_USER: '{{ env "ATLANTIS_GH_USER" }}'
+            ### Required: ATLANTIS_GH_TOKEN;
+            ATLANTIS_GH_TOKEN: '{{ env "ATLANTIS_GH_TOKEN" }}'
+            ### Required: ATLANTIS_GH_WEBHOOK_SECRET;
+            ATLANTIS_GH_WEBHOOK_SECRET: '{{ env "ATLANTIS_GH_WEBHOOK_SECRET" }}'
+            ### Required: ATLANTIS_REPO_WHITELIST;
+            ATLANTIS_REPO_WHITELIST: '{{ env "ATLANTIS_REPO_WHITELIST" }}'
+
+      service:
+        enabled: true
+        type: ClusterIP
+        ports:
+          atlantis:
+            internal: 4141
+            external: 80
+
+      ingress:
+        default:
+          enabled: true
+          labels:
+            dns: "route53"
+          annotations:
+            kubernetes.io/ingress.class: nginx
+            kubernetes.io/tls-acme: "true"
+          hosts:
+            ### Required: ATLANTIS_GH_USER;
+            '{{ env "ATLANTIS_ATLANTIS_URL" }}': /
+      
+      probes:
+        livenessProbe:
+          enabled: true
+          periodSeconds: 60
+          initialDelaySeconds: 5
+          timeoutSeconds: 5
+          successThreshold: 1
+          failureThreshold: 5
+          scheme: HTTP
+        readinessProbe:
+          enabled: true
+          periodSeconds: 60
+          initialDelaySeconds: 30
+          timeoutSeconds: 5
+          successThreshold: 1
+          failureThreshold: 5
+          scheme: HTTP
+
+      resources:
+        requests:
+          memory: 1Gi
+          cpu: 100m
+        limits:
+          memory: 1Gi
+          cpu: 100m
+  set:
+    - name: "configMaps.default.files.atlantis\\.yaml"
+      ### Required: ATLANTIS_REPO_CONFIG;
+      file: '{{ env "ATLANTIS_REPO_CONFIG" }}'
