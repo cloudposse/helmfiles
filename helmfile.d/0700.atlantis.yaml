@@ -65,8 +65,6 @@ releases:
       secrets:
         default:
           enabled: true
-          labels:
-            name: value
           env:
             ### Required: ATLANTIS_GH_USER;
             ATLANTIS_GH_USER: '{{ env "ATLANTIS_GH_USER" }}'
