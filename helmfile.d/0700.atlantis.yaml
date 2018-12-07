@@ -38,21 +38,23 @@ releases:
           cmd: atlantis
           args:
             - server
-      configMapgs:
+
+      configMaps:
         default:
+          enabled: true
           env:
             ATLANTIS_PORT: "4141"
-            ### Required: ATLANTIS_REPO_CONFIG;
+            ### Required: ATLANTIS_IMAGE;
             ATLANTIS_IMAGE: '{{ env "ATLANTIS_IMAGE" }}'
-            ATLANTIS_ALLOW_REPO_CONFIG: "/default/atlantis.yaml"
-            ### Required: ATLANTIS_REPO_CONFIG;
-            ATLANTIS_REPO_CONFIG: '{{ env "ATLANTIS_REPO_CONFIG" }}'
+            ### Required: ATLANTIS_ALLOW_REPO_CONFIG;
+            ATLANTIS_ALLOW_REPO_CONFIG: '{{ env "ATLANTIS_ALLOW_REPO_CONFIG" | default "true" }}'
+            ATLANTIS_REPO_CONFIG: "/default/atlantis.yaml"
             ### Optional: ATLANTIS_LOG_LEVEL;
             ATLANTIS_LOG_LEVEL: '{{ env "ATLANTIS_LOG_LEVEL" | default "debug" }}'
             ### Required: ATLANTIS_ATLANTIS_URL;
             ATLANTIS_ATLANTIS_URL: '{{ env "ATLANTIS_ATLANTIS_URL" }}'
             ### Required: ATLANTIS_WAKE_WORD;
-            ATLANTIS_WAKE_WORD : '{{ env "ATLANTIS_WAKE_WORD " }}'
+            ATLANTIS_WAKE_WORD: '{{ env "ATLANTIS_WAKE_WORD " }}'
             ### Required: ATLANTIS_DOMAIN;
             ATLANTIS_DOMAIN: '{{ env "ATLANTIS_DOMAIN" }}'
             ### Required: ATLANTIS_HOSTNAME;
