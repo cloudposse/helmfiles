@@ -92,8 +92,8 @@ releases:
             kubernetes.io/ingress.class: nginx
             kubernetes.io/tls-acme: "true"
           hosts:
-            ### Required: ATLANTIS_GH_USER;
-            '{{ env "ATLANTIS_ATLANTIS_URL" }}': /
+            ### Required: ATLANTIS_ATLANTIS_URL;
+            '{{ env "ATLANTIS_ATLANTIS_URL" | base }}': /
       
       probes:
         livenessProbe:
