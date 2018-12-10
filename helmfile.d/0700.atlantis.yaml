@@ -27,9 +27,10 @@ releases:
   version: "0.7.0"
   wait: true
   values:
-    - image:
-        repository: cloudposse/root.cloudposse.co
-        tag: "0.2.0"
+    - fullnameOverride: atlantis
+      image:
+        repository: runatlantis/atlantis
+        tag: "v0.4.5"
         pullPolicy: IfNotPresent  
 
       statefulset:
@@ -79,7 +80,7 @@ releases:
         enabled: true
         type: ClusterIP
         ports:
-          atlantis:
+          default:
             internal: 4141
             external: 80
 
@@ -92,12 +93,21 @@ releases:
             kubernetes.io/ingress.class: nginx
             kubernetes.io/tls-acme: "true"
           hosts:
-            ### Required: ATLANTIS_ATLANTIS_URL;
-            '{{ env "ATLANTIS_ATLANTIS_URL" | base }}': /
+            ### Required: ATLANTIS_HOSTNAME;
+            '{{ env "ATLANTIS_HOSTNAME" }}': /
+          tls:
+              ### Optional: ATLANTIS_TLS_SECRET_NAME;
+            - secretName: '{{ env "ATLANTIS_TLS_SECRET_NAME" | default "atlantis-server-tls" }}'
+              hosts:
+              ### Required: ATLANTIS_HOSTNAME;
+              - '{{ env "ATLANTIS_HOSTNAME" }}'
       
       probes:
         livenessProbe:
-          enabled: true
+          httpGet:
+            path: /healthz
+            port: default
+            scheme: HTTP
           periodSeconds: 60
           initialDelaySeconds: 5
           timeoutSeconds: 5
@@ -105,13 +115,15 @@ releases:
           failureThreshold: 5
           scheme: HTTP
         readinessProbe:
-          enabled: true
+          httpGet:
+            path: /healthz
+            port: default
+            scheme: HTTP
           periodSeconds: 60
           initialDelaySeconds: 30
           timeoutSeconds: 5
           successThreshold: 1
           failureThreshold: 5
-          scheme: HTTP
 
       resources:
         requests:
