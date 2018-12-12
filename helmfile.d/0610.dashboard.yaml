@@ -25,7 +25,7 @@ releases:
     vendor: "kubernetes"
     default: "true"
   chart: "stable/kubernetes-dashboard"
-  version: "0.6.7"
+  version: "0.9.1"
   wait: true
   values:
     - image:
