@@ -49,7 +49,9 @@ releases:
             ATLANTIS_IMAGE: '{{ env "ATLANTIS_IMAGE" }}'
             ### Required: ATLANTIS_ALLOW_REPO_CONFIG;
             ATLANTIS_ALLOW_REPO_CONFIG: '{{ env "ATLANTIS_ALLOW_REPO_CONFIG" | default "true" }}'
+            {{- if env "ATLANTIS_REPO_CONFIG" }}
             ATLANTIS_REPO_CONFIG: "/default/atlantis.yaml"
+            {{- end  }}
             ### Optional: ATLANTIS_LOG_LEVEL;
             ATLANTIS_LOG_LEVEL: '{{ env "ATLANTIS_LOG_LEVEL" | default "debug" }}'
             ### Required: ATLANTIS_ATLANTIS_URL;
@@ -133,6 +135,8 @@ releases:
           memory: 1Gi
           cpu: 100m
   set:
+    {{- if env "ATLANTIS_REPO_CONFIG" }}
     - name: "configMaps.default.files.atlantis\\.yaml"
-      ### Required: ATLANTIS_REPO_CONFIG;
+      ### OPTIONAL: ATLANTIS_REPO_CONFIG; example can be found here https://www.runatlantis.io/docs/atlantis-yaml-reference.html#example-using-all-keys
       file: '{{ env "ATLANTIS_REPO_CONFIG" }}'
+    {{- end }}
