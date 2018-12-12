@@ -31,7 +31,7 @@ releases:
     - image:
         repository: "k8s.gcr.io/kubernetes-dashboard-amd64"
         ### Optional: KUBERNETES_DASHBOARD_IMAGE_TAG;
-        tag: '{{ env "KUBERNETES_DASHBOARD_IMAGE_TAG" | default "v1.8.3" }}'
+        tag: '{{ env "KUBERNETES_DASHBOARD_IMAGE_TAG" | default "v1.10.0 }}'
         pullPolicy: "IfNotPresent"
       resources:
         limits:
