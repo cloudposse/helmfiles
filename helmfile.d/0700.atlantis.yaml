@@ -57,11 +57,7 @@ releases:
             ### Required: ATLANTIS_ATLANTIS_URL;
             ATLANTIS_ATLANTIS_URL: '{{ env "ATLANTIS_ATLANTIS_URL" }}'
             ### Required: ATLANTIS_WAKE_WORD;
-            ATLANTIS_WAKE_WORD: '{{ env "ATLANTIS_WAKE_WORD " }}'
-            ### Required: ATLANTIS_DOMAIN;
-            ATLANTIS_DOMAIN: '{{ env "ATLANTIS_DOMAIN" }}'
-            ### Required: ATLANTIS_HOSTNAME;
-            ATLANTIS_HOSTNAME: '{{ env "ATLANTIS_HOSTNAME" }}'
+            ATLANTIS_WAKE_WORD: '{{ env "ATLANTIS_WAKE_WORD" }}'
             ### Required: STAGE;
             STAGE: '{{ env "STAGE" }}'
 
