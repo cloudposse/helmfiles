@@ -25,14 +25,15 @@ releases:
     vendor: "kubernetes"
     default: "true"
   chart: "stable/kubernetes-dashboard"
-  version: "0.6.7"
+  version: "0.10.0"
   wait: true
   values:
     - image:
         repository: "k8s.gcr.io/kubernetes-dashboard-amd64"
         ### Optional: KUBERNETES_DASHBOARD_IMAGE_TAG;
-        tag: '{{ env "KUBERNETES_DASHBOARD_IMAGE_TAG" | default "v1.8.3" }}'
+        tag: '{{ env "KUBERNETES_DASHBOARD_IMAGE_TAG" | default "v1.10.0" }}'
         pullPolicy: "IfNotPresent"
+      replicaCount: '{{ env "KUBERNETES_DASHBOARD_REPLICA_COUNT" | default 1 }}'
       resources:
         limits:
           cpu: '{{ env "KUBERNETES_DASHBOARD_LIMIT_CPU" | default "100m" }}'
