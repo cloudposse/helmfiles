@@ -40,11 +40,11 @@ releases:
         replicaCount: '{{ env "NGINX_INGRESS_REPLICA_COUNT" | default "4" }}'
         resources:
           limits:
-            cpu: "200m"
-            memory: "256Mi"
+            cpu: '{{ env "NGINX_INGRESS_LIMIT_CPU" | default "200m" }}'
+            memory: '{{ env "NGINX_INGRESS_LIMIT_MEMORY" | default "256Mi" }}'
           requests:
-            cpu: "50m"
-            memory: "128Mi"
+            cpu: '{{ env "NGINX_INGRESS_REQUEST_CPU" | default "50m" }}'
+            memory: '{{ env "NGINX_INGRESS_REQUEST_MEMORY" | default "128Mi" }}'
         ## Optional: NGINX_INGRESS_KIND; Valid values: DaemonSet or Deployment
         kind: '{{ env "NGINX_INGRESS_KIND" | default "Deployment" }}'
         defaultBackendService: "kube-system/ingress-backend-default"
@@ -119,11 +119,11 @@ releases:
       replicaCount: '{{ env "NGINX_INGRESS_BACKEND_REPLICA_COUNT" | default "2" }}'
       resources:
         limits:
-          cpu: "200m"
-          memory: "256Mi"
+          cpu: '{{ env "NGINX_INGRESS_DEFAULT_BACKEND_LIMIT_CPU" | default "200m" }}'
+          memory: '{{ env "NGINX_INGRESS_DEFAULT_BACKEND_LIMIT_MEMORY" | default "256Mi" }}'
         requests:
-          cpu: "50m"
-          memory: "128Mi"
+          cpu: '{{ env "NGINX_INGRESS_DEFAULT_BACKEND_REQUEST_CPU" | default "1m" }}'
+          memory: '{{ env "NGINX_INGRESS_DEFAULT_BACKEND_REQUEST_MEMORY" | default "8Mi" }}'
       errors:
         configmap: default
         default:
