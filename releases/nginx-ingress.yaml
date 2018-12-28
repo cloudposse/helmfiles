@@ -4,7 +4,7 @@ repositories:
   url: "https://kubernetes-charts.storage.googleapis.com"
 # Cloud Posse incubator repo of helm charts
 - name: "cloudposse-incubator-dev"
-  url: "https://charts.dev.cloudposse.com/ingress-custom-errors/incubator/"
+  url: "https://charts.dev.cloudposse.com/nginx-custom-errors/incubator/"
 
 
 releases:
