@@ -132,7 +132,7 @@ releases:
         client:
           - "404"
         server:
-{{- range $status := env "NGINX_INGRESS_CUSTOM_ERRORS" | default "403,404,500,501,502,503,504" | splitList ","  }}
+{{- range $status := env "NGINX_INGRESS_CUSTOM_ERRORS" | default "500,501,502,503,504" | splitList ","  }}
           - "{{ $status }}"
 {{- end }}
 #######################################################################################
