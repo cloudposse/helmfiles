@@ -4,7 +4,7 @@ repositories:
   url: "https://kubernetes-charts.storage.googleapis.com"
 # Cloud Posse incubator repo of helm charts
 - name: "cloudposse-incubator"
-  url: "https://charts.cloudposse.com/incubator/"
+  url: "https://charts.dev.cloudposse.com/ingress-custom-errors/incubator/"
 
 
 releases:
@@ -49,7 +49,7 @@ releases:
         kind: '{{ env "NGINX_INGRESS_KIND" | default "Deployment" }}'
         defaultBackendService: "kube-system/ingress-backend-default"
         config:
-          custom-http-errors: 404,500,502,503,504
+          custom-http-errors: {{ env "NGINX_INGRESS_CUSTOM_ERRORS" | default "403,404,500,501,502,503,504" }}
         service:
           annotations:
             ### Required: NGINX_INGRESS_HOSTNAME; e.g. ingress.us-west-2.cloudposse.org
@@ -111,7 +111,7 @@ releases:
     vendor: "kubernetes"
     default: "true"
   chart: "cloudposse-incubator/nginx-default-backend"
-  version: "0.2.2"
+  version: "0.3.0"
   wait: true
   values:
     - nameOverride: default
@@ -132,11 +132,9 @@ releases:
         client:
           - "404"
         server:
-          - "500"
-          - "502"
-          - "503"
-          - "504"
-
+{{- range $status := env "NGINX_INGRESS_CUSTOM_ERRORS" | default "403,404,500,501,502,503,504" | splitList ","  }}
+          - "{{ $status }}"
+{{-end }}
 #######################################################################################
 ## ingress-monitoring                                                                ##
 ## Integrates kube-prometheus and grafana with nginx ingress                         ##
