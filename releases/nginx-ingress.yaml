@@ -3,7 +3,7 @@ repositories:
 - name: "stable"
   url: "https://kubernetes-charts.storage.googleapis.com"
 # Cloud Posse incubator repo of helm charts
-- name: "cloudposse-incubator"
+- name: "cloudposse-incubator-dev"
   url: "https://charts.dev.cloudposse.com/ingress-custom-errors/incubator/"
 
 
@@ -113,7 +113,7 @@ releases:
     namespace: "kube-system"
     vendor: "kubernetes"
     default: "true"
-  chart: "cloudposse-incubator/nginx-default-backend"
+  chart: "cloudposse-incubator-dev/nginx-default-backend"
   version: "0.3.0"
   wait: true
   values:
