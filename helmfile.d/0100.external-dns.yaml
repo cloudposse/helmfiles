@@ -23,11 +23,12 @@ releases:
     vendor: "kubernetes-incubator"
     default: "true"
   chart: "stable/external-dns"
-  version: "0.5.4"
+  version: "1.0.2"
   wait: true
   values:
     - extraEnv:
-        EXTERNAL_DNS_SOURCE: "service\ningress"
+      - name: EXTERNAL_DNS_SOURCE
+        value: "service\ningress"
       ### Required: EXTERNAL_DNS_TXT_OWNER_ID; e.g. us-west-2.staging.cloudposse.org
       txtOwnerId: '{{ env "EXTERNAL_DNS_TXT_OWNER_ID" }}'
       ### Required: EXTERNAL_DNS_TXT_PREFIX; e.g. 11591833-F9CE-407C-8519-35A947DB1D87-
@@ -44,3 +45,13 @@ releases:
         requests:
           cpu: "100m"
           memory: "128Mi"
+      rbac:
+        ## If true, create & use RBAC resources
+        ##
+        ### Optional: RBAC_ENABLED;
+        create: {{ env "RBAC_ENABLED" | default "false" }}
+        ## Ignored if rbac.create is true
+        ##
+        ### Optional: EXTERNAL_DNS_RBAC_SERVICE_ACCOUNT_NAME;
+        serviceAccountName: '{{ env "EXTERNAL_DNS_RBAC_SERVICE_ACCOUNT_NAME" | default "default" }}'
+

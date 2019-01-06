@@ -38,10 +38,11 @@ releases:
   version: "0.0.105"
   wait: true
   values:
-    ### Optional: KUBE_PROMETHEUS_EXTERNAL_VALUES_FILE;
+      ### Optional: KUBE_PROMETHEUS_EXTERNAL_VALUES_FILE;
     - '{{ env "KUBE_PROMETHEUS_EXTERNAL_VALUES_FILE" | default "values/kube-prometheus.grafana.dashboards.yaml" }}'
     - global:
-        rbacEnable: false
+        ### Optional: RBAC_ENABLED;
+        rbacEnable: {{ env "RBAC_ENABLED" | default "false" }}
       deployExporterNode: true
       exporter-node:
         resources:
@@ -96,20 +97,30 @@ releases:
             group_wait: "30s"
             group_interval: "5m"
             repeat_interval: "12h"
-            receiver: "slack_general"
+            receiver: "general"
             routes:
             - match:
                 alertname: "DeadMansSwitch"
               receiver: "null"
           receivers:
             - name: "null"
-            - name: "slack_general"
+            - name: "general"
+{{ if not ( env "KUBE_PROMETHEUS_ALERT_MANAGER_SLACK_WEBHOOK_URL" | empty ) }}
               slack_configs:
                   ### Required: KUBE_PROMETHEUS_ALERT_MANAGER_SLACK_WEBHOOK_URL
                 - api_url: '{{ env "KUBE_PROMETHEUS_ALERT_MANAGER_SLACK_WEBHOOK_URL" }}'
                   ### Required: KUBE_PROMETHEUS_ALERT_MANAGER_SLACK_CHANNEL; e.g. #alerts-staging
                   channel: '{{ env "KUBE_PROMETHEUS_ALERT_MANAGER_SLACK_CHANNEL" }}'
                   send_resolved: true
+{{ end }}
+{{ if not ( env "KUBE_PROMETHEUS_ALERT_MANAGER_PAGERDUTY_INTEGRATION_KEY" | empty ) }}
+              pagerduty_configs:
+                - routing_key: '{{ env "KUBE_PROMETHEUS_ALERT_MANAGER_PAGERDUTY_INTEGRATION_KEY" }}'
+                  send_resolved: true
+                  details:
+                    firing: '{{"{{"}} template "pagerduty.default.firing" . {{"}}"}}'
+                    resolved: '{{"{{"}} template "pagerduty.default.resolved" . {{"}}"}}'
+{{ end }}
           templates:
             - ./*.tmpl
         service:
@@ -136,6 +147,10 @@ releases:
           ### Optional: KUBE_PROMETHEUS_IMAGE_TAG; e.g. v2.2.1
           tag: '{{ env "KUBE_PROMETHEUS_IMAGE_TAG" | default "v2.2.1" }}'
           pullPolicy: "IfNotPresent"
+        ruleNamespaceSelector:
+          any: true
+        serviceMonitorNamespaceSelector:
+          any: true
         resources:
           limits:
             cpu: "400m"
@@ -187,7 +202,8 @@ releases:
   wait: true
   values:
   - serviceAccount:
-      create: {{ env "KUBE_PROMETHEUS_SERVICE_ACCOUNT_CREATE" | default "false" }}
+      ### Optional: RBAC_ENABLED;
+      create: {{ env "RBAC_ENABLED" | default "false" }}
     replicaCount: {{ env "KUBE_PROMETHEUS_PUSH_GATEWAY_REPLICA_COUNT" | default "1" }}
 
 #######################################################################################
@@ -226,7 +242,6 @@ releases:
         endpoints:
           - port: "metrics"
             interavl: 15s
-
 
 #######################################################################################
 ## kube-prometheus-grafana                                                           ##

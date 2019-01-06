@@ -29,7 +29,7 @@ releases:
   values:
   - image:
       repository: "fluent/fluentd-kubernetes-daemonset"
-      tag: '{{ env "ELASTICSEARCH_IMAGE_TAG" | default "v0.12.43-elasticsearch" }}'
+      tag: '{{ env "ELASTICSEARCH_IMAGE_TAG" | default "v1.3-debian-elasticsearch" }}'
       pullPolicy: "Always"
     resources:
       limits:
@@ -40,14 +40,18 @@ releases:
         memory: "256Mi"
     env:
       open:
+        FLUENT_UID: "0"
         FLUENT_ELASTICSEARCH_HOST: '{{ env "ELASTICSEARCH_HOST" }}'
         FLUENT_ELASTICSEARCH_PORT: '{{ env "ELASTICSEARCH_PORT" }}'
         FLUENT_ELASTICSEARCH_SCHEME: '{{ env "ELASTICSEARCH_SCHEME" | default "http"}}'
-        FLUENT_UID: "0"
+        FLUENT_ELASTICSEARCH_SSL_VERIFY: '{{ env "FLUENT_ELASTICSEARCH_SSL_VERIFY" | default "false"}}'
         FLUENT_ELASTICSEARCH_BUFFER_CHUNK_LIMIT_SIZE: '{{ env "FLUENT_ELASTICSEARCH_BUFFER_CHUNK_LIMIT_SIZE" | default "8M"}}'
         FLUENT_ELASTICSEARCH_BUFFER_QUEUE_LIMIT_LENGTH: '{{ env "FLUENT_ELASTICSEARCH_BUFFER_QUEUE_LIMIT_LENGTH" | default "128"}}'
+        FLUENT_ELASTICSEARCH_BUFFER_FLUSH_THREAD_COUNT: '{{ env "FLUENT_ELASTICSEARCH_BUFFER_FLUSH_THREAD_COUNT" | default "8"}}'
+        FLUENT_ELASTICSEARCH_BUFFER_FLUSH_INTERVAL: '{{ env "FLUENT_ELASTICSEARCH_BUFFER_FLUSH_INTERVAL" | default "5s"}}'
+        FLUENT_ELASTICSEARCH_BUFFER_RETRY_MAX_INTERVAL: '{{ env "FLUENT_ELASTICSEARCH_BUFFER_RETRY_MAX_INTERVAL" | default "30"}}'
+        FLUENT_ELASTICSEARCH_RELOAD_CONNECTIONS: '{{ env "FLUENT_ELASTICSEARCH_RELOAD_CONNECTIONS" | default "false"}}'
       secret:
         FLUENT_ELASTICSEARCH_USER: '{{ env "ELASTICSEARCH_USER" | default "" }}'
         FLUENT_ELASTICSEARCH_PASSWORD: '{{ env "ELASTICSEARCH_PASSWORD" | default "" }}'
-    configDir: /fluentd/etc/
-  - values/fluentd-elasticsearch-logs-configs.yaml
+    configDir: /tmp/elasticsearch/

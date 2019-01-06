@@ -15,13 +15,13 @@ releases:
 
 #
 # References:
-#   - https://github.com/cloudposse/charts/blob/master/incubator/nginx-ingress/values.yaml
+#   - https://github.com/helm/charts/blob/master/stable/nginx-ingress/values.yaml
 #
 - name: "ingress"
   namespace: "kube-system"
   labels:
     chart: "nginx-ingress"
-    repo: "cloudposse-incubator"
+    repo: "stable"
     component: "ingress"
     namespace: "kube-system"
     vendor: "kubernetes"
@@ -84,11 +84,15 @@ releases:
       defaultBackend:
         enabled: false
       rbac:
-        create: {{ env "NGINX_INGRESS_RBAC_ENABLED" | default "false" }}
+        ### Optional: RBAC_ENABLED;
+        create: {{ env "RBAC_ENABLED" | default "false" }}
       serviceAccount:
-        create: {{ env "NGINX_INGRESS_RBAC_ENABLED" | default "false" }}
+        ### Optional: RBAC_ENABLED;
+        create: {{ env "RBAC_ENABLED" | default "false" }}
+        ### Optional: NGINX_INGRESS_SERVICE_ACCOUNT_NAME;
+        name: '{{ env "NGINX_INGRESS_SERVICE_ACCOUNT_NAME" | default "" }}'
 
-## Workaround until https://github.com/kubernetes/ingress-nginx/pull/2989 would be merged
+## Workaround until https://github.com/kubernetes/ingress-nginx/pull/2989 is merged
     - controller:
         customTemplate:
           configMapName: "ingress-nginx-ingress-controller"
@@ -96,7 +100,7 @@ releases:
   set:
   - name: "controller.config.template"
     file: ./helmfile.d/values/ingress.nginx.template
-## Workaround until https://github.com/kubernetes/ingress-nginx/pull/2989 would be merged
+## Workaround until https://github.com/kubernetes/ingress-nginx/pull/2989 is merged
 
 - name: "ingress-backend"
   namespace: "kube-system"

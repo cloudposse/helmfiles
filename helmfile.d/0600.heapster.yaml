@@ -42,3 +42,8 @@ releases:
         requests:
           cpu: "50m"
           memory: "128Mi"
+      rbac:
+        ### Optional: RBAC_ENABLED;
+        create: {{ env "RBAC_ENABLED" | default "false" }}
+        ### Optional: HEAPSTER_RBAC_SERVICE_ACCOUNT_NAME;
+        serviceAccountName: '{{ env "HEAPSTER_RBAC_SERVICE_ACCOUNT_NAME" | default "default" }}'
