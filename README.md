@@ -41,7 +41,26 @@ It's 100% Open Source and licensed under the [APACHE2](LICENSE).
 ## Usage
 
 
-## Docker
+Install the latest release of `helmfile` from the [helmfile releases](https://github.com/roboll/helmfile/releases) page.
+
+Alternatively, we also distribute `helmfile` as an [alpine package](https://github.com/cloudposse/packages).
+
+Add the cloudposse alpine repository.
+
+```
+# Install the cloudposse alpine repository
+ADD https://apk.cloudposse.com/ops@cloudposse.com.rsa.pub /etc/apk/keys/
+RUN echo "@cloudposse https://apk.cloudposse.com/3.8/vendor" >> /etc/apk/repositories
+```
+
+Install `helmfile` from the repository.
+
+```
+RUN apk add helmfile
+```
+
+
+### Docker
 
 We distribute a docker image with all helmfiles. Use a multi-stage build to include them.
 
@@ -53,9 +72,18 @@ COPY --from helmfiles /helmfile.d/ /conf/helmfiles.d/
 
 **IMPORTANT:** we recommend pinning `cloudposse/helmfiles` to a specific release rather than using `latest`
 
-Then define a `helmfile.yaml` which includes the releases you wish to support.
+### Git
 
-Here's an example of a [`helmfile.yaml`](helmfile.yaml)
+```
+git clone git@github.com:cloudposse/helmfiles.git
+```
+
+### Configuration
+
+Define a `helmfile.yaml` which includes the releases you wish to support. Specify all releases in the order in which they should get installed.
+
+Here's an example of a [`helmfile.yaml`](helmfile.yaml):
+
 ```
 # Ordered list of releases. 
 releases:
