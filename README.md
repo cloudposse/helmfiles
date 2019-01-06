@@ -39,7 +39,7 @@ FROM cloudposse/helmfiles:latest as helmfiles
 COPY --from helmfiles /helmfile.d/ /conf/helmfiles.d/
 ```
 
-**IMPORTANT:** we recommend pinnging to a release rather than using `latest`
+**IMPORTANT:** we recommend pinning `cloudposse/helmfiles` to a specific release rather than using `latest`
 
 Then define a `helmfile.yaml` which includes the releases you wish to support.
 
