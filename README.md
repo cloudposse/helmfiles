@@ -26,6 +26,39 @@ It's 100% Open Source and licensed under the [APACHE2](LICENSE).
 
 
 
+## Usage
+
+
+## Docker
+
+We distribute a docker image with all helmfiles. Use a multi-stage build to include them.
+
+```
+FROM cloudposse/helmfiles:latest as helmfiles
+
+COPY --from helmfiles /helmfile.d/ /conf/helmfiles.d/
+```
+
+**IMPORTANT:** we recommend pinnging to a release rather than using `latest`
+
+Then define a `helmfile.yaml` which includes the releases you wish to support.
+
+Here's an example of a [`helmfile.yaml`](helmfile.yaml)
+```
+# Ordered list of releases. 
+releases:
+  - "helmfile.d/prometheus-operator.yaml"
+  - "helmfile.d/cluster-autoscaler.yaml"
+  - "helmfile.d/kiam.yaml"
+  - "helmfile.d/external-dns.yaml"
+  - "helmfile.d/kube-lego.yaml"
+  - "helmfile.d/nginx-ingress.yaml"
+  - "helmfile.d/kube-prometheus.yaml"
+  - "helmfile.d/grafana.yaml"
+  - "helmfile.d/heapster.yaml"
+  - "helmfile.d/dashboard.yaml"
+  - "helmfile.d/portal.yaml"
+```
 
 
 
@@ -38,10 +71,7 @@ It's 100% Open Source and licensed under the [APACHE2](LICENSE).
 
 Check out these related projects.
 
-- [Geodesic](https://github.com/cloudposse/geodesic) - Geodesic is the fastest way to get up and running with a rock solid, production grade cloud platform built on strictly Open Source tools.
-- [Packages](https://github.com/cloudposse/packages) - Cloud Posse installer and distribution of native apps
-- [Terraform Root Modules](https://github.com/cloudposse/terraform-root-modules) - Collection of Terraform root module invocations for provisioning reference architectures
-- [Build Harness](https://github.com/cloudposse/build-harness) - Collection of Makefiles to facilitate building Golang projects, Dockerfiles, Helm charts, and more
+- [Chamber](https://docs.cloudposse.com/tools/chamber/) - a CRUD tool for managing secrets stored in AWS Systems Manager Parameter Store and exposing those secrets as Environment Variables to processes.
 
 
 
@@ -50,9 +80,7 @@ Check out these related projects.
 
 For additional context, refer to some of these links. 
 
-- [helmfile](https://github.com/roboll/helmfile) - Helmfile is a declarative configuration for deploying distributions of helm charts
-- [helm](https://helm.sh/) - The package manager for Kubernetes
-- [docs](https://docs.cloudposse.com/tools/helmfile/) - Documentation for how we use helmfile
+- [Helmfile documentation](https://docs.cloudposse.com/tools/helmfile/) - learn more about `helmfile` usage in our documentation
 
 
 ## Help
@@ -105,7 +133,7 @@ In general, PRs are welcome. We follow the typical "fork-and-pull" Git workflow.
 
 ## Copyright
 
-Copyright © 2017-2018 [Cloud Posse, LLC](https://cloudposse.com)
+Copyright © 2017-2019 [Cloud Posse, LLC](https://cloudposse.com)
 
 
 

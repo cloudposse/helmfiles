@@ -47,6 +47,49 @@ description: |-
   
   Pull Requests are welcome!
 
+usage: |-
+
+  ## Docker
+
+  We distribute a docker image with all helmfiles. Use a multi-stage build to include them.
+
+  ```
+  FROM cloudposse/helmfiles:latest as helmfiles
+
+  COPY --from helmfiles /helmfile.d/ /conf/helmfiles.d/
+  ```
+
+  **IMPORTANT:** we recommend pinnging to a release rather than using `latest`
+
+  Then define a `helmfile.yaml` which includes the releases you wish to support.
+
+  Here's an example of a [`helmfile.yaml`](helmfile.yaml)
+  ```
+  # Ordered list of releases. 
+  releases:
+    - "helmfile.d/prometheus-operator.yaml"
+    - "helmfile.d/cluster-autoscaler.yaml"
+    - "helmfile.d/kiam.yaml"
+    - "helmfile.d/external-dns.yaml"
+    - "helmfile.d/kube-lego.yaml"
+    - "helmfile.d/nginx-ingress.yaml"
+    - "helmfile.d/kube-prometheus.yaml"
+    - "helmfile.d/grafana.yaml"
+    - "helmfile.d/heapster.yaml"
+    - "helmfile.d/dashboard.yaml"
+    - "helmfile.d/portal.yaml"
+  ```
+
+references:
+  - name: "Helmfile documentation"
+    description: "learn more about `helmfile` usage in our documentation"
+    url: "https://docs.cloudposse.com/tools/helmfile/"
+
+related:
+  - name: "Chamber"
+    description: "a CRUD tool for managing secrets stored in AWS Systems Manager Parameter Store and exposing those secrets as Environment Variables to processes."
+    url: "https://docs.cloudposse.com/tools/chamber/"
+
 # Contributors to this project
 contributors:
   - name: "Erik Osterman"
