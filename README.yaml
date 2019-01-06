@@ -13,35 +13,7 @@ badges:
   - name: "Slack Community"
     image: "https://slack.cloudposse.com/badge.svg"
     url: "https://slack.cloudposse.com"
-
-related:
-  - name: "Geodesic"
-    description: "Geodesic is the fastest way to get up and running with a rock solid, production grade cloud platform built on strictly Open Source tools."
-    url: "https://github.com/cloudposse/geodesic"
-
-  - name: "Packages"
-    description: "Cloud Posse installer and distribution of native apps"
-    url: "https://github.com/cloudposse/packages"
-
-  - name: "Terraform Root Modules"
-    description: "Collection of Terraform root module invocations for provisioning reference architectures"
-    url: "https://github.com/cloudposse/terraform-root-modules"
-
-  - name: "Build Harness"
-    description: "Collection of Makefiles to facilitate building Golang projects, Dockerfiles, Helm charts, and more"
-    url: "https://github.com/cloudposse/build-harness"
-
-references:
-  - name: "helmfile"
-    description: "Helmfile is a declarative configuration for deploying distributions of helm charts"
-    url: "https://github.com/roboll/helmfile"
-  - name: "helm"
-    description: "The package manager for Kubernetes"
-    url: "https://helm.sh/"
-  - name: "docs"
-    description: "Documentation for how we use helmfile"
-    url: "https://docs.cloudposse.com/tools/helmfile/"
-     
+    
 description: |-
   Helmfiles is a comprehensive distribution of declarative [`helm`](https://helm.sh/) chart invocations. It makes it really easy to get up and running with a full stack of fully integrated apps for Kubernetes using [`helmfile`](https://github.com/roboll/helmfile). It's also compatible with `helmfile.d`. 
   
@@ -80,15 +52,40 @@ usage: |-
     - "helmfile.d/portal.yaml"
   ```
 
-references:
-  - name: "Helmfile documentation"
-    description: "learn more about `helmfile` usage in our documentation"
-    url: "https://docs.cloudposse.com/tools/helmfile/"
-
 related:
+  - name: "Geodesic"
+    description: "Geodesic is the fastest way to get up and running with a rock solid, production grade cloud platform built on strictly Open Source tools."
+    url: "https://github.com/cloudposse/geodesic"
+
+  - name: "Packages"
+    description: "Cloud Posse installer and distribution of native apps"
+    url: "https://github.com/cloudposse/packages"
+
+  - name: "Terraform Root Modules"
+    description: "Collection of Terraform root module invocations for provisioning reference architectures"
+    url: "https://github.com/cloudposse/terraform-root-modules"
+
+  - name: "Build Harness"
+    description: "Collection of Makefiles to facilitate building Golang projects, Dockerfiles, Helm charts, and more"
+    url: "https://github.com/cloudposse/build-harness"
+
   - name: "Chamber"
     description: "a CRUD tool for managing secrets stored in AWS Systems Manager Parameter Store and exposing those secrets as Environment Variables to processes."
     url: "https://docs.cloudposse.com/tools/chamber/"
+
+
+references:
+  - name: "helmfile"
+    description: "Helmfile is a declarative configuration for deploying distributions of helm charts"
+    url: "https://github.com/roboll/helmfile"
+
+  - name: "helm"
+    description: "The package manager for Kubernetes"
+    url: "https://helm.sh/"
+
+  - name: "docs"
+    description: "Documentation for how we use helmfile"
+    url: "https://docs.cloudposse.com/tools/helmfile/"
 
 # Contributors to this project
 contributors:
