@@ -13,6 +13,72 @@ badges:
   - name: "Slack Community"
     image: "https://slack.cloudposse.com/badge.svg"
     url: "https://slack.cloudposse.com"
+    
+description: |-
+  Helmfiles is a comprehensive distribution of declarative [`helm`](https://helm.sh/) chart invocations. It makes it really easy to get up and running with a full stack of fully integrated apps for Kubernetes using [`helmfile`](https://github.com/roboll/helmfile). It's also compatible with `helmfile.d`. 
+  
+  Pull Requests are welcome!
+
+usage: |-
+
+  Install the latest release of `helmfile` from the [helmfile releases](https://github.com/roboll/helmfile/releases) page.
+
+  Alternatively, we also distribute `helmfile` as an [alpine package](https://github.com/cloudposse/packages).
+
+  Add the cloudposse alpine repository.
+
+  ```
+  # Install the cloudposse alpine repository
+  ADD https://apk.cloudposse.com/ops@cloudposse.com.rsa.pub /etc/apk/keys/
+  RUN echo "@cloudposse https://apk.cloudposse.com/3.8/vendor" >> /etc/apk/repositories
+  ```
+
+  Install `helmfile` from the repository.
+
+  ```
+  RUN apk add helmfile
+  ```
+
+
+  ### Docker
+
+  We distribute a docker image with all helmfiles. Use a multi-stage build to include them.
+
+  ```
+  FROM cloudposse/helmfiles:latest as helmfiles
+
+  COPY --from helmfiles /helmfile.d/ /conf/helmfiles.d/
+  ```
+
+  **IMPORTANT:** we recommend pinning `cloudposse/helmfiles` to a specific release rather than using `latest`
+
+  ### Git
+  
+  ```
+  git clone git@github.com:cloudposse/helmfiles.git
+  ```
+
+  ### Configuration
+
+  Define a `helmfile.yaml` which includes the releases you wish to support. Specify all releases in the order in which they should get installed.
+
+  Here's an example of a [`helmfile.yaml`](helmfile.yaml):
+
+  ```
+  # Ordered list of releases. 
+  releases:
+    - "helmfile.d/prometheus-operator.yaml"
+    - "helmfile.d/cluster-autoscaler.yaml"
+    - "helmfile.d/kiam.yaml"
+    - "helmfile.d/external-dns.yaml"
+    - "helmfile.d/kube-lego.yaml"
+    - "helmfile.d/nginx-ingress.yaml"
+    - "helmfile.d/kube-prometheus.yaml"
+    - "helmfile.d/grafana.yaml"
+    - "helmfile.d/heapster.yaml"
+    - "helmfile.d/dashboard.yaml"
+    - "helmfile.d/portal.yaml"
+  ```
 
 related:
   - name: "Geodesic"
@@ -31,21 +97,23 @@ related:
     description: "Collection of Makefiles to facilitate building Golang projects, Dockerfiles, Helm charts, and more"
     url: "https://github.com/cloudposse/build-harness"
 
+  - name: "Chamber"
+    description: "a CRUD tool for managing secrets stored in AWS Systems Manager Parameter Store and exposing those secrets as Environment Variables to processes."
+    url: "https://docs.cloudposse.com/tools/chamber/"
+
+
 references:
   - name: "helmfile"
     description: "Helmfile is a declarative configuration for deploying distributions of helm charts"
     url: "https://github.com/roboll/helmfile"
+
   - name: "helm"
     description: "The package manager for Kubernetes"
     url: "https://helm.sh/"
+
   - name: "docs"
     description: "Documentation for how we use helmfile"
     url: "https://docs.cloudposse.com/tools/helmfile/"
-     
-description: |-
-  Helmfiles is a comprehensive distribution of declarative [`helm`](https://helm.sh/) chart invocations. It makes it really easy to get up and running with a full stack of fully integrated apps for Kubernetes using [`helmfile`](https://github.com/roboll/helmfile). It's also compatible with `helmfile.d`. 
-  
-  Pull Requests are welcome!
 
 # Contributors to this project
 contributors:
