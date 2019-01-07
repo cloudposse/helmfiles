@@ -17,7 +17,7 @@ releases:
 #   - https://kubernetes.io/docs/tasks/inject-data-application/define-command-argument-container
 #   - https://stackoverflow.com/questions/3790454/in-yaml-how-do-i-break-a-string-over-multiple-lines
 #
-- name: "codefresh-runtime-env"
+- name: "codefresh-re"
   namespace: "codefresh"
   labels:
     chart: "monochart"
@@ -29,7 +29,7 @@ releases:
   version: "0.8.0"
   wait: true
   values:
-    - fullnameOverride: codefresh-runtime-env
+    - fullnameOverride: codefresh-re
       replicaCount: 1
       image:
         repository: codefresh/cli
@@ -49,8 +49,8 @@ releases:
           pod:
             command:
             - |-
-              codefresh auth create-context --api-key $(CODEFRESH_API_KEY) \
-              && codefresh create re --cluster $(CODEFRESH_KUBERNETES_CLUSTER) --namespace $(CODEFRESH_NAMESPACE) --kube-context $(CODEFRESH_KUBE_CONTEXT)
+              codefresh auth create-context --api-key $(CODEFRESH_API_KEY) && \
+              codefresh create re --cluster $(CODEFRESH_KUBERNETES_CLUSTER) --namespace $(CODEFRESH_NAMESPACE) --kube-context $(CODEFRESH_KUBE_CONTEXT)
 
       resources:
         requests:
