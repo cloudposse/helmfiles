@@ -67,7 +67,8 @@ We distribute a docker image with all helmfiles. Use a multi-stage build to incl
 ```
 FROM cloudposse/helmfiles:latest as helmfiles
 
-COPY --from helmfiles /releases/ /conf/releases/
+COPY --from helmfiles /releases/ /conf/helmfiles/releases/
+COPY --from helmfiles /scripts/ /conf/helmfiles/scripts/
 ```
 
 **IMPORTANT:** we recommend pinning `cloudposse/helmfiles` to a specific release rather than using `latest`
