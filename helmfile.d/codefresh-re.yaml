@@ -1,0 +1,61 @@
+repositories:
+# Cloud Posse incubator repo of helm charts
+- name: "cloudposse-incubator"
+  url: "https://charts.cloudposse.com/incubator/"
+
+
+releases:
+
+#######################################################################################
+## Codefresh Runtime Environments                                                    ##
+#######################################################################################
+
+#
+# References:
+#   - https://codefresh-io.github.io/cli/runtime-environments/create-runtime-environments
+#   - https://github.com/cloudposse/charts/blob/master/incubator/monochart
+#   - https://kubernetes.io/docs/tasks/inject-data-application/define-command-argument-container
+#   - https://stackoverflow.com/questions/3790454/in-yaml-how-do-i-break-a-string-over-multiple-lines
+#
+- name: "codefresh-re"
+  namespace: "codefresh"
+  labels:
+    chart: "monochart"
+    component: "codefresh"
+    namespace: "codefresh"
+    vendor: "cloudposse"
+    default: "false"
+  chart: "cloudposse-incubator/monochart"
+  version: "0.9.0"
+  wait: true
+  values:
+    - fullnameOverride: codefresh-re
+      replicaCount: 1
+      image:
+        repository: codefresh/cli
+        ### Optional: CODEFRESH_CLI_IMAGE_TAG
+        tag: '{{ env "CODEFRESH_CLI_IMAGE_TAG" | default "0.9.17" }}'
+        pullPolicy: IfNotPresent
+
+      env:
+        CODEFRESH_API_KEY: '{{ env "CODEFRESH_API_KEY" }}'
+        CODEFRESH_KUBERNETES_CLUSTER: '{{ env "CODEFRESH_KUBERNETES_CLUSTER" }}'
+        CODEFRESH_NAMESPACE: '{{ env "CODEFRESH_NAMESPACE" | default "codefresh" }}'
+        CODEFRESH_KUBE_CONTEXT: '{{ env "CODEFRESH_KUBE_CONTEXT" }}'
+
+      job:
+        default:
+          enabled: true
+          pod:
+            command:
+            - |-
+              codefresh auth create-context --api-key $(CODEFRESH_API_KEY) && \
+              codefresh create re --cluster $(CODEFRESH_KUBERNETES_CLUSTER) --namespace $(CODEFRESH_NAMESPACE) --kube-context $(CODEFRESH_KUBE_CONTEXT)
+
+      resources:
+        requests:
+          cpu: "50m"
+          memory: "128Mi"
+        limits:
+          cpu: "200m"
+          memory: "512Mi"

@@ -24,19 +24,21 @@ releases:
     vendor: "cloudposse"
     default: "true"
   chart: "cloudposse-incubator/monochart"
-  version: "0.7.0"
+  version: "0.8.0"
   wait: true
   values:
     - fullnameOverride: atlantis
       image:
-        repository: runatlantis/atlantis
-        tag: "v0.4.5"
-        pullPolicy: IfNotPresent  
+        ### Optional: ATLANTIS_IMAGE
+        repository: '{{ env "ATLANTIS_IMAGE" | default "runatlantis/atlantis" }}'
+        ### Optional: ATLANTIS_IMAGE_TAG
+        tag: '{{ env "ATLANTIS_IMAGE_TAG" | default "v0.4.13" }}'
+        pullPolicy: IfNotPresent
 
       statefulset:
         enabled: true
         pod:
-          cmd: atlantis
+          command: atlantis
           args:
             - server
 
@@ -99,7 +101,7 @@ releases:
               hosts:
               ### Required: ATLANTIS_HOSTNAME;
               - '{{ env "ATLANTIS_HOSTNAME" }}'
-      
+
       probes:
         livenessProbe:
           httpGet:
