@@ -6,7 +6,7 @@
 # Helmfiles [![Codefresh Build Status](https://g.codefresh.io/api/badges/build?repoOwner=cloudposse&repoName=helmfiles&branch=master&pipelineName=helmfiles&accountName=cloudposse&type=cf-1)](https://g.codefresh.io/pipelines/helmfiles/builds) [![Latest Release](https://img.shields.io/github/release/cloudposse/helmfiles.svg)](https://github.com/cloudposse/helmfiles/releases/latest) [![Slack Community](https://slack.cloudposse.com/badge.svg)](https://slack.cloudposse.com)
 
 
-Helmfiles is a comprehensive distribution of declarative [`helm`](https://helm.sh/) chart invocations. It makes it really easy to get up and running with a full stack of fully integrated apps for Kubernetes using [`helmfile`](https://github.com/roboll/helmfile). It's also compatible with `helmfile.d`. 
+Helmfiles is a comprehensive distribution of declarative [`helm`](https://helm.sh/) chart invocations. It makes it really easy to get up and running with a full stack of fully integrated apps for Kubernetes using [`helmfile`](https://github.com/roboll/helmfile). It's also compatible with `releases`. 
 
 Pull Requests are welcome!
 
@@ -67,7 +67,7 @@ We distribute a docker image with all helmfiles. Use a multi-stage build to incl
 ```
 FROM cloudposse/helmfiles:latest as helmfiles
 
-COPY --from helmfiles /helmfile.d/ /conf/helmfiles.d/
+COPY --from helmfiles /releases/ /conf/helmfiles.d/
 ```
 
 **IMPORTANT:** we recommend pinning `cloudposse/helmfiles` to a specific release rather than using `latest`
@@ -87,17 +87,17 @@ Here's an example of a [`helmfile.yaml`](helmfile.yaml):
 ```
 # Ordered list of releases. 
 helmfiles:
-  - "helmfile.d/prometheus-operator.yaml"
-  - "helmfile.d/cluster-autoscaler.yaml"
-  - "helmfile.d/kiam.yaml"
-  - "helmfile.d/external-dns.yaml"
-  - "helmfile.d/kube-lego.yaml"
-  - "helmfile.d/nginx-ingress.yaml"
-  - "helmfile.d/kube-prometheus.yaml"
-  - "helmfile.d/grafana.yaml"
-  - "helmfile.d/heapster.yaml"
-  - "helmfile.d/dashboard.yaml"
-  - "helmfile.d/portal.yaml"
+  - "releases/prometheus-operator.yaml"
+  - "releases/cluster-autoscaler.yaml"
+  - "releases/kiam.yaml"
+  - "releases/external-dns.yaml"
+  - "releases/kube-lego.yaml"
+  - "releases/nginx-ingress.yaml"
+  - "releases/kube-prometheus.yaml"
+  - "releases/grafana.yaml"
+  - "releases/heapster.yaml"
+  - "releases/dashboard.yaml"
+  - "releases/portal.yaml"
 ```
 
 
