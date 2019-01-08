@@ -17,6 +17,7 @@ releases:
 # References:
 #   - https://github.com/helm/charts/blob/master/stable/nginx-ingress/values.yaml
 #
+{{ env "NGINX_INGRESS_CUSTOM_CLIENTS_ERRORS" | default "403,404" }},{{ env "NGINX_INGRESS_CUSTOM_CLIENTS_ERRORS" | default "403,404" }}
 - name: "ingress"
   namespace: "kube-system"
   labels:
@@ -49,7 +50,7 @@ releases:
         kind: '{{ env "NGINX_INGRESS_KIND" | default "Deployment" }}'
         defaultBackendService: "kube-system/ingress-backend-default"
         config:
-          custom-http-errors: {{ env "NGINX_INGRESS_CUSTOM_ERRORS" | default "403,404,500,501,502,503,504" }}
+          custom-http-errors:
         service:
           annotations:
             ### Required: NGINX_INGRESS_HOSTNAME; e.g. ingress.us-west-2.cloudposse.org
@@ -130,9 +131,11 @@ releases:
           email: '{{ env "NGINX_INGRESS_SUPPORT_EMAIL" | default "hello@cloudposse.com" }}'
           site: /
         client:
-          - "404"
+{{- range $status := env "NGINX_INGRESS_CUSTOM_CLIENT_ERRORS" | default "403,404" | splitList ","  }}
+            - "{{ $status }}"
+{{- end }}
         server:
-{{- range $status := env "NGINX_INGRESS_CUSTOM_ERRORS" | default "500,501,502,503,504" | splitList ","  }}
+{{- range $status := env "NGINX_INGRESS_CUSTOM_SERVER_ERRORS" | default "500,501,502,503,504" | splitList ","  }}
           - "{{ $status }}"
 {{- end }}
 #######################################################################################
