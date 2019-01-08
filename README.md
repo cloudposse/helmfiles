@@ -86,7 +86,7 @@ Here's an example of a [`helmfile.yaml`](helmfile.yaml):
 
 ```
 # Ordered list of releases. 
-releases:
+helmfiles:
   - "helmfile.d/prometheus-operator.yaml"
   - "helmfile.d/cluster-autoscaler.yaml"
   - "helmfile.d/kiam.yaml"
