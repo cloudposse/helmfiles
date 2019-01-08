@@ -26,7 +26,7 @@ releases:
     vendor: "cloudposse"
     default: "false"
   chart: "cloudposse-incubator/monochart"
-  version: "0.8.0"
+  version: "0.9.0"
   wait: true
   values:
     - fullnameOverride: codefresh-re
