@@ -1,5 +1,5 @@
 # Ordered list of releases. 
-releases:
+helmfle:
   - "helmfile.d/prometheus-operator.yaml"
   - "helmfile.d/cluster-autoscaler.yaml"
   - "helmfile.d/kiam.yaml"
