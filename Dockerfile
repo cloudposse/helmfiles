@@ -1,4 +1,4 @@
 FROM scratch
-COPY releases/ /helmfiles/releases/
-COPY scripts/ /helmfiles/scripts/
+COPY helmfiles/ /helmfiles/
+COPY scripts/ /scripts/
 WORKDIR /

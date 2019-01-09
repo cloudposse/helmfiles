@@ -67,8 +67,7 @@ We distribute a docker image with all helmfiles. Use a multi-stage build to incl
 ```
 FROM cloudposse/helmfiles:latest as helmfiles
 
-COPY --from helmfiles /releases/ /conf/helmfiles/releases/
-COPY --from helmfiles /scripts/ /conf/helmfiles/scripts/
+COPY --from helmfiles /helmfiles/ /conf/helmfiles/
 ```
 
 **IMPORTANT:** we recommend pinning `cloudposse/helmfiles` to a specific release rather than using `latest`
@@ -88,17 +87,17 @@ Here's an example of a [`helmfile.yaml`](helmfile.yaml):
 ```
 # Ordered list of releases. 
 helmfiles:
-  - "releases/prometheus-operator.yaml"
-  - "releases/cluster-autoscaler.yaml"
-  - "releases/kiam.yaml"
-  - "releases/external-dns.yaml"
-  - "releases/kube-lego.yaml"
-  - "releases/nginx-ingress.yaml"
-  - "releases/kube-prometheus.yaml"
-  - "releases/grafana.yaml"
-  - "releases/heapster.yaml"
-  - "releases/dashboard.yaml"
-  - "releases/portal.yaml"
+  - "helmfiles/prometheus-operator.yaml"
+  - "helmfiles/cluster-autoscaler.yaml"
+  - "helmfiles/kiam.yaml"
+  - "helmfiles/external-dns.yaml"
+  - "helmfiles/kube-lego.yaml"
+  - "helmfiles/nginx-ingress.yaml"
+  - "helmfiles/kube-prometheus.yaml"
+  - "helmfiles/grafana.yaml"
+  - "helmfiles/heapster.yaml"
+  - "helmfiles/dashboard.yaml"
+  - "helmfiles/portal.yaml"
 ```
 
 
