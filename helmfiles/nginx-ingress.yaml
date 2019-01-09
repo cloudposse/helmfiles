@@ -99,7 +99,7 @@ releases:
           configMapKey: "template"
   set:
   - name: "controller.config.template"
-    file: ./helmfile.d/values/ingress.nginx.template
+    file: ./helmfiles/values/ingress.nginx.template
 ## Workaround until https://github.com/kubernetes/ingress-nginx/pull/2989 is merged
 
 - name: "ingress-backend"

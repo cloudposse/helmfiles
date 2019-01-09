@@ -15,7 +15,7 @@ badges:
     url: "https://slack.cloudposse.com"
     
 description: |-
-  Helmfiles is a comprehensive distribution of declarative [`helm`](https://helm.sh/) chart invocations. It makes it really easy to get up and running with a full stack of fully integrated apps for Kubernetes using [`helmfile`](https://github.com/roboll/helmfile). It's also compatible with `helmfile.d`. 
+  Helmfiles is a comprehensive distribution of declarative [`helm`](https://helm.sh/) chart invocations. It makes it really easy to get up and running with a full stack of fully integrated apps for Kubernetes using [`helmfile`](https://github.com/roboll/helmfile).
   
   Pull Requests are welcome!
 
@@ -47,7 +47,7 @@ usage: |-
   ```
   FROM cloudposse/helmfiles:latest as helmfiles
 
-  COPY --from helmfiles /helmfile.d/ /conf/helmfiles.d/
+  COPY --from helmfiles /helmfiles/ /conf/helmfiles/
   ```
 
   **IMPORTANT:** we recommend pinning `cloudposse/helmfiles` to a specific release rather than using `latest`
@@ -67,17 +67,17 @@ usage: |-
   ```
   # Ordered list of releases. 
   helmfiles:
-    - "helmfile.d/prometheus-operator.yaml"
-    - "helmfile.d/cluster-autoscaler.yaml"
-    - "helmfile.d/kiam.yaml"
-    - "helmfile.d/external-dns.yaml"
-    - "helmfile.d/kube-lego.yaml"
-    - "helmfile.d/nginx-ingress.yaml"
-    - "helmfile.d/kube-prometheus.yaml"
-    - "helmfile.d/grafana.yaml"
-    - "helmfile.d/heapster.yaml"
-    - "helmfile.d/dashboard.yaml"
-    - "helmfile.d/portal.yaml"
+    - "helmfiles/prometheus-operator.yaml"
+    - "helmfiles/cluster-autoscaler.yaml"
+    - "helmfiles/kiam.yaml"
+    - "helmfiles/external-dns.yaml"
+    - "helmfiles/kube-lego.yaml"
+    - "helmfiles/nginx-ingress.yaml"
+    - "helmfiles/kube-prometheus.yaml"
+    - "helmfiles/grafana.yaml"
+    - "helmfiles/heapster.yaml"
+    - "helmfiles/dashboard.yaml"
+    - "helmfiles/portal.yaml"
   ```
 
 related:
