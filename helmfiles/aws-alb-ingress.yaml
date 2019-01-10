@@ -27,160 +27,84 @@ releases:
   version: "0.1.4"
   wait: true
   values:
-    - clusterName: k8s
-      autoDiscoverAwsRegion: true
-      autoDiscoverAwsVpcID: true
-      scope:
-        ## If provided, the ALB ingress controller will only act on Ingress resources annotated with this class
-        ## Ref: https://github.com/kubernetes-sigs/aws-alb-ingress-controller/blob/master/docs/configuration.md#limiting-ingress-class
-        ingressClass: alb
+  - clusterName: us-west-2.testing.cloudposse.co
+    autoDiscoverAwsRegion: true
+    autoDiscoverAwsVpcID: true
+    scope:
+      ## If provided, the ALB ingress controller will only act on Ingress resources annotated with this class
+      ## Ref: https://github.com/kubernetes-sigs/aws-alb-ingress-controller/blob/master/docs/configuration.md#limiting-ingress-class
+      ingressClass: alb
 
-        ## If true, the ALB ingress controller will only act on Ingress resources in a single namespace
-        ## Default: false; watch all namespaces
-        singleNamespace: false
+      ## If true, the ALB ingress controller will only act on Ingress resources in a single namespace
+      ## Default: false; watch all namespaces
+      singleNamespace: false
 
-        ## If scope.singleNamespace=true, the ALB ingress controller will only act on Ingress resources in this namespace
-        ## Ref: https://github.com/kubernetes-sigs/aws-alb-ingress-controller/blob/master/docs/configuration.md#limiting-namespaces
-        ## Default: namespace of the ALB ingress controller
-        watchNamespace: ""
+      ## If scope.singleNamespace=true, the ALB ingress controller will only act on Ingress resources in this namespace
+      ## Ref: https://github.com/kubernetes-sigs/aws-alb-ingress-controller/blob/master/docs/configuration.md#limiting-namespaces
+      ## Default: namespace of the ALB ingress controller
+      watchNamespace: ""
 
-      extraArgs: {}
+    extraArgs: {}
 
-      extraEnv: {}
-      # AWS_ACCESS_KEY_ID: ""
-      # AWS_SECRET_ACCESS_KEY: ""
+    extraEnv: {}
+    # AWS_ACCESS_KEY_ID: ""
+    # AWS_SECRET_ACCESS_KEY: ""
 
-      podAnnotations: {}
-      # iam.amazonaws.com/role: alb-ingress-controller
+    podAnnotations: {}
+    # iam.amazonaws.com/role: alb-ingress-controller
 
-      podLabels: {}
+    podLabels: {}
 
-      # whether configure readinessProbe on controller pod
-      enableReadinessProbe: false
+    # whether configure readinessProbe on controller pod
+    enableReadinessProbe: false
 
-      # How often (in seconds) to check controller readiness
-      readinessProbeInterval: 60
+    # How often (in seconds) to check controller readiness
+    readinessProbeInterval: 60
 
-      # How long to wait before timeout (in seconds) when checking controller readiness
-      readinessProbeTimeout: 3
+    # How long to wait before timeout (in seconds) when checking controller readiness
+    readinessProbeTimeout: 3
 
-      # How long to wait (in seconds) before checking the readiness probe
-      readinessProbeInitialDelay: 30
+    # How long to wait (in seconds) before checking the readiness probe
+    readinessProbeInitialDelay: 30
 
-      # whether configure livenessProbe on controller pod
-      enableLivenessProbe: false
+    # whether configure livenessProbe on controller pod
+    enableLivenessProbe: false
 
-      # How long to wait (in seconds) before checking the liveness probe
-      livenessProbeInitialDelay: 30
+    # How long to wait (in seconds) before checking the liveness probe
+    livenessProbeInitialDelay: 30
 
-      rbac:
-        ## If true, create & use RBAC resources
-        ##
-        create: true
-        serviceAccountName: default
+    rbac:
+      ## If true, create & use RBAC resources
+      ##
+      create: true
+      serviceAccountName: default
 
-      image:
-        #repository: docker.io/amazon/aws-alb-ingress-controller
-        repository: m00nf1sh/aws-alb-ingress-controller
-        tag: "PR-754"
-        pullPolicy: Always
+    image:
+      #repository: docker.io/amazon/aws-alb-ingress-controller
+      repository: m00nf1sh/aws-alb-ingress-controller
+      tag: "PR-754"
+      pullPolicy: Always
 
-      replicaCount: 1
-      nameOverride: ""
-      fullnameOverride: ""
+    replicaCount: 1
 
-      resources: {}
-        # We usually recommend not to specify default resources and to leave this as a conscious
-        # choice for the user. This also increases chances charts run on environments with little
-        # resources, such as Minikube. If you do want to specify resources, uncomment the following
-        # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
-        # limits:
-        #  cpu: 100m
-        #  memory: 128Mi
-        # requests:
+    resources: {}
+      # We usually recommend not to specify default resources and to leave this as a conscious
+      # choice for the user. This also increases chances charts run on environments with little
+      # resources, such as Minikube. If you do want to specify resources, uncomment the following
+      # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+      # limits:
+      #  cpu: 100m
+      #  memory: 128Mi
+      # requests:
       #  cpu: 100m
       #  memory: 128Mi
 
-      nodeSelector: {}
-      # node-role.kubernetes.io/node: "true"
-      # tier: cs
+    nodeSelector: {}
+    # node-role.kubernetes.io/node: "true"
+    # tier: cs
 
-      tolerations: []
-      #  - key: "node-role.kubernetes.io/master"
-      #    effect: NoSchedule
+    tolerations: []
+    #  - key: "node-role.kubernetes.io/master"
+    #    effect: NoSchedule
 
-      affinity: {}
-
-
-
-      controller:
-        image:
-          repository: "quay.io/kubernetes-ingress-controller/nginx-ingress-controller"
-          ### Optional: NGINX_INGRESS_IMAGE_TAG; e.g. 0.17.1
-          tag: '{{ env "NGINX_INGRESS_IMAGE_TAG" | default "0.17.1" }}'
-          pullPolicy: "IfNotPresent"
-        ### Optional: NGINX_INGRESS_REPLICA_COUNT; Used only if `kind=Deployment` e.g. 4
-        replicaCount: '{{ env "NGINX_INGRESS_REPLICA_COUNT" | default "4" }}'
-        resources:
-          limits:
-            cpu: "200m"
-            memory: "256Mi"
-          requests:
-            cpu: "50m"
-            memory: "128Mi"
-        ## Optional: NGINX_INGRESS_KIND; Valid values: DaemonSet or Deployment
-        kind: '{{ env "NGINX_INGRESS_KIND" | default "Deployment" }}'
-        defaultBackendService: "kube-system/ingress-backend-default"
-        config:
-          custom-http-errors: 404,500,502,503,504
-        service:
-          annotations:
-            ### Required: NGINX_INGRESS_HOSTNAME; e.g. ingress.us-west-2.cloudposse.org
-            external-dns.alpha.kubernetes.io/hostname: '{{ env "NGINX_INGRESS_HOSTNAME" }}'
-            ### Optional: NGINX_INGRESS_TTL; e.g. 60
-            external-dns.alpha.kubernetes.io/ttl: '{{ env "NGINX_INGRESS_TTL" | default "60" }}'
-        stats:
-          enabled: {{ env "NGINX_INGRESS_METRICS_ENABLED" | default "false" }}
-        metrics:
-          enabled: {{ env "NGINX_INGRESS_METRICS_ENABLED" | default "false" }}
-      ### Regexp used to map
-      ### 8080:default/example-tcp-svc:9000,8081:staging/example-tcp-svc:9000
-      ### to
-      ### 8080: default/example-tcp-svc:9000
-      ### 8081: staging/example-tcp-svc:9000
-      ### Optional: NGINX_INGRESS_TCP; e.g. 8080:default/example-tcp-svc:9000,8081:staging/example-tcp-svc:9000
-      tcp:
-      {{- range env "NGINX_INGRESS_TCP" | splitList "," }}
-        {{ regexReplaceAll "(\\d*:)(.*)" . "$1 $2" }}
-      {{- end }}
-      ### Regexp used to map
-      ### 8080:default/example-udp-svc:9000,8081:staging/example-udp-svc:9000
-      ### to
-      ### 8080: default/example-udp-svc:9000
-      ### 8081: staging/example-udp-svc:9000
-      ### Optional: NGINX_INGRESS_UDP; e.g. 8080:default/example-udp-svc:9000,8081:staging/example-udp-svc:9000
-      udp:
-      {{- range env "NGINX_INGRESS_UDP" | splitList "," }}
-        {{ regexReplaceAll "(\\d*:)(.*)" . "$1 $2" }}
-      {{- end }}
-
-      defaultBackend:
-        enabled: false
-      rbac:
-        ### Optional: RBAC_ENABLED;
-        create: {{ env "RBAC_ENABLED" | default "false" }}
-      serviceAccount:
-        ### Optional: RBAC_ENABLED;
-        create: {{ env "RBAC_ENABLED" | default "false" }}
-        ### Optional: NGINX_INGRESS_SERVICE_ACCOUNT_NAME;
-        name: '{{ env "NGINX_INGRESS_SERVICE_ACCOUNT_NAME" | default "" }}'
-
-## Workaround until https://github.com/kubernetes/ingress-nginx/pull/2989 is merged
-    - controller:
-        customTemplate:
-          configMapName: "ingress-nginx-ingress-controller"
-          configMapKey: "template"
-  set:
-  - name: "controller.config.template"
-    file: ./helmfile.d/values/ingress.nginx.template
-## Workaround until https://github.com/kubernetes/ingress-nginx/pull/2989 is merged
+    affinity: {}
