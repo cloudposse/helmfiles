@@ -50,8 +50,8 @@ releases:
     # AWS_ACCESS_KEY_ID: ""
     # AWS_SECRET_ACCESS_KEY: ""
 
-    podAnnotations: {}
-    # iam.amazonaws.com/role: alb-ingress-controller
+    podAnnotations:
+      iam.amazonaws.com/role: cpco-testing-alb-ingress
 
     podLabels: {}
 
