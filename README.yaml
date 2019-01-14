@@ -47,7 +47,7 @@ usage: |-
   ```
   FROM cloudposse/helmfiles:latest as helmfiles
 
-  COPY --from helmfiles /helmfiles /conf/helmfiles/
+  COPY --from=helmfiles /helmfiles /conf/helmfiles/
   ```
 
   **IMPORTANT:** we recommend pinning `cloudposse/helmfiles` to a specific release rather than using `latest`
