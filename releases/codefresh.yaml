@@ -27,8 +27,8 @@ releases:
   values:
   - global:
       ### Instantiate databases with seed data. Usually used in dynamic and on-prem environments.
-      #seedJobs: true
-      #certsJobs: true
+      seedJobs: {{ env "CODEFRESH_SEED_JOBS_ENABLED" | default "false" }}
+      certsJobs: {{ env "CODEFRESH_SEED_JOBS_ENABLED" | default "false" }}
 
       #### Depending on git provider use matching values
       ### for Gitlab git provider
