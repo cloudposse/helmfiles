@@ -1,0 +1,226 @@
+repositories:
+# Codefresh on-prem repository
+- name: "codefresh"
+  url: 'http://charts.codefresh.io/{{ env "CHANNEL" | default "dev" }}'
+
+releases:
+
+#######################################################################################
+## Codefresh On-Prem                                                                 ##
+#######################################################################################
+
+#
+# References:
+#   - https://github.com/codefresh-io/onprem
+#
+- name: "cf"
+  namespace: "codefresh"
+  labels:
+    chart: "codefresh"
+    component: "codefresh"
+    namespace: "codefresh"
+    vendor: "codefresh"
+    default: "false"
+  chart: "codefresh/codefresh"
+  version: "0.6.99"
+  wait: true
+  values:
+  - global:
+      ### Instantiate databases with seed data. Usually used in dynamic and on-prem environments.
+      #seedJobs: true
+      #certsJobs: true
+
+      #### Depending on git provider use matching values
+      ### for Gitlab git provider
+      #  gitlabClientID:
+      #  gitlabClientSecret:
+      ### for Bitbucket git provider
+      #  bitbucketClientID:
+      #  bitbucketClientSecret:
+      ### for Github git provider
+      #  githubClientID:
+      #  githubClientSecret:
+      #  githubInternalToken:
+      appProtocol: https
+      ### Codefresh App domain name
+      appUrl: {{ env "CODEFRESH_HOST" }}
+
+    ### MTU Value for dockerd in builder and runner
+    #  mtu: 1400
+
+    ### Environment variables applied to all pods
+    #  env:
+    #    HTTP_PROXY: "http://myproxy.domain.com:8080"
+    #    http_proxy: "http://myproxy.domain.com:8080"
+    #    HTTPS_PROXY: "http://myproxy.domain.com:8080"
+    #    https_proxy: "http://myproxy.domain.com:8080"
+    #    NO_PROXY: "127.0.0.1,localhost,kubernetes.default.svc,.codefresh.svc,100.64.0.1,169.254.169.254,cf-builder,cf-cfapi,cf-cfui,cf-chartmuseum,cf-charts-manager,cf-cluster-providers,cf-consul,cf-consul-ui,cf-context-manager,cf-cronus,cf-helm-repo-manager,cf-hermes,cf-ingress-controller,cf-ingress-http-backend,cf-kube-integration,cf-mongodb,cf-nats,cf-nomios,cf-pipeline-manager,cf-postgresql,cf-rabbitmq,cf-redis,cf-registry,cf-runner,cf-runtime-environment-manager,cf-store"
+    #    no_proxy: "127.0.0.1,localhost,kubernetes.default.svc,.codefresh.svc,100.64.0.1,169.254.169.254,cf-builder,cf-cfapi,cf-cfui,cf-chartmuseum,cf-charts-manager,cf-cluster-providers,cf-consul,cf-consul-ui,cf-context-manager,cf-cronus,cf-helm-repo-manager,cf-hermes,cf-ingress-controller,cf-ingress-http-backend,cf-kube-integration,cf-mongodb,cf-nats,cf-nomios,cf-pipeline-manager,cf-postgresql,cf-rabbitmq,cf-redis,cf-registry,cf-runner,cf-runtime-environment-manager,cf-store"
+
+    ## Custom annotations for Codefresh ingress resource that override defaults
+    annotations:
+      kubernetes.io/ingress.class: nginx
+      kubernetes.io/tls-acme: "false"
+      external-dns: enabled
+      external-dns.alpha.kubernetes.io/target: {{ env "NGINX_INGRESS_HOSTNAME" }}
+      external-dns.alpha.kubernetes.io/hostname: {{ env "CODEFRESH_HOST" }}
+      nginx.ingress.kubernetes.io/ssl-redirect: 'true'
+      nginx.org/redirect-to-https: 'true'
+
+    ### Firebase secret
+    firebaseSecret: {{ env "CODEFRESH_FIREBASE_SECRET" }}
+
+    ### Uncomment if kubernetes cluster is RBAC enabled
+    rbacEnable: {{ env "RBAC_ENABLED" | default "false" }}
+
+    ingress:
+      enabled: false
+      ### Codefresh App domain name
+      domain: {{ env "CODEFRESH_HOST" }}
+      ### Uncomment if kubernetes cluster is RBAC enabled
+      rbacEnable: {{ env "RBAC_ENABLED" | default "false" }}
+
+    ### For github provider (the apiHost and loginHost are different)
+    cfapi:
+      rbacEnable: {{ env "RBAC_ENABLED" | default "false" }}
+      redeploy: true
+      github:
+        apiHost: api.github.com
+        loginHost: github.com
+        protocol: https
+
+    #  gitlab:
+    #    apiHost: gitlab-internal.codefresh.io
+    #    loginHost: gitlab-internal.codefresh.io
+    #    protocol: https
+
+    consul:
+      ### Use NodeSelector to assing pod to a node
+      nodeSelector: {}
+    #    services: consul-postgresql
+
+    postgresql:
+      persistence:
+        enabled: true
+      nodeSelector: {}
+    #    services: consul-postgresql
+
+    mongodb:
+      ## Provision new volume claim
+      persistence:
+        enabled: true
+        ## If defined, volume.beta.kubernetes.io/storage-class: <storageClass>
+        ## Default: volume.alpha.kubernetes.io/storage-class: default
+        ##
+        accessMode: ReadWriteOnce
+        size: 8Gi
+
+      nodeSelector: {}
+    #    provisioner: local-volume
+
+    redis:
+      persistence:
+        enabled: true
+      nodeSelector: {}
+    #    provisioner: local-volume
+
+    rabbitmq:
+      persistence:
+        enabled: true
+      nodeSelector: {}
+    #    services: rabbitmq-registry
+
+    registry:
+      nodeSelector: {}
+        #    services: rabbitmq-registry
+        ## Uncomment if needed to apply custom configuration to registry
+        #registryConfig:
+        ## Insert custom registry configuration (https://docs.docker.com/registry/configuration/)
+        #version: 0.1
+        #log:
+        #level: debug
+        #fields:
+        #service: registry
+        #storage:
+        #cache:
+        #blobdescriptor: inmemory
+        #s3:
+        #region: YOUR_REGION
+        #bucket: YOUR_BUCKET_NAME
+        #accesskey: AWS_ACCESS_KEY
+        #secretkey: AWS_SECRET_KEY
+        #http:
+        #addr: :5000
+        #headers:
+        #X-Content-Type-Options: [nosniff]
+        #health:
+        #storagedriver:
+        #enabled: true
+      #interval: 10s
+      #threshold: 3
+
+    hermes:
+      nodeSelector: {}
+      #    services: rabbitmq-registry
+      redis:
+        ## Set hermes store password. It is mandatory
+        redisPassword: verysecurepassword
+        nodeSelector: {}
+        #      services: rabbitmq-registry
+        persistence:
+          enabled: true
+
+    cronus:
+      nodeSelector: {}
+    #    services: rabbitmq-registry
+
+    builder:
+      ## Use existing volume claim name
+      #pvcName: cf-builder
+      ## Set time to run docker cleaner
+      dockerCleanerCron: 0 0 * * *
+      ## Override builder PV initial size
+      varLibDockerVolume:
+        storageSize: 100Gi
+
+    runner:
+      ## Set time to run docker cleaner
+      dockerCleanerCron: 0 0 * * *
+      ## Override runner PV initial size
+      varLibDockerVolume:
+        storageSize: 100Gi
+
+    backups:
+      #enabled: true
+      awsAccessKey:
+      awsSecretAccessKey:
+      s3Url: s3://<some-bucket>
+
+    dockerconfigjson:
+      auths:
+        gcr.io:
+          auth: {{ cat "_json_key:" ( env "CODEFRESH_SA") | b64enc }}
+
+    cfui:
+      dockerconfigjson:
+        auths:
+          gcr.io:
+            auth: {{ cat "_json_key:" ( env "CODEFRESH_SA") | b64enc }}
+
+    runtime-environment-manager:
+      dockerconfigjson:
+        auths:
+          gcr.io:
+            auth: {{ cat "_json_key:" ( env "CODEFRESH_SA") | b64enc }}
+
+    onboarding-status:
+      dockerconfigjson:
+        auths:
+          gcr.io:
+            auth: {{ cat "_json_key:" ( env "CODEFRESH_SA") | b64enc }}
+
+    cfanalytic:
+      dockerconfigjson:
+        auths:
+          gcr.io:
+            auth: {{ cat "_json_key:" ( env "CODEFRESH_SA") | b64enc }}
