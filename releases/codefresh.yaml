@@ -29,18 +29,6 @@ releases:
       ### Instantiate databases with seed data. Usually used in dynamic and on-prem environments.
       seedJobs: {{ env "CODEFRESH_SEED_JOBS_ENABLED" | default "false" }}
       certsJobs: {{ env "CODEFRESH_SEED_JOBS_ENABLED" | default "false" }}
-
-      #### Depending on git provider use matching values
-      ### for Gitlab git provider
-      #  gitlabClientID:
-      #  gitlabClientSecret:
-      ### for Bitbucket git provider
-      #  bitbucketClientID:
-      #  bitbucketClientSecret:
-      ### for Github git provider
-      #  githubClientID:
-      #  githubClientSecret:
-      #  githubInternalToken:
       appProtocol: https
       ### Codefresh App domain name
       appUrl: {{ env "CODEFRESH_HOST" }}
@@ -59,13 +47,20 @@ releases:
 
     ## Custom annotations for Codefresh ingress resource that override defaults
     annotations:
-      kubernetes.io/ingress.class: nginx
-      kubernetes.io/tls-acme: "false"
+      kubernetes.io/ingress.class: {{ env "CODEFRESH_INGRESS_CLASS" | default "nginx" }}
       external-dns: enabled
-      external-dns.alpha.kubernetes.io/target: {{ env "NGINX_INGRESS_HOSTNAME" }}
       external-dns.alpha.kubernetes.io/hostname: {{ env "CODEFRESH_HOST" }}
+
+{{- if eq (env "CODEFRESH_INGRESS_CLASS" | default "nginx") "nginx" }}
+      kubernetes.io/tls-acme: "true"
+      external-dns.alpha.kubernetes.io/target: '{{ env "NGINX_INGRESS_HOSTNAME" }}
       nginx.ingress.kubernetes.io/ssl-redirect: 'true'
       nginx.org/redirect-to-https: 'true'
+{{- else if eq (env "CODEFRESH_INGRESS_CLASS" | default "nginx") "alb" }}
+      alb.ingress.kubernetes.io/scheme: internet-facing
+      alb.ingress.kubernetes.io/listen-ports: '[{"HTTP":80},{"HTTPS":443}]'
+      alb.ingress.kubernetes.io/certificate-arn: {{ env "CODEFRESH_INGRESS_ACM_ARN" }}
+{{- end }}
 
     ### Firebase secret
     firebaseSecret: {{ env "CODEFRESH_FIREBASE_SECRET" }}
@@ -88,6 +83,9 @@ releases:
         apiHost: api.github.com
         loginHost: github.com
         protocol: https
+{{- if eq (env "CODEFRESH_INGRESS_CLASS" | default "nginx") "alb" }}
+      serviceType: NodePort
+{{- end }}
 
     #  gitlab:
     #    apiHost: gitlab-internal.codefresh.io
@@ -202,6 +200,9 @@ releases:
           auth: {{ cat "_json_key:" ( env "CODEFRESH_SA") | b64enc }}
 
     cfui:
+{{- if eq (env "CODEFRESH_INGRESS_CLASS" | default "nginx") "alb" }}
+      serviceType: NodePort
+{{- end }}
       dockerconfigjson:
         auths:
           gcr.io:
