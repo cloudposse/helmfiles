@@ -21,7 +21,8 @@ releases:
     namespace: "codefresh"
     vendor: "codefresh"
     default: "false"
-  chart: "codefresh/codefresh"
+  #chart: "codefresh/codefresh"
+  chart: "./../../onprem/codefresh"
   version: "0.6.99"
   wait: true
   values:
@@ -32,6 +33,12 @@ releases:
       appProtocol: https
       ### Codefresh App domain name
       appUrl: {{ env "CODEFRESH_HOST" }}
+      postgresDatabase: {{ env "AURORA_POSTGRES_DATABASE_NAME" }}
+      postgresPassword: {{ env "AURORA_POSTGRES_MASTER_PASSWORD" }}
+      postgresHostname: {{ env "AURORA_POSTGRES_MASTER_HOSTNAME" }}
+      postgresUser: {{ env "AURORA_POSTGRES_MASTER_USERNAME" }}
+      redisUrl: {{ env "REDIS_HOST" }}
+      redisPassword: {{ env "REDIS_AUTH_TOKEN" }}
 
     ### MTU Value for dockerd in builder and runner
     #  mtu: 1400
@@ -50,17 +57,16 @@ releases:
       kubernetes.io/ingress.class: {{ env "CODEFRESH_INGRESS_CLASS" | default "nginx" }}
       external-dns: enabled
       external-dns.alpha.kubernetes.io/hostname: {{ env "CODEFRESH_HOST" }}
-
-{{- if eq (env "CODEFRESH_INGRESS_CLASS" | default "nginx") "nginx" }}
+{{ if eq (env "CODEFRESH_INGRESS_CLASS" | default "nginx") "nginx" }}
       kubernetes.io/tls-acme: "true"
-      external-dns.alpha.kubernetes.io/target: '{{ env "NGINX_INGRESS_HOSTNAME" }}
+      external-dns.alpha.kubernetes.io/target: '{{ env "NGINX_INGRESS_HOSTNAME" }}'
       nginx.ingress.kubernetes.io/ssl-redirect: 'true'
       nginx.org/redirect-to-https: 'true'
-{{- else if eq (env "CODEFRESH_INGRESS_CLASS" | default "nginx") "alb" }}
+{{ else if eq (env "CODEFRESH_INGRESS_CLASS" | default "nginx") "alb" }}
       alb.ingress.kubernetes.io/scheme: internet-facing
       alb.ingress.kubernetes.io/listen-ports: '[{"HTTP":80},{"HTTPS":443}]'
       alb.ingress.kubernetes.io/certificate-arn: {{ env "CODEFRESH_INGRESS_ACM_ARN" }}
-{{- end }}
+{{ end }}
 
     ### Firebase secret
     firebaseSecret: {{ env "CODEFRESH_FIREBASE_SECRET" }}
@@ -98,6 +104,7 @@ releases:
     #    services: consul-postgresql
 
     postgresql:
+      enabled: false
       persistence:
         enabled: true
       nodeSelector: {}
@@ -117,6 +124,7 @@ releases:
     #    provisioner: local-volume
 
     redis:
+      enabled: false
       persistence:
         enabled: true
       nodeSelector: {}
