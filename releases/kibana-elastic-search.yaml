@@ -1,0 +1,76 @@
+repositories:
+# Incubator repo of official helm charts
+- name: "incubator"
+  url: "https://kubernetes-charts-incubator.storage.googleapis.com/"
+
+releases:
+
+#######################################################################################
+## Kibana                                                                            ##
+## Open source, browser-based analytics and search dashboard for AWS Elasticsearch   ##
+#######################################################################################
+
+#
+# References:
+#   - https://github.com/helm/charts/blob/master/incubator/raw/values.yaml
+#
+- name: "kibana-aws"
+  namespace: "kube-system"
+  labels:
+    chart: "raw"
+    repo: "incubator"
+    component: "monitoring"
+    namespace: "kube-system"
+    vendor: "kubernetes"
+    default: "false"
+  chart: "incubator/raw"
+  version: "0.1.0"
+  wait: true
+  values:
+  - resources:
+    - apiVersion: extensions/v1beta1
+      kind: Ingress
+      metadata:
+        namespace: kube-system
+        name: kibana-aws
+        annotations:
+          kubernetes.io/ingress.class: {{ env "KIBANA_INTERNAL_CLASS" | default "argo-tunnel" }}
+      spec:
+        rules:
+        - host: {{ env "KIBANA_HOST" }}
+          http:
+            paths:
+            - backend:
+                serviceName: {{ env "KIBANA_INTERNAL_INGRESS_SERVICE" | default "traefik" }}
+                servicePort: {{ env "KIBANA_INTERNAL_INGRESS_SERVICE_PORT" | default "80" }}
+              path: /
+    - apiVersion: extensions/v1beta1
+      kind: Ingress
+      metadata:
+        namespace: kube-system
+        name: kibana-aws-internal
+        annotations:
+          kubernetes.io/ingress.class: {{ env "KIBANA_INTERNAL_INGRESS_CLASS" | default "traefik" }}
+      spec:
+        rules:
+        - host: {{ env "KIBANA_HOST" }}
+          http:
+            paths:
+            - backend:
+                serviceName: kibana-aws-elasticsearch
+                servicePort: 443
+              path: /
+    - apiVersion: v1
+      kind: Service
+      metadata:
+        name: kibana-aws-elasticsearch
+        namespace: kube-system
+      spec:
+        type: ExternalName
+        externalName: {{ env "KIBANA_ELASTICSEARCH_HOST" }}
+        ports:
+        - name: service
+          port: 443
+          protocol: TCP
+          targetPort: 443
+
