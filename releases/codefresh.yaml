@@ -39,6 +39,7 @@ releases:
       postgresUser: {{ env "AURORA_POSTGRES_MASTER_USERNAME" }}
       redisUrl: {{ env "REDIS_HOST" }}
       redisPassword: {{ env "REDIS_AUTH_TOKEN" }}
+      rabbitmqHostname: {{ env "" }}
 
     ### MTU Value for dockerd in builder and runner
     #  mtu: 1400
@@ -93,22 +94,14 @@ releases:
       serviceType: NodePort
 {{- end }}
 
-    #  gitlab:
-    #    apiHost: gitlab-internal.codefresh.io
-    #    loginHost: gitlab-internal.codefresh.io
-    #    protocol: https
-
     consul:
-      ### Use NodeSelector to assing pod to a node
-      nodeSelector: {}
-    #    services: consul-postgresql
+      Storage: '{{ env "CODEFRESH_CONSUL_STORAGE_SIZE" | default "1Gi" }}'
+      StorageClass: '{{ env "CODEFRESH_CONSUL_STORAGE_CLASS" | default "default" }}'
 
     postgresql:
       enabled: false
       persistence:
         enabled: true
-      nodeSelector: {}
-    #    services: consul-postgresql
 
     mongodb:
       ## Provision new volume claim
@@ -177,8 +170,9 @@ releases:
           enabled: true
 
     cronus:
-      nodeSelector: {}
-    #    services: rabbitmq-registry
+      store:
+        size: '{{ env "CODEFRESH_CRONUS_STORAGE_SIZE" | default "1Gi" }}'
+      storageClass: '{{ env "CODEFRESH_CRONUS_STORAGE_CLASS" }}'
 
     builder:
       ## Use existing volume claim name
