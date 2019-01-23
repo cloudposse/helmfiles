@@ -16,7 +16,7 @@ releases:
 #   - https://github.com/cloudposse/charts/tree/master/incubator/istio
 #
 - name: "istio"
-  namespace: "kube-system"
+  namespace: "istio-system"
   labels:
     chart: "istio"
     repo: "cloudposse-incubator"
