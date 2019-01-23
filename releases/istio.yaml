@@ -20,7 +20,7 @@ releases:
   labels:
     chart: "istio"
     repo: "cloudposse-incubator"
-    namespace: "kube-system"
+    namespace: "istio-system"
     vendor: "istio"
     default: "false"
   chart: "cloudposse-incubator/istio"
