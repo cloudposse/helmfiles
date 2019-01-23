@@ -1,14 +1,7 @@
-helmDefaults:
-  args:
-    - "--wait"
-    - "--timeout=600"
-    - "--force"
-    - "--reset-values"
-
 repositories:
 # Cloud Posse incubator repo of helm charts
 - name: "cloudposse-incubator"
-  url: "https://charts.dev.cloudposse.com/monochart-fix-secrets/incubator/"
+  url: "https://charts.cloudposse.com/incubator/"
 
 # Cloud Flare repo of helm charts
 - name: "cloudflare"
@@ -34,7 +27,8 @@ releases:
     vendor: "cloudflare"
     default: "false"
   chart: "cloudflare/argo-tunnel"
-  version: "0.5.3"
+  version: "0.6.2"
+  wait: true
   values:
     # Default values for cloudflare-argo-ingress.
     # replicaCount is used only when cloudflare loadbalancing is enabled
@@ -42,11 +36,12 @@ releases:
         name: controller
         image:
           repository: "gcr.io/cloudflare-registry/argo-tunnel"
-          tag: "0.5.3"
+          tag: "0.6.2"
           pullPolicy: "IfNotPresent"
         ingressClass: argo-tunnel
         logLevel: 4
         replicaCount: 1
+        defaultOriginSecret: 'kube-system/argo-secret-monochart-files-default'
         resources:
           limits:
             cpu: 100m
@@ -57,12 +52,13 @@ releases:
         enabled: false
 
       rbac:
-        install: false
-        name: "cloudflare-argo"
+        create: {{ env "RBAC_ENABLED" | default "false" }}
+        install: {{ env "RBAC_ENABLED" | default "false" }}
+        name: '{{ env "ARGO_RBAC_ROLE_NAME" | default "" }}'
 
       serviceAccount:
-        create: true
-        name: "cloudflare-argo"
+        create: {{ env "RBAC_ENABLED" | default "false" }}
+        name: '{{ env "ARGO_SERVICE_ACCOUNT_NAME" | default "" }}'
 
 
 #######################################################################################
@@ -78,7 +74,7 @@ releases:
     vendor: "cloudposse"
     default: "false"
   chart: "cloudposse-incubator/monochart"
-  version: "0.6.2"
+  version: "0.9.0"
   wait: true
   values:
   - secrets:
@@ -88,10 +84,8 @@ releases:
 
         # The secret contains the base64-encoded origin certificate for your cloudflare domain.
         # Set the install flag false to configure manually in the cluster later.
-        # See https://developers.cloudflare.com/argo-tunnel/quickstart/quickstart/ for information on
+        #   See https://developers.cloudflare.com/argo-tunnel/quickstart/quickstart/ for information on
         # obtaining the origin certificate
-        labels:
-          cloudflare-argo/domain: '{{ env "ARGO_SECRET_DOMAIN" }}'
         files:
           # cat /localhost/.cloudflared/cert.pem | chamber write kops ARGO_SECRET_CERTIFICATE -
           cert.pem: |-

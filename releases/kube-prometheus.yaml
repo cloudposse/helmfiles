@@ -127,7 +127,18 @@ releases:
           type: "ClusterIP"
           port: "80"
         ingress:
-          enabled: false
+          enabled: {{ env "KUBE_PROMETHEUS_ALERT_MANAGER_INGRESS_ENABLED" | default "false" }}
+          annotations:
+            kubernetes.io/ingress.class: {{ env "KUBE_PROMETHEUS_ALERT_MANAGER_INGRESS_CLASS" | default "nginx" }}
+            kubernetes.io/tls-acme: '{{ env "KUBE_PROMETHEUS_ALERT_MANAGER_INGRESS_USE_KUBE_LEGO" | default "false" }}'
+          hosts:
+          - {{ env "KUBE_PROMETHEUS_ALERT_MANAGER_INGRESS_HOST" }}
+{{- if eq (env "KUBE_PROMETHEUS_ALERT_MANAGER_INGRESS_TLS_ENABLED" | default "false") "true" }}
+          tls:
+           - secretName: kube-prometheus-alert-manager-tls
+           hosts:
+           - {{ env "KUBE_PROMETHEUS_ALERT_MANAGER_INGRESS_HOST" }}
+{{- end }}
 {{ if not ( env "KUBE_PROMETHEUS_ALERT_MANAGER_URL" | empty ) }}
         externalUrl: '{{ env "KUBE_PROMETHEUS_ALERT_MANAGER_URL" }}'
 {{ end }}
@@ -170,7 +181,18 @@ releases:
           type: "ClusterIP"
           port: "80"
         ingress:
-          enabled: false
+          enabled: {{ env "KUBE_PROMETHEUS_INGRESS_ENABLED" | default "false" }}
+          annotations:
+            kubernetes.io/ingress.class: {{ env "KUBE_PROMETHEUS_INGRESS_CLASS" | default "nginx" }}
+            kubernetes.io/tls-acme: '{{ env "KUBE_PROMETHEUS_INGRESS_USE_KUBE_LEGO" | default "false" }}'
+          hosts:
+          - {{ env "KUBE_PROMETHEUS_INGRESS_HOST" }}
+{{- if eq (env "KUBE_PROMETHEUS_INGRESS_TLS_ENABLED" | default "false") "true" }}
+          tls:
+          - secretName: kube-prometheus-tls
+            hosts:
+            - {{ env "KUBE_PROMETHEUS_INGRESS_HOST" }}
+{{- end }}
 {{ if not ( env "KUBE_PROMETHEUS_URL" | empty ) }}
         externalUrl: '{{ env "KUBE_PROMETHEUS_URL" }}'
 {{ end }}
