@@ -51,6 +51,7 @@ releases:
         name: kibana-aws-internal
         annotations:
           kubernetes.io/ingress.class: {{ env "KIBANA_INTERNAL_INGRESS_CLASS" | default "traefik" }}
+          traefik.ingress.kubernetes.io/app-root: /_plugin/kibana
       spec:
         rules:
         - host: {{ env "KIBANA_HOST" }}
