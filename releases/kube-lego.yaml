@@ -1,7 +1,7 @@
 repositories:
-# Cloud Posse incubator repo of helm charts
-- name: "cloudposse-incubator"
-  url: "https://charts.cloudposse.com/incubator/"
+# Stable repo of official helm charts
+- name: "stable"
+  url: "https://kubernetes-charts.storage.googleapis.com"
 
 
 releases:
@@ -18,38 +18,38 @@ releases:
   namespace: "kube-system"
   labels:
     chart: "kube-lego"
-    repo: "cloudposse-incubator"
+    repo: "stable"
     component: "ingress"
     namespace: "kube-system"
     vendor: "jetstack"
     default: "true"
-  chart: "cloudposse-incubator/kube-lego"
-  version: "0.1.2"
+  chart: "stable/kube-lego"
+  version: "0.4.2"
   wait: true
   values:
-    - image:
-        repository: "jetstack/kube-lego"
-        ### Optional: KUBE_LEGO_IMAGE_TAG; e.g. 0.1.2
-        tag: '{{ env "KUBE_LEGO_IMAGE_TAG" | default "0.1.7" }}'
-        pullPolicy: "IfNotPresent"
+  - config:
+      ### Required: KUBE_LEGO_EMAIL; e.g. no-reply@cloudposse.org
+      LEGO_EMAIL: '{{ env "KUBE_LEGO_EMAIL" }}'
+{{- if eq (env "KUBE_LEGO_PROD" | default "true") "true" }}
+      LEGO_URL: https://acme-v01.api.letsencrypt.org/directory
+{{- else }}
+      LEGO_URL: https://acme-staging.api.letsencrypt.org/directory
+{{- end }}
+    replicaCount: {{ env "KUBE_LEGO_REPLICA_COUNT" | default "1" }}
+    image:
+      repository: "jetstack/kube-lego"
+      ### Optional: KUBE_LEGO_IMAGE_TAG; e.g. 0.1.7
+      tag: '{{ env "KUBE_LEGO_IMAGE_TAG" | default "0.1.7" }}'
+      pullPolicy: "IfNotPresent"
 
-      ### Optional: KUBE_LEGO_REPLICA_COUNT; e.g. 1
-      replicaCount: {{ env "KUBE_LEGO_REPLICA_COUNT" | default "1" }}
-      ### Optional: KUBE_LEGO_DEBUG; e.g. false
-      debug: {{ env "KUBE_LEGO_DEBUG" | default "false" }}
-      # Lego Settings
-      lego:
-        ### Required: KUBE_LEGO_EMAIL; e.g. ops@cloudposse.org
-        email: '{{ env "KUBE_LEGO_EMAIL" }}'
-        ### Optional: KUBE_LEGO_PROD; e.g. true
-        prod: {{ env "KUBE_LEGO_PROD" | default "true" }}
-      # Pod Settings
-      pod:
-        internalPort: "8080"
-      resources:
-        limits:
-          cpu: "200m"
-          memory: "256Mi"
-        requests:
-          cpu: "50m"
-          memory: "128Mi"
+    resources:
+      limits:
+        cpu: "200m"
+        memory: "256Mi"
+      requests:
+        cpu: "50m"
+        memory: "128Mi"
+
+    rbac:
+      create: '{{ env "RBAC_ENABLED" | default "false" }}'
+      serviceAccountName: default
