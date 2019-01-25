@@ -33,7 +33,7 @@ releases:
         ### Optional: KUBERNETES_DASHBOARD_IMAGE_TAG;
         tag: '{{ env "KUBERNETES_DASHBOARD_IMAGE_TAG" | default "v1.10.0" }}'
         pullPolicy: "IfNotPresent"
-      enableInsecureLogin: '{{ env "KUBERNETES_DASHBOARD_ENABLE_INSECURE_LOGIN" | default "false"}}'
+      enableInsecureLogin: {{ env "KUBERNETES_DASHBOARD_ENABLE_INSECURE_LOGIN" | default "false"}}
 {{- if eq (env "KUBERNETES_DASHBOARD_ENABLE_INSECURE_LOGIN" | default "false") "true" }}
       service:
         externalPort: 80

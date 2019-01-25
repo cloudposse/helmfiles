@@ -44,8 +44,8 @@ releases:
         defaultOriginSecret: 'kube-system/argo-secret-monochart-files-default'
         resources:
           limits:
-            cpu: 100m
-            memory: 128Mi
+            cpu: '{{ env "ARGO_LIMIT_CPU" | default "100m" }}'
+            memory: '{{ env "ARGO_LIMIT_MEMORY" | default "128Mi" }}'
       # Enable load balancing
       # requires load balancing enabled on the cloudflare account.
       loadbalancing:
