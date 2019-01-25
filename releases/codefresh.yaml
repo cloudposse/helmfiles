@@ -2,6 +2,9 @@ repositories:
 # Codefresh on-prem repository
 - name: "codefresh"
   url: 'http://charts.codefresh.io/{{ env "CHANNEL" | default "dev" }}'
+# Incubator repo of official helm charts
+- name: "incubator"
+  url: "https://kubernetes-charts-incubator.storage.googleapis.com/"
 
 releases:
 
@@ -21,9 +24,8 @@ releases:
     namespace: "codefresh"
     vendor: "codefresh"
     default: "false"
-  #chart: "codefresh/codefresh"
-  chart: "./../../onprem/codefresh"
-  version: "0.6.99"
+  chart: "codefresh/codefresh"
+  version: "0.7.3"
   wait: true
   values:
   - global:
@@ -33,25 +35,16 @@ releases:
       appProtocol: https
       ### Codefresh App domain name
       appUrl: {{ env "CODEFRESH_HOST" }}
+{{- if eq (env "CODEFRESH_SELF_HOSTED_POSTGRESQL_ENABLED" | default "true") "false" }}
       postgresDatabase: {{ env "AURORA_POSTGRES_DATABASE_NAME" }}
       postgresPassword: {{ env "AURORA_POSTGRES_MASTER_PASSWORD" }}
       postgresHostname: {{ env "AURORA_POSTGRES_MASTER_HOSTNAME" }}
       postgresUser: {{ env "AURORA_POSTGRES_MASTER_USERNAME" }}
+{{- end }}
+{{- if eq (env "CODEFRESH_SELF_HOSTED_REDIS_ENABLED" | default "true") "false" }}
       redisUrl: {{ env "REDIS_HOST" }}
       redisPassword: {{ env "REDIS_AUTH_TOKEN" }}
-      rabbitmqHostname: {{ env "" }}
-
-    ### MTU Value for dockerd in builder and runner
-    #  mtu: 1400
-
-    ### Environment variables applied to all pods
-    #  env:
-    #    HTTP_PROXY: "http://myproxy.domain.com:8080"
-    #    http_proxy: "http://myproxy.domain.com:8080"
-    #    HTTPS_PROXY: "http://myproxy.domain.com:8080"
-    #    https_proxy: "http://myproxy.domain.com:8080"
-    #    NO_PROXY: "127.0.0.1,localhost,kubernetes.default.svc,.codefresh.svc,100.64.0.1,169.254.169.254,cf-builder,cf-cfapi,cf-cfui,cf-chartmuseum,cf-charts-manager,cf-cluster-providers,cf-consul,cf-consul-ui,cf-context-manager,cf-cronus,cf-helm-repo-manager,cf-hermes,cf-ingress-controller,cf-ingress-http-backend,cf-kube-integration,cf-mongodb,cf-nats,cf-nomios,cf-pipeline-manager,cf-postgresql,cf-rabbitmq,cf-redis,cf-registry,cf-runner,cf-runtime-environment-manager,cf-store"
-    #    no_proxy: "127.0.0.1,localhost,kubernetes.default.svc,.codefresh.svc,100.64.0.1,169.254.169.254,cf-builder,cf-cfapi,cf-cfui,cf-chartmuseum,cf-charts-manager,cf-cluster-providers,cf-consul,cf-consul-ui,cf-context-manager,cf-cronus,cf-helm-repo-manager,cf-hermes,cf-ingress-controller,cf-ingress-http-backend,cf-kube-integration,cf-mongodb,cf-nats,cf-nomios,cf-pipeline-manager,cf-postgresql,cf-rabbitmq,cf-redis,cf-registry,cf-runner,cf-runtime-environment-manager,cf-store"
+{{- end }}
 
     ## Custom annotations for Codefresh ingress resource that override defaults
     annotations:
@@ -99,7 +92,7 @@ releases:
       StorageClass: '{{ env "CODEFRESH_CONSUL_STORAGE_CLASS" | default "default" }}'
 
     postgresql:
-      enabled: false
+      enabled: {{ env "CODEFRESH_SELF_HOSTED_POSTGRESQL_ENABLED" | default "true" }}
       persistence:
         enabled: true
 
@@ -113,21 +106,14 @@ releases:
         accessMode: ReadWriteOnce
         size: 8Gi
 
-      nodeSelector: {}
-    #    provisioner: local-volume
-
     redis:
-      enabled: false
+      enabled: {{ env "CODEFRESH_SELF_HOSTED_REDIS_ENABLED" | default "true" }}
       persistence:
         enabled: true
-      nodeSelector: {}
-    #    provisioner: local-volume
 
     rabbitmq:
       persistence:
         enabled: true
-      nodeSelector: {}
-    #    services: rabbitmq-registry
 
     registry:
       nodeSelector: {}
@@ -172,7 +158,7 @@ releases:
     cronus:
       store:
         size: '{{ env "CODEFRESH_CRONUS_STORAGE_SIZE" | default "1Gi" }}'
-      storageClass: '{{ env "CODEFRESH_CRONUS_STORAGE_CLASS" }}'
+      storageClass: '{{ env "CODEFRESH_CRONUS_STORAGE_CLASS" | default "default"}}'
 
     builder:
       ## Use existing volume claim name
@@ -227,3 +213,51 @@ releases:
         auths:
           gcr.io:
             auth: {{ cat "_json_key:" ( env "CODEFRESH_SA") | b64enc }}
+
+- name: "cf-ext"
+  namespace: "codefresh"
+  labels:
+    chart: "raw"
+    component: "codefresh"
+    namespace: "codefresh"
+    vendor: "kubernetes-incubator"
+    default: "false"
+  chart: "incubator/raw"
+  version: "0.1.0"
+  wait: true
+  values:
+  - resources:
+    - apiVersion: extensions/v1beta1
+      kind: Ingress
+      metadata:
+        namespace: codefresh
+        name: cf-extended
+      annotations:
+        kubernetes.io/ingress.class: nginx
+        nginx.ingress.kubernetes.io/configuration-snippet: |
+          more_set_headers "X-Request-ID: $request_id";
+          proxy_set_header X-Request-ID $request_id;
+        nginx.ingress.kubernetes.io/service-upstream: "true"
+        nginx.ingress.kubernetes.io/ssl-redirect: "true"
+        nginx.org/redirect-to-https: "true"
+      spec:
+        rules:
+        - host: {{ env "CODEFRESH_HOST" }}
+          http:
+            paths:
+              - path: /
+              backend:
+              serviceName: cf-cfui
+              servicePort: 80
+            - path: /api/
+              backend:
+                serviceName: cf-cfapi
+                servicePort: 80
+            - path: /nomios/
+              backend:
+                serviceName: cf-nomios
+                servicePort: 80
+        tls:
+        - hosts:
+          - {{ env "CODEFRESH_HOST" }}
+          secretName: cf-codefresh-star-selfsigned
