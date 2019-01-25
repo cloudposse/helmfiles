@@ -116,33 +116,28 @@ releases:
         enabled: true
 
     registry:
-      nodeSelector: {}
-        #    services: rabbitmq-registry
-        ## Uncomment if needed to apply custom configuration to registry
-        #registryConfig:
-        ## Insert custom registry configuration (https://docs.docker.com/registry/configuration/)
-        #version: 0.1
-        #log:
-        #level: debug
-        #fields:
-        #service: registry
-        #storage:
-        #cache:
-        #blobdescriptor: inmemory
-        #s3:
-        #region: YOUR_REGION
-        #bucket: YOUR_BUCKET_NAME
-        #accesskey: AWS_ACCESS_KEY
-        #secretkey: AWS_SECRET_KEY
-        #http:
-        #addr: :5000
-        #headers:
-        #X-Content-Type-Options: [nosniff]
-        #health:
-        #storagedriver:
-        #enabled: true
-      #interval: 10s
-      #threshold: 3
+      registryConfig:
+      # Insert custom registry configuration (https://docs.docker.com/registry/configuration/)
+#        version: 0.1
+#        log:
+#          level: debug
+#        fields:
+#          service: registry
+#        storage:
+#          cache:
+#            blobdescriptor: inmemory
+#          s3:
+#            region: YOUR_REGION
+#            bucket: YOUR_BUCKET_NAME
+#            accesskey: AWS_ACCESS_KEY
+#            secretkey: AWS_SECRET_KEY
+#        http:
+#          addr: :5000
+#        headers:
+#          X-Content-Type-Options: [nosniff]
+#        health:
+#        storagedriver:
+#          enabled: true
 
     hermes:
       nodeSelector: {}
