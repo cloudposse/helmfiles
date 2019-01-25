@@ -25,7 +25,7 @@ releases:
     vendor: "codefresh"
     default: "false"
   chart: "codefresh/codefresh"
-  version: "0.7.3"
+  version: "0.7.9"
   wait: true
   values:
   - global:
@@ -183,6 +183,7 @@ releases:
           auth: {{ cat "_json_key:" ( env "CODEFRESH_SA") | b64enc }}
 
     cfui:
+      imageTag: 2.8.107
 {{- if eq (env "CODEFRESH_INGRESS_CLASS" | default "nginx") "alb" }}
       serviceType: NodePort
 {{- end }}
@@ -240,7 +241,7 @@ releases:
         - host: {{ env "CODEFRESH_HOST" }}
           http:
             paths:
-              - path: /
+            - path: /
               backend:
               serviceName: cf-cfui
               servicePort: 80
