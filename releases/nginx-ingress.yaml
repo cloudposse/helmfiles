@@ -52,7 +52,7 @@ releases:
         kind: '{{ env "NGINX_INGRESS_KIND" | default "Deployment" }}'
         defaultBackendService: "kube-system/ingress-backend-default"
         config:
-          custom-http-errors: "{{ cat ( join ',' $client_errors ) ',' ( join ',' $server_errors )  }}"
+          custom-http-errors: '{{ join "," $client_errors }},{{ join "," $server_errors }}'
         service:
           annotations:
             ### Required: NGINX_INGRESS_HOSTNAME; e.g. ingress.us-west-2.cloudposse.org
