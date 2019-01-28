@@ -134,11 +134,11 @@ releases:
           site: /
         client:
 {{- range $status := $client_errors  }}
-            - "{{ $status }}"
+        - "{{ $status }}"
 {{- end }}
         server:
 {{- range $status := $server_errors  }}
-          - "{{ $status }}"
+        - "{{ $status }}"
 {{- end }}
 
 #######################################################################################
