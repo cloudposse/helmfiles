@@ -51,7 +51,7 @@ releases:
         ## Optional: NGINX_INGRESS_KIND; Valid values: DaemonSet or Deployment
         kind: '{{ env "NGINX_INGRESS_KIND" | default "Deployment" }}'
         defaultBackendService: "kube-system/ingress-backend-default"
-        ingressClass: {{ env "NGINX_INGRESS_CLASS" | default "nginx" }}
+        ingressClass: '{{ env "NGINX_INGRESS_CLASS" | default "nginx" }}'
         config:
           custom-http-errors: '{{ join "," $client_errors }},{{ join "," $server_errors }}'
         service:
