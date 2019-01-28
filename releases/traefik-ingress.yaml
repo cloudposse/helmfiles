@@ -1,0 +1,52 @@
+repositories:
+# Stable repo of official helm charts
+- name: "stable"
+  url: "https://kubernetes-charts.storage.googleapis.com"
+# Cloud Posse incubator repo of helm charts
+- name: "cloudposse-incubator"
+  url: "https://charts.cloudposse.com/incubator/"
+
+
+releases:
+
+################################################################################
+## Traefik Ingress Controller ##################################################
+################################################################################
+
+#
+# References:
+#   - https://github.com/helm/charts/blob/master/stable/traefik/values.yaml
+#
+- name: "traefik"
+  namespace: "kube-system"
+  labels:
+    chart: "traefik"
+    repo: "stable"
+    component: "ingress"
+    namespace: "kube-system"
+    vendor: "kubernetes"
+    default: "false"
+  chart: "stable/traefik"
+  version: "1.59.1"
+  wait: true
+  values:
+  - image: traefik
+    imageTag: 1.7.7
+    serviceType: {{ env "TRAEFIK_INGESS_SERVICE_TYPE" | default "LoadBalancer" }}
+    externalTrafficPolicy: ''
+    replicas: {{ env "TRAEFIK_REPLICA_COUNT" | default "1" }}
+    cpuRequest: '{{ env "TRAEFIK_LIMIT_CPU" | default "100m" }}'
+    memoryRequest: '{{ env "TRAEFIK_LIMIT_MEMORY" | default "20Mi" }}'
+    cpuLimit: '{{ env "TRAEFIK_REQUEST_CPU" | default "100m" }}'
+    memoryLimit: '{{ env "TRAEFIK_REQUEST_MEMORY" | default "30Mi" }}'
+    debug:
+      enabled: {{ env "TRAEFIK_DEBUG" | default "false" }}
+    kubernetes:
+      ingressClass: {{ env "TRAEFIK_INGESS_CLASS" | default "traefik" }}
+    deploymentStrategy:
+      rollingUpdate:
+       maxSurge: 1
+       maxUnavailable: 0
+      type: RollingUpdate
+    rbac:
+      enabled: {{ env "RBAC_ENABLED" | default "false" }}
