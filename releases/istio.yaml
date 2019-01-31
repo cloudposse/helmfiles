@@ -2,7 +2,8 @@ repositories:
 # Cloud Posse incubator repo of helm charts
 - name: "cloudposse-incubator"
   url: "https://charts.cloudposse.com/incubator/"
-
+- name: "istio.io"
+  url: "https://storage.googleapis.com/istio-prerelease/daily-build/master-latest-daily/charts"
 
 releases:
 
@@ -23,6 +24,12 @@ releases:
     namespace: "istio-system"
     vendor: "istio"
     default: "false"
-  chart: "cloudposse-incubator/istio"
+  #chart: "cloudposse-incubator/istio"
+  chart: "istio.io/istio"
   version: "1.1.0"
-  wait: true
+  #  wait: true
+  values:
+  - global:
+      #tag: master-latest-daily
+      rbacEnabled: false
+      imagePullPolicy: Always
