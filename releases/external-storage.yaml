@@ -31,7 +31,7 @@ releases:
               labels:
                 app: snapshot-controller
               annotations:
-                iam.amazonaws.com/role: '{{ env "EXTERNAL_STORAGE_IAM_ROLE" }}'
+                iam.amazonaws.com/role: '{{ requiredEnv "EXTERNAL_STORAGE_IAM_ROLE" }}'
             spec:
               serviceAccountName: snapshot-controller-runner
               containers:
@@ -113,3 +113,10 @@ releases:
           kind: Role
           name: leader-locking-snapshot-controller
           apiGroup: rbac.authorization.k8s.io
+
+      # Provision a Storage Class which enable us to restore EBS snapshots
+      - kind: StorageClass
+        apiVersion: storage.k8s.io/v1
+        metadata:
+          name: snapshot-promoter
+        provisioner: volumesnapshot.external-storage.k8s.io/snapshot-promoter
