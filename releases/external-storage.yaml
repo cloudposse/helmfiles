@@ -10,6 +10,7 @@ releases:
 #
 - name: 'external-storage'
   chart: "kubernetes-incubator/raw"
+  namespace: kube-system
   version: "0.1.0"
   wait: true
   force: true
