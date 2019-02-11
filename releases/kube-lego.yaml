@@ -1,0 +1,55 @@
+repositories:
+# Stable repo of official helm charts
+- name: "stable"
+  url: "https://kubernetes-charts.storage.googleapis.com"
+
+
+releases:
+
+################################################################################
+## Kube Lego - Automatic Let's Encrypt for Ingress  ############################
+################################################################################
+
+#
+# References:
+#   - https://github.com/cloudposse/charts/blob/master/incubator/kube-lego/values.yaml
+#
+- name: "tls"
+  namespace: "kube-system"
+  labels:
+    chart: "kube-lego"
+    repo: "stable"
+    component: "ingress"
+    namespace: "kube-system"
+    vendor: "jetstack"
+    default: "true"
+  chart: "stable/kube-lego"
+  version: "0.4.2"
+  wait: true
+  values:
+  - config:
+      ### Required: KUBE_LEGO_EMAIL; e.g. no-reply@cloudposse.org
+      LEGO_EMAIL: '{{ env "KUBE_LEGO_EMAIL" }}'
+{{- if eq (env "KUBE_LEGO_PROD" | default "true") "true" }}
+      LEGO_URL: https://acme-v01.api.letsencrypt.org/directory
+{{- else }}
+      LEGO_URL: https://acme-staging.api.letsencrypt.org/directory
+{{- end }}
+    replicaCount: {{ env "KUBE_LEGO_REPLICA_COUNT" | default "1" }}
+    image:
+      repository: "jetstack/kube-lego"
+      ### Optional: KUBE_LEGO_IMAGE_TAG; e.g. 0.1.7
+      tag: '{{ env "KUBE_LEGO_IMAGE_TAG" | default "0.1.7" }}'
+      pullPolicy: "IfNotPresent"
+
+    resources:
+      limits:
+        cpu: "200m"
+        memory: "256Mi"
+      requests:
+        cpu: "50m"
+        memory: "128Mi"
+
+    rbac:
+      create: {{ env "RBAC_ENABLED" | default "false" }}
+      serviceAccountName: default

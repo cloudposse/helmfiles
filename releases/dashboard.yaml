@@ -33,6 +33,15 @@ releases:
         ### Optional: KUBERNETES_DASHBOARD_IMAGE_TAG;
         tag: '{{ env "KUBERNETES_DASHBOARD_IMAGE_TAG" | default "v1.10.0" }}'
         pullPolicy: "IfNotPresent"
+      enableInsecureLogin: {{ env "KUBERNETES_DASHBOARD_ENABLE_INSECURE_LOGIN" | default "false"}}
+{{- if eq (env "KUBERNETES_DASHBOARD_ENABLE_INSECURE_LOGIN" | default "false") "true" }}
+      service:
+        externalPort: 80
+{{- end }}
+{{- if eq (env "KUBERNETES_DASHBOARD_SKIP_LOGIN" | default "false") "true" }}
+      extraArgs:
+        - --enable-skip-login
+{{- end }}
       replicaCount: '{{ env "KUBERNETES_DASHBOARD_REPLICA_COUNT" | default 1 }}'
       resources:
         limits:
@@ -49,3 +58,20 @@ releases:
         create: {{ env "RBAC_ENABLED" | default "false" }}
         ### Optional: KUBERNETES_DASHBOARD_SERVICE_ACCOUNT_NAME;
         name: '{{ env "KUBERNETES_DASHBOARD_SERVICE_ACCOUNT_NAME" | default "" }}'
+
+      ingress:
+        enabled: {{ env "KUBERNETES_DASHBOARD_INGRESS_ENABLED" | default "false" }}
+        annotations:
+          kubernetes.io/ingress.class: {{ env "KUBERNETES_DASHBOARD_INGRESS_CLASS" | default "nginx" }}
+{{- if eq (env "KUBERNETES_DASHBOARD_ENABLE_INSECURE_LOGIN" | default "false") "false" }}
+          nginx.ingress.kubernetes.io/secure-backends: "true"
+{{- end }}
+          kubernetes.io/tls-acme: '{{ env "KUBERNETES_DASHBOARD_INGRESS_USE_KUBE_LEGO" | default "false" }}'
+        hosts:
+        - {{ env "KUBERNETES_DASHBOARD_INGRESS_HOST" }}
+{{- if eq (env "KUBERNETES_DASHBOARD_INGRESS_TLS_ENABLED" | default "false") "true" }}
+        tls:
+        - secretName: kubernetes-dashboard-tls
+          hosts:
+          - {{ env "KUBERNETES_DASHBOARD_INGRESS_HOST" }}
+{{- end }}
