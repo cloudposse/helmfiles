@@ -34,17 +34,25 @@ releases:
       ### Required: EXTERNAL_DNS_TXT_PREFIX; e.g. 11591833-F9CE-407C-8519-35A947DB1D87-
       txtPrefix: '{{ env "EXTERNAL_DNS_TXT_PREFIX" }}'
       publishInternalServices: true
-      provider: "aws"
+      provider: '{{ env "EXTERNAL_DNS_PROVIDER" | default "aws" }}'
+{{ if env "EXTERNAL_DNS_PROVIDER" | default "aws" | eq "cloudflare" }}
+      cloudflare:
+        apiKey: '{{ env "EXTERNAL_DNS_CLOUDFLARE_API_KEY" }}'
+        email: '{{ env "EXTERNAL_DNS_CLOUDFLARE_EMAIL" }}'
+{{ end }}
+
+{{ if env "EXTERNAL_DNS_PROVIDER" | default "aws" | eq "aws" }}
       podAnnotations:
         ### Required: EXTERNAL_DNS_IAM_ROLE; e.g. cp-staging-external-dns
         iam.amazonaws.com/role: '{{ env "EXTERNAL_DNS_IAM_ROLE" }}'
+{{ end }}
       resources:
         limits:
-          cpu: "200m"
-          memory: "256Mi"
+          cpu: '{{ env "EXTERNAL_DNS_LIMIT_CPU" | default "200m" }}'
+          memory: '{{ env "EXTERNAL_DNS_LIMIT_MEMORY" | default "256Mi" }}'
         requests:
-          cpu: "100m"
-          memory: "128Mi"
+          cpu: '{{ env "EXTERNAL_DNS_REQUEST_CPU" | default "100m" }}'
+          memory: '{{ env "EXTERNAL_DNS_REQUEST_MEMORY" | default "128Mi" }}'
       rbac:
         ## If true, create & use RBAC resources
         ##
@@ -54,4 +62,3 @@ releases:
         ##
         ### Optional: EXTERNAL_DNS_RBAC_SERVICE_ACCOUNT_NAME;
         serviceAccountName: '{{ env "EXTERNAL_DNS_RBAC_SERVICE_ACCOUNT_NAME" | default "default" }}'
-

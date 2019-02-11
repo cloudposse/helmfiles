@@ -1,0 +1,122 @@
+repositories:
+# Kubernetes incubator repo of helm charts
+- name: "kubernetes-incubator"
+  url: "https://kubernetes-charts-incubator.storage.googleapis.com"
+
+releases:
+#
+# References:
+#   - https://github.com/helm/charts/tree/master/incubator/raw
+#
+- name: 'external-storage'
+  chart: "kubernetes-incubator/raw"
+  namespace: kube-system
+  version: "0.1.0"
+  wait: true
+  force: true
+  recreatePods: false
+  values:
+    - resources:
+      # Based on https://github.com/kubernetes-incubator/external-storage/blob/master/snapshot/deploy/kubernetes/aws/deployment.yaml
+      - apiVersion: extensions/v1beta1
+        kind: Deployment
+        metadata:
+          name: snapshot-controller
+        spec:
+          replicas: 1
+          strategy:
+            type: Recreate
+          template:
+            metadata:
+              labels:
+                app: snapshot-controller
+              annotations:
+                iam.amazonaws.com/role: '{{ requiredEnv "EXTERNAL_STORAGE_IAM_ROLE" }}'
+            spec:
+              serviceAccountName: snapshot-controller-runner
+              containers:
+                - name: snapshot-controller
+                  # No tags are available https://quay.io/repository/external_storage/snapshot-provisioner?tab=tags
+                  image: "quay.io/external_storage/snapshot-controller:latest"
+                  imagePullPolicy: "IfNotPresent"
+                  args: ["-cloudprovider", "aws"]
+                - name: snapshot-provisioner
+                  # No tags are available https://quay.io/repository/external_storage/snapshot-provisioner?tab=tags
+                  image: "quay.io/external_storage/snapshot-provisioner:latest"
+                  imagePullPolicy: "IfNotPresent"
+                  args: ["-cloudprovider", "aws"]
+
+      - apiVersion: v1
+        kind: ServiceAccount
+        metadata:
+          name: snapshot-controller-runner
+
+      - apiVersion: rbac.authorization.k8s.io/v1
+        kind: ClusterRole
+        metadata:
+          name: snapshot-controller-role
+        rules:
+          - apiGroups: [""]
+            resources: ["persistentvolumes"]
+            verbs: ["get", "list", "watch", "create", "delete"]
+          - apiGroups: [""]
+            resources: ["persistentvolumeclaims"]
+            verbs: ["get", "list", "watch", "update"]
+          - apiGroups: ["storage.k8s.io"]
+            resources: ["storageclasses"]
+            verbs: ["get", "list", "watch"]
+          - apiGroups: [""]
+            resources: ["events"]
+            verbs: ["create", "update", "patch"]
+          - apiGroups: ["apiextensions.k8s.io"]
+            resources: ["customresourcedefinitions"]
+            verbs: ["create", "list", "watch", "delete"]
+          - apiGroups: ["volumesnapshot.external-storage.k8s.io"]
+            resources: ["volumesnapshots"]
+            verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+          - apiGroups: ["volumesnapshot.external-storage.k8s.io"]
+            resources: ["volumesnapshotdatas"]
+            verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+
+      - apiVersion: rbac.authorization.k8s.io/v1
+        kind: ClusterRoleBinding
+        metadata:
+          name: snapshot-controller
+        roleRef:
+          apiGroup: rbac.authorization.k8s.io
+          kind: ClusterRole
+          name: snapshot-controller-role
+        subjects:
+        - kind: ServiceAccount
+          name: snapshot-controller-runner
+          namespace: default
+
+      - apiVersion: rbac.authorization.k8s.io/v1
+        kind: Role
+        metadata:
+          name: leader-locking-snapshot-controller
+        rules:
+          - apiGroups: [""]
+            resources: ["endpoints"]
+            verbs: ["get", "list", "watch", "create", "update", "patch"]
+
+      - apiVersion: rbac.authorization.k8s.io/v1
+        kind: RoleBinding
+        metadata:
+          name: leader-locking-snapshot-controller
+        subjects:
+          - kind: ServiceAccount
+            name: snapshot-controller-runner
+            # replace with namespace where provisioner is deployed
+            namespace: default
+        roleRef:
+          kind: Role
+          name: leader-locking-snapshot-controller
+          apiGroup: rbac.authorization.k8s.io
+
+      # Provision a Storage Class which enable us to restore EBS snapshots
+      - kind: StorageClass
+        apiVersion: storage.k8s.io/v1
+        metadata:
+          name: snapshot-promoter
+        provisioner: volumesnapshot.external-storage.k8s.io/snapshot-promoter
