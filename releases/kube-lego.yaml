@@ -35,6 +35,8 @@ releases:
 {{- else }}
       LEGO_URL: https://acme-staging.api.letsencrypt.org/directory
 {{- end }}
+      ### Comma separted supported ingress classes. ex.: nginx,gce
+      LEGO_SUPPORTED_INGRESS_CLASS: '{{ env "KUBE_LEGO_SUPPORTED_INGRESS_CLASSES" | default "nginx" }}'
     replicaCount: {{ env "KUBE_LEGO_REPLICA_COUNT" | default "1" }}
     image:
       repository: "jetstack/kube-lego"
