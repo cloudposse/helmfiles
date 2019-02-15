@@ -27,7 +27,9 @@ releases:
   version: "0.1.4"
   wait: true
   values:
-  - clusterName: us-west-2.testing.cloudposse.co
+  ### Required: AWS_ALB_INGRESS_CONTROLLER_KUBERNETES_CLUSTER_NAME
+  ###           e.g. "us-west-2.testing.cloudposse.co"
+  - clusterName: '{{ env "AWS_ALB_INGRESS_CONTROLLER_KUBERNETES_CLUSTER_NAME" }}'
     autoDiscoverAwsRegion: true
     autoDiscoverAwsVpcID: true
     scope:
