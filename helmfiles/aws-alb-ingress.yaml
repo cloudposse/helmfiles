@@ -80,9 +80,9 @@ releases:
       serviceAccountName: default
 
     image:
-      #repository: docker.io/amazon/aws-alb-ingress-controller
-      repository: m00nf1sh/aws-alb-ingress-controller
-      tag: "PR-754"
+      repository: "docker.io/amazon/aws-alb-ingress-controller"
+      ### Optional: AWS_ALB_INGRESS_IMAGE_TAG
+      tag: '{{ env "AWS_ALB_INGRESS_IMAGE_TAG" | default "v1.1.1" }}'
       pullPolicy: Always
 
     replicaCount: 1
