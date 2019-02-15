@@ -80,7 +80,7 @@ releases:
     rbac:
       ## If true, create & use RBAC resources
       ##
-      create: true
+      create: '{{ env "RBAC_ENABLED" | default "false" }}'
       serviceAccountName: default
 
     image:
