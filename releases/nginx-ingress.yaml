@@ -157,6 +157,7 @@ releases:
 #   - https://grafana.com/grafana
 #   - https://github.com/helm/charts/tree/master/stable/grafana
 #
+{{ if eq ( env "NGINX_INGRESS_METRICS_ENABLED" | default "false" ) "true" }}
 - name: "ingress-monitoring"
   namespace: "monitoring"
   labels:
@@ -164,7 +165,7 @@ releases:
     component: "monitoring"
     namespace: "monitoring"
     vendor: "cloudposse"
-    default: '{{ env "NGINX_INGRESS_METRICS_ENABLED" | default "false" }}'
+    default: {{ env "NGINX_INGRESS_METRICS_ENABLED" | default "false" }}
   chart: "cloudposse-incubator/monochart"
   version: "0.4.0"
   wait: true
@@ -208,3 +209,4 @@ releases:
   set:
   - name: "configMaps.dashboards.files.nginx\\.json"
     file: https://raw.githubusercontent.com/cloudposse/grafana-dashboards/{{ env "GRAFANA_DASHBOARDS_VERSION" | default "1.0" }}/nginx-ingress/nginx.json
+{{ end }}
