@@ -154,7 +154,7 @@ releases:
       #    services: rabbitmq-registry
       redis:
         ## Set hermes store password. It is mandatory
-        redisPassword: verysecurepassword
+        redisPassword: '{{ env "CODEFRESH_HERMES_REDIS_PASSWORD" | default "verysecurepassword" }}'
         nodeSelector: {}
         #      services: rabbitmq-registry
         persistence:
@@ -185,9 +185,9 @@ releases:
 
     backups:
       #enabled: true
-      awsAccessKey:
-      awsSecretAccessKey:
-      s3Url: s3://<some-bucket>
+      awsAccessKey: '{{ env "CODEFRESH_BACKUPS_AWS_ACCESS_KEY" }}'
+      awsSecretAccessKey: '{{ env "CODEFRESH_BACKUPS_AWS_ACCESS_SECRET" }}'
+      s3Url: s3://'{{ env "CODEFRESH_BACKUPS_BUCKET_NAME" }}'
 
     dockerconfigjson:
       auths:
