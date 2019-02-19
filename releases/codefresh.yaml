@@ -72,7 +72,7 @@ releases:
       enabled: false
       ### Codefresh App domain name
       domain: {{ env "CODEFRESH_HOST" }}
-      ### Uncomment if kubernetes cluster is RBAC enabled
+      ### Set RBAC_ENABLED to true if kubernetes cluster is RBAC enabled
       rbacEnable: {{ env "RBAC_ENABLED" | default "false" }}
 
     ### For github provider (the apiHost and loginHost are different)
