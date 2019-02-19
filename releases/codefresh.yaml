@@ -25,7 +25,7 @@ releases:
     vendor: "codefresh"
     default: "false"
   chart: "codefresh/codefresh"
-  version: "0.7.9"
+  version: "0.7.3"
   wait: true
   values:
   - global:
@@ -77,6 +77,7 @@ releases:
 
     ### For github provider (the apiHost and loginHost are different)
     cfapi:
+      replicaCount: {{ env "CODEFRESH_API_REPLICA_COUNT" | default "1" }}
       rbacEnable: {{ env "RBAC_ENABLED" | default "false" }}
       redeploy: true
       github:
@@ -87,6 +88,13 @@ releases:
       serviceType: NodePort
 {{- end }}
 
+    context-manager:
+      replicaCount: {{ env "CODEFRESH_CONTEXT_MANAGER_REPLICA_COUNT" | default "1" }}
+
+    pipeline-manager:
+      environment:
+        replicaCount: {{ env "CODEFRESH_PIPELINE_MANAGER_REPLICA_COUNT" | default "1" }}
+
     consul:
       Storage: '{{ env "CODEFRESH_CONSUL_STORAGE_SIZE" | default "1Gi" }}'
       StorageClass: '{{ env "CODEFRESH_CONSUL_STORAGE_CLASS" | default "default" }}'
@@ -94,7 +102,7 @@ releases:
     postgresql:
       enabled: {{ env "CODEFRESH_SELF_HOSTED_POSTGRESQL_ENABLED" | default "true" }}
       persistence:
-        enabled: true
+        enabled: {{ env "CODEFRESH_SELF_HOSTED_POSTGRESQL_ENABLED" | default "true" }}
 
     mongodb:
       ## Provision new volume claim
@@ -109,35 +117,37 @@ releases:
     redis:
       enabled: {{ env "CODEFRESH_SELF_HOSTED_REDIS_ENABLED" | default "true" }}
       persistence:
-        enabled: true
+        enabled: {{ env "CODEFRESH_SELF_HOSTED_REDIS_ENABLED" | default "true" }}
 
     rabbitmq:
       persistence:
         enabled: true
 
     registry:
+      pvcName: null
+      replicaCount: {{ env "CODEFRESH_REGISTRY_REPLICA_COUNT" | default "1" }}
       registryConfig:
-      # Insert custom registry configuration (https://docs.docker.com/registry/configuration/)
-#        version: 0.1
-#        log:
-#          level: debug
-#        fields:
-#          service: registry
-#        storage:
-#          cache:
-#            blobdescriptor: inmemory
-#          s3:
-#            region: YOUR_REGION
-#            bucket: YOUR_BUCKET_NAME
-#            accesskey: AWS_ACCESS_KEY
-#            secretkey: AWS_SECRET_KEY
-#        http:
-#          addr: :5000
-#        headers:
-#          X-Content-Type-Options: [nosniff]
-#        health:
-#        storagedriver:
-#          enabled: true
+        version: 0.1
+        log:
+          fields:
+            service: 'registry'
+        storage:
+          cache:
+            blobdescriptor: 'inmemory'
+          s3:
+            region: {{ env "CODEFRESH_SELF_HOSTER_REGISTRY_S3_REGION" | default "us-west-2" }}
+            bucket: {{ env "CODEFRESH_SELF_HOSTER_REGISTRY_S3_BUCKET_NAME" }}
+            accesskey: {{ env "AWS_ACCESS_KEY_ID" }}
+            secretkey: {{ env "AWS_SECRET_ACCESS_KEY" }}
+            rootdirectory: /
+        http:
+          addr: ':5000'
+          secret: {{ env "CODEFRESH_REGISTRY_SIGN_SECRET" | default uuidv4  }}
+        health:
+          storagedriver:
+            enabled: true
+            interval: 10s
+            threshold: 3
 
     hermes:
       nodeSelector: {}
@@ -156,6 +166,7 @@ releases:
       storageClass: '{{ env "CODEFRESH_CRONUS_STORAGE_CLASS" | default "default"}}'
 
     builder:
+      replicaCount: {{ env "CODEFRESH_BUILDER_REPLICA_COUNT" | default "1" }}
       ## Use existing volume claim name
       #pvcName: cf-builder
       ## Set time to run docker cleaner
@@ -165,6 +176,7 @@ releases:
         storageSize: 100Gi
 
     runner:
+      replicaCount: {{ env "CODEFRESH_RUNNER_REPLICA_COUNT" | default "1" }}
       ## Set time to run docker cleaner
       dockerCleanerCron: 0 0 * * *
       ## Override runner PV initial size
@@ -184,6 +196,7 @@ releases:
 
     cfui:
       imageTag: 2.8.107
+      replicaCount: {{ env "CODEFRESH_UI_REPLICA_COUNT" | default "1" }}
 {{- if eq (env "CODEFRESH_INGRESS_CLASS" | default "nginx") "alb" }}
       serviceType: NodePort
 {{- end }}
@@ -243,8 +256,8 @@ releases:
             paths:
             - path: /
               backend:
-              serviceName: cf-cfui
-              servicePort: 80
+                serviceName: cf-cfui
+                servicePort: 80
             - path: /api/
               backend:
                 serviceName: cf-cfapi

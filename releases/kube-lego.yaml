@@ -51,5 +51,5 @@ releases:
         memory: "128Mi"
 
     rbac:
-      create: '{{ env "RBAC_ENABLED" | default "false" }}'
+      create: {{ env "RBAC_ENABLED" | default "false" }}
       serviceAccountName: default
