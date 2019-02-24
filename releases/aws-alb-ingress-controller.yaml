@@ -27,15 +27,21 @@ releases:
   version: "0.1.4"
   wait: true
   values:
-  ### Required: AWS_ALB_INGRESS_CONTROLLER_KUBERNETES_CLUSTER_NAME
+  ### Required: AWS_ALB_INGRESS_CONTROLLER_KUBERNETES_CLUSTER_NAME;
   ###           e.g. "us-west-2.testing.cloudposse.co"
-  - clusterName: '{{ env "AWS_ALB_INGRESS_CONTROLLER_KUBERNETES_CLUSTER_NAME" }}'
+  - rbac:
+      ## If true, create & use RBAC resources
+      ##
+      create: '{{ env "RBAC_ENABLED" | default "false" }}'
+      serviceAccountName: default
+
+    clusterName: '{{ env "KOPS_CLUSTER_NAME" }}'
     autoDiscoverAwsRegion: true
     autoDiscoverAwsVpcID: true
     scope:
       ## If provided, the ALB ingress controller will only act on Ingress resources annotated with this class
       ## Ref: https://github.com/kubernetes-sigs/aws-alb-ingress-controller/blob/master/docs/configuration.md#limiting-ingress-class
-      ### Optional: AWS_ALB_INGRESS_CONTROLLER_INGRESS_CLASS_NAME
+      ### Optional: AWS_ALB_INGRESS_CONTROLLER_INGRESS_CLASS_NAME;
       ingressClass: '{{ env "AWS_ALB_INGRESS_CONTROLLER_INGRESS_CLASS_NAME" | default "alb" }}'
 
       ## If true, the ALB ingress controller will only act on Ingress resources in a single namespace
@@ -77,21 +83,15 @@ releases:
     # How long to wait (in seconds) before checking the liveness probe
     livenessProbeInitialDelay: 30
 
-    rbac:
-      ## If true, create & use RBAC resources
-      ##
-      create: '{{ env "RBAC_ENABLED" | default "false" }}'
-      serviceAccountName: default
-
     image:
       repository: "docker.io/amazon/aws-alb-ingress-controller"
-      ### Optional: AWS_ALB_INGRESS_CONTROLLER_IMAGE_TAG
+      ### Optional: AWS_ALB_INGRESS_CONTROLLER_IMAGE_TAG;
       tag: '{{ env "AWS_ALB_INGRESS_CONTROLLER_IMAGE_TAG" | default "v1.1.1" }}'
       pullPolicy: Always
 
     replicaCount: 1
 
-    resources: {}
+    resources:
       # We usually recommend not to specify default resources and to leave this as a conscious
       # choice for the user. This also increases chances charts run on environments with little
       # resources, such as Minikube. If you do want to specify resources, uncomment the following
