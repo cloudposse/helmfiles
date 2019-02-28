@@ -1,7 +1,7 @@
 repositories:
 # Codefresh on-prem repository
 - name: "codefresh"
-  url: 'http://charts.codefresh.io/{{ env "CHANNEL" | default "dev" }}'
+  url: 'http://charts.codefresh.io/{{ env "CHANNEL" | default "prod" }}'
 # Incubator repo of official helm charts
 - name: "incubator"
   url: "https://kubernetes-charts-incubator.storage.googleapis.com/"
@@ -25,14 +25,19 @@ releases:
     vendor: "codefresh"
     default: "false"
   chart: "codefresh/codefresh"
-  version: "0.7.3"
+  version: "0.7.11"
   wait: true
+  force: true
   values:
   - global:
       ### Instantiate databases with seed data. Usually used in dynamic and on-prem environments.
       seedJobs: {{ env "CODEFRESH_SEED_JOBS_ENABLED" | default "false" }}
-      certsJobs: {{ env "CODEFRESH_SEED_JOBS_ENABLED" | default "false" }}
+      certsJobs: {{ env "CODEFRESH_CERT_JOBS_ENABLED" | default "false" }}
       appProtocol: https
+
+      registryPort: {{ env "CODEFRESH_REGISTRY_PORT" | default "5000" }}
+      exposeRegistry: {{ env "CODEFRESH_REGISTRY_EXPOSE" | default "false" }}
+      # storageClass: {{ env "CODEFRESH_STORAGE_CLASS" | default "default" }}
       ### Codefresh App domain name
       appUrl: {{ env "CODEFRESH_HOST" }}
 {{- if eq (env "CODEFRESH_SELF_HOSTED_POSTGRESQL_ENABLED" | default "true") "false" }}
@@ -45,6 +50,11 @@ releases:
       redisUrl: {{ env "REDIS_HOST" }}
       redisPassword: {{ env "REDIS_AUTH_TOKEN" }}
 {{- end }}
+
+{{ if eq (env "CODEFRESH_INGRESS_CLASS" | default "nginx") "nginx" }}
+    tls:
+      selfSigned: true
+{{ end }}
 
     ## Custom annotations for Codefresh ingress resource that override defaults
     annotations:
@@ -96,11 +106,14 @@ releases:
         replicaCount: {{ env "CODEFRESH_PIPELINE_MANAGER_REPLICA_COUNT" | default "1" }}
 
     consul:
-      Storage: '{{ env "CODEFRESH_CONSUL_STORAGE_SIZE" | default "1Gi" }}'
-      StorageClass: '{{ env "CODEFRESH_CONSUL_STORAGE_CLASS" | default "default" }}'
+      storage: '{{ env "CODEFRESH_CONSUL_STORAGE_SIZE" | default "1Gi" }}'
+      storageClass: '{{ env "CODEFRESH_CONSUL_STORAGE_CLASS" | default "default" }}'
 
     postgresql:
       enabled: {{ env "CODEFRESH_SELF_HOSTED_POSTGRESQL_ENABLED" | default "true" }}
+      storageClass: '{{ env "CODEFRESH_SELF_HOSTED_POSTGRESQL_STORAGE_CLASS" | default "default" }}'
+      storageSize:  '{{ env "CODEFRESH_SELF_HOSTED_POSTGRESQL_STORAGE_SIZE" | default "8Gi" }}'
+      # presistence.enabled does not work anymore. Leave for back compatibility
       persistence:
         enabled: {{ env "CODEFRESH_SELF_HOSTED_POSTGRESQL_ENABLED" | default "true" }}
 
@@ -116,6 +129,9 @@ releases:
 
     redis:
       enabled: {{ env "CODEFRESH_SELF_HOSTED_REDIS_ENABLED" | default "true" }}
+      storageClass: '{{ env "CODEFRESH_SELF_HOSTED_REDIS_STORAGE_CLASS" | default "default" }}'
+      storageSize:  '{{ env "CODEFRESH_SELF_HOSTED_REDIS_STORAGE_SIZE" | default "8Gi" }}'
+      # presistence.enabled does not work anymore. Leave for back compatibility
       persistence:
         enabled: {{ env "CODEFRESH_SELF_HOSTED_REDIS_ENABLED" | default "true" }}
 
@@ -124,7 +140,7 @@ releases:
         enabled: true
 
     registry:
-      pvcName: null
+      pvcName: "no-pvc-use-s3"
       replicaCount: {{ env "CODEFRESH_REGISTRY_REPLICA_COUNT" | default "1" }}
       registryConfig:
         version: 0.1
@@ -187,7 +203,7 @@ releases:
       #enabled: true
       awsAccessKey: '{{ env "CODEFRESH_BACKUPS_AWS_ACCESS_KEY" }}'
       awsSecretAccessKey: '{{ env "CODEFRESH_BACKUPS_AWS_ACCESS_SECRET" }}'
-      s3Url: s3://'{{ env "CODEFRESH_BACKUPS_BUCKET_NAME" }}'
+      s3Url: s3://{{ env "CODEFRESH_BACKUPS_BUCKET_NAME" }}
 
     dockerconfigjson:
       auths:
@@ -195,7 +211,6 @@ releases:
           auth: {{ cat "_json_key:" ( env "CODEFRESH_SA") | b64enc }}
 
     cfui:
-      imageTag: 2.8.107
       replicaCount: {{ env "CODEFRESH_UI_REPLICA_COUNT" | default "1" }}
 {{- if eq (env "CODEFRESH_INGRESS_CLASS" | default "nginx") "alb" }}
       serviceType: NodePort
