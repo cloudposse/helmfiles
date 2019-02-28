@@ -33,7 +33,7 @@ releases:
       ## If true, create & use RBAC resources
       ##
       create: '{{ env "RBAC_ENABLED" | default "false" }}'
-      serviceAccountName: default
+      serviceAccountName: `{{ env "AWS_ALB_INGRESS_CONTROLLER_SERVICE_ACCOUNT_NAME" | default "default" }}`
 
     clusterName: '{{ env "KOPS_CLUSTER_NAME" }}'
     autoDiscoverAwsRegion: true
@@ -92,13 +92,6 @@ releases:
     replicaCount: 1
 
     resources:
-      # We usually recommend not to specify default resources and to leave this as a conscious
-      # choice for the user. This also increases chances charts run on environments with little
-      # resources, such as Minikube. If you do want to specify resources, uncomment the following
-      # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
-      #
-      # TODO(tamsky): Should this ^^^ comment disappear ?
-      #
       limits:
         cpu: '{{ env "AWS_ALB_INGRESS_CONTROLLER_LIMIT_CPU" | default "100m" }}'
         memory: '{{ env "AWS_ALB_INGRESS_CONTROLLER_LIMIT_MEMORY" | default "128Mi" }}'
