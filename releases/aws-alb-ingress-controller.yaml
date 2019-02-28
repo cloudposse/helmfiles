@@ -40,17 +40,17 @@ releases:
     autoDiscoverAwsVpcID: true
     scope:
       ## If provided, the ALB ingress controller will only act on Ingress resources annotated with this class
-      ## Ref: https://github.com/kubernetes-sigs/aws-alb-ingress-controller/blob/master/docs/configuration.md#limiting-ingress-class
+      ## Ref: https://github.com/kubernetes-sigs/aws-alb-ingress-controller/blob/master/docs/guide/controller/config.md#limiting-ingress-class
       ### Optional: AWS_ALB_INGRESS_CONTROLLER_INGRESS_CLASS_NAME;
       ingressClass: '{{ env "AWS_ALB_INGRESS_CONTROLLER_INGRESS_CLASS_NAME" | default "alb" }}'
 
       ## If true, the ALB ingress controller will only act on Ingress resources in a single namespace
-      ## Default: false; watch all namespaces
-      singleNamespace: '{{ env "AWS_ALB_INGRESS_CONTROLLER_SINGLE_NAMESPACE" | default "false" }}'
+      ## (Default: null) implies: watch all namespaces
+      singleNamespace: '{{ env "AWS_ALB_INGRESS_CONTROLLER_SINGLE_NAMESPACE" | default "" }}'
 
       ## If scope.singleNamespace=true, the ALB ingress controller will only act on Ingress resources in this namespace
-      ## Ref: https://github.com/kubernetes-sigs/aws-alb-ingress-controller/blob/master/docs/configuration.md#limiting-namespaces
-      ## Default: namespace of the ALB ingress controller
+      ## Ref: https://github.com/kubernetes-sigs/aws-alb-ingress-controller/blob/master/docs/guide/controller/config.md#limiting-namespaces
+      ## (Default: null) implies: use namespace of the ALB ingress controller.
       watchNamespace: '{{ env "AWS_ALB_INGRESS_CONTROLLER_WATCH_NAMESPACE" | default "" }}'
 
     extraArgs: {}
