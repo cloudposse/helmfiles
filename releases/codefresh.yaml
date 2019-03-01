@@ -33,6 +33,8 @@ releases:
       ### Instantiate databases with seed data. Usually used in dynamic and on-prem environments.
       seedJobs: {{ env "CODEFRESH_SEED_JOBS_ENABLED" | default "false" }}
       certsJobs: {{ env "CODEFRESH_CERT_JOBS_ENABLED" | default "false" }}
+      cfcrDomain: {{ env "CODEFRESH_REGISTRY_DOMAIN" | default "cf-registry" }}
+      gceProject: {{ env "CODEFRESH_GCE_PROJECT" | default "default" }}
       appProtocol: https
 
       registryPort: {{ env "CODEFRESH_REGISTRY_PORT" | default "5000" }}
