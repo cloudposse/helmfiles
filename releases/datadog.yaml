@@ -12,8 +12,8 @@ releases:
 
 #
 # References:
-#   - https://github.com/kubernetes/charts/tree/master/stable/datadog
-#   - https://github.com/kubernetes/charts/blob/master/stable/datadog/values.yaml
+#   - https://github.com/helm/charts/tree/master/stable/datadog
+#   - https://github.com/helm/charts/blob/master/stable/datadog/values.yaml
 #
 - name: "datadog"
   namespace: "monitoring"
@@ -25,13 +25,14 @@ releases:
     vendor: "datadog"
     default: "false"
   chart: "stable/datadog"
-  version: "0.16.0"
+  version: "1.22.0"
   wait: true
   values:
     - image:
         repository: "datadog/agent"
         ### Optional: DATADOG_IMAGE_TAG; e.g. 6.1.2
-        tag: '{{ env "DATADOG_IMAGE_TAG" | default "6.1.2" }}'
+        ### Version of datadog agent from https://hub.docker.com/r/datadog/agent/tags/
+        tag: '{{ env "DATADOG_IMAGE_TAG" | default "latest" }}'
         pullPolicy: "IfNotPresent"
       resources:
         limits:
@@ -42,10 +43,30 @@ releases:
           memory: "64Mi"
       datadog:
         ### Required: DATADOG_API_KEY;
-        apiKey: '{{ env "DATADOG_API_KEY" }}'
-        collectEvents: true
+        apiKey: '{{ requiredEnv "DATADOG_API_KEY" }}'
+{{ if env "DATADOG_CLUSTER_AGENT_ENABLED" | default "false" | eq "true" }}
+        appKey: '{{ requiredEnv "DATADOG_APP_KEY" }}'
+{{ else if env "RBAC_ENABLED" | default "false" | eq "true" }}        
+        collectEvents: {{ env "DATADOG_COLLECT_EVENTS" | default "true" }}
+        # leaderElection is required if collectEvents: true
+        leaderElection: {{ env "DATADOG_COLLECT_EVENTS" | default "true" }}
+{{ end }}
         ### Optional: DATADOG_APM_ENABLED; e.g. true
         apmEnabled: {{ env "DATADOG_APM_ENABLED" | default "false" }}
+        ### Optional Live Process monitoring https://docs.datadoghq.com/graphing/infrastructure/process/
+        processAgentEnabled: {{ env "DATADOG_PROCESS_AGENT_ENABLED" | default "false" }}
+{{ if env "DATADOG_TAG_WITH_CLUSTER_NAME" | default "false" }}   
+        tags: 'cluster:{{ requiredEnv "KOPS_CLUSTER_NAME" }}' 
+{{ end }}
+      clusterAgent:
+        enabled: {{ env "DATADOG_CLUSTER_AGENT_ENABLED" | default "false" }}
+        repository: "datadog/cluster-agent"
+        image:
+          ### Version of cluster agent from https://hub.docker.com/r/datadog/cluster-agent/tags
+          tag: {{ env "DATADOG_CLUSTER_AGENT_IMAGE_TAG" | default "latest" }}
+        tolerations:
+          - key: node-role.kubernetes.io/master
+            effect: NoSchedule
       rbac:
         ### Optional: RBAC_ENABLED;
         create: {{ env "RBAC_ENABLED" | default "false" }}
@@ -62,3 +83,6 @@ releases:
         useHostPort: {{ env "DATADOG_USE_HOST_PORT" | default "true" }}
         ### Optional: DATADOG_UPDATE_STRATEGY; e.g. RollingUpdate
         updateStrategy: '{{ env "DATADOG_UPDATE_STRATEGY" | default "OnDelete" }}'
+        tolerations:
+          - key: node-role.kubernetes.io/master
+            effect: NoSchedule
