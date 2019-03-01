@@ -64,9 +64,6 @@ releases:
         image:
           ### Version of cluster agent from https://hub.docker.com/r/datadog/cluster-agent/tags
           tag: {{ env "DATADOG_CLUSTER_AGENT_IMAGE_TAG" | default "latest" }}
-        tolerations:
-          - key: node-role.kubernetes.io/master
-            effect: NoSchedule
       rbac:
         ### Optional: RBAC_ENABLED;
         create: {{ env "RBAC_ENABLED" | default "false" }}
