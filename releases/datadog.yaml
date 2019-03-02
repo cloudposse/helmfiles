@@ -34,13 +34,6 @@ releases:
         ### Version of datadog agent from https://hub.docker.com/r/datadog/agent/tags/
         tag: '{{ env "DATADOG_IMAGE_TAG" | default "latest" }}'
         pullPolicy: "IfNotPresent"
-      resources:
-        limits:
-          cpu: "256m"
-          memory: "512Mi"
-        requests:
-          cpu: "50m"
-          memory: "64Mi"
       datadog:
         ### Required: DATADOG_API_KEY;
         apiKey: '{{ requiredEnv "DATADOG_API_KEY" }}'
@@ -58,15 +51,26 @@ releases:
 {{ if env "DATADOG_TAG_WITH_CLUSTER_NAME" | default "false" }}   
         tags: 'cluster:{{ requiredEnv "KOPS_CLUSTER_NAME" }}' 
 {{ end }}
+        resources:
+          limits:
+            cpu: "256m"
+            memory: "512Mi"
+          requests:
+            cpu: "50m"
+            memory: "128Mi"
       clusterAgent:
         enabled: {{ env "DATADOG_CLUSTER_AGENT_ENABLED" | default "false" }}
         repository: "datadog/cluster-agent"
         image:
           ### Version of cluster agent from https://hub.docker.com/r/datadog/cluster-agent/tags
           tag: {{ env "DATADOG_CLUSTER_AGENT_IMAGE_TAG" | default "latest" }}
-        tolerations:
-          - key: node-role.kubernetes.io/master
-            effect: NoSchedule
+        resources:
+          limits:
+            cpu: "256m"
+            memory: "512Mi"
+          requests:
+            cpu: "50m"
+            memory: "32Mi"
       rbac:
         ### Optional: RBAC_ENABLED;
         create: {{ env "RBAC_ENABLED" | default "false" }}
