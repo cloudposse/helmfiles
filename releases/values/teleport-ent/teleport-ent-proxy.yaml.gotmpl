@@ -1,0 +1,100 @@
+## Teleport Proxy chart configuration
+
+{{- $authurl := env "TELEPORT_AUTH_DOMAIN_NAME" | default (print "auth." (requiredEnv "TELEPORT_PROXY_DOMAIN_NAME")) }}
+{{- $proxyurl := (requiredEnv "TELEPORT_PROXY_DOMAIN_NAME") }}
+
+extraArgs:
+  ## enable debug
+  # debug:
+
+tls:
+  ## Request TLS certificate for the following domain
+  commonName: {{ $proxyurl }}
+
+service:
+  annotations:
+    external-dns.alpha.kubernetes.io/hostname: "{{ $proxyurl }}."
+
+## Configuration to be copied into Teleport container
+## Each entry must be an inline file that will be written to /etc/teleport
+config:
+  ## Proxy service config file
+  ## See https://gravitational.com/teleport/docs/admin-guide/#configuration-file
+  teleport.yaml: |-
+    teleport:
+      # nodename allows to assign an alternative name this node can be reached by
+      # by default it's equal to hostname
+      # nodename:
+
+      # Data directory where Teleport keeps its data, like keys/users for
+      # authentication (if using the default BoltDB back-end)
+      data_dir: /var/lib/teleport
+
+      # one-time invitation token used to join a cluster. it is not used on
+      # subsequent starts
+      auth_token: {{ env "TELEPORT_PROXY_TOKEN" | default "proxy-not-completely-secure-but-not-a-huge-risk" }}
+
+      # When running in multi-homed or NATed environments Teleport nodes need
+      # to know which IP it will be reachable at by other nodes
+      #
+      # This value can be specified as FQDN e.g. host.example.com
+      # advertise_ip: 
+
+      # list of auth servers in a cluster. you will have more than one auth server
+      # if you configure teleport auth to run in HA configuration
+      auth_servers:
+      - "{{- $authurl }}:3025"
+
+      # Teleport throttles all connections to avoid abuse. These settings allow
+      # you to adjust the default limits
+      connection_limits:
+        # Number of max. simultaneous connections from an IP
+        max_connections: 1000
+        # Number of max. simultaneous connected users/logins
+        max_users: 100
+
+      # Logging configuration. Possible output values are 'stdout', 'stderr' and
+      # 'syslog'. Possible severity values are INFO, WARN and ERROR (default).
+      log:
+        output: stdout
+        severity: INFO
+
+    # This section configures the 'proxy servie'
+    proxy_service:
+      # Turns 'proxy' role on. Default is 'yes'
+      enabled: yes
+
+      # SSH forwarding/proxy address. Command line (CLI) clients always begin their
+      # SSH sessions by connecting to this port
+      listen_addr: 0.0.0.0:3023
+
+      # Reverse tunnel listening address. An auth server (CA) can establish an
+      # outbound (from behind the firewall) connection to this address.
+      # This will allow users of the outside CA to connect to behind-the-firewall
+      # nodes.
+      tunnel_listen_addr: 0.0.0.0:3024
+
+      # The HTTPS listen address to serve the Web UI and also to authenticate the
+      # command line (CLI) users via password+HOTP
+      web_listen_addr: 0.0.0.0:3080
+
+      # The DNS name the proxy server is accessible by cluster users. Defaults to
+      # the proxy's hostname if not specified. It is highly recommended to set it
+      # to something meaningful when running multiple proxies behind a load balancer.
+      public_addr: {{ $proxyurl }}:443
+
+      # TLS certificate for the HTTPS connection. Configuring these properly is
+      # critical for Teleport security.
+      # https_key_file: /etc/teleport/certs/tls.key
+      # https_cert_file: /etc/teleport/certs/tls.crt
+
+      kubernetes:
+        enabled: yes
+        # public_addr can be a scalar or list. this is the address seen as
+        # "Kubernetes API endpoint" from the outside. if you are using a load-balancer
+        # in front of several proxies, you have to use LB's address here:
+        public_addr: {{ $proxyurl }}:3026
+        # the listen address is what Teleport/Kubernetes proxy will listen on:
+        listen_addr: 0.0.0.0:3026
+
+      # end of proxy_service

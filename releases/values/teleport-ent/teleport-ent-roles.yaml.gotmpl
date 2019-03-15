@@ -1,0 +1,75 @@
+## Resources to be created in Teleport Auth
+## See https://gravitational.com/teleport/docs/admin-guide/#resources
+bootstrap:
+  resources:
+    ## Roles
+    root.yaml: |-
+      kind: "role"
+      version: "v3"
+      metadata:
+        name: "root"
+      spec:
+        options:
+          # max_session_ttl defines the TTL (time to live) of SSH certificates
+          # issued to the users with this role.
+          max_session_ttl: "{{ env "TELEPORT_SESSION_TTL" | default "4h" }}"
+          port_forwarding: true
+        allow:
+          logins: [admin]
+          ## Enable Kubernetes integration
+          kubernetes_groups: ["system:masters"]
+          node_labels:
+            "*": "*"
+          rules:
+            - resources: ["*"]
+              verbs: ["*"]
+    admin.yaml: |-
+      kind: "role"
+      version: "v3"
+      metadata:
+        name: "admin"
+      spec:
+        options:
+          # max_session_ttl defines the TTL (time to live) of SSH certificates
+          # issued to the users with this role.
+          max_session_ttl: "{{ env "TELEPORT_SESSION_TTL" | default "4h" }}"
+          port_forwarding: true
+        allow:
+          logins: [admin]
+          ## Enable Kubernetes integration
+          kubernetes_groups: ["system:masters"]
+          node_labels:
+            "*": "*"
+          rules:
+            - resources: ["*"]
+              verbs: ["*"]
+        deny:
+          rules:
+            - resources: [role]
+              verbs: [create, update]
+            - resources: [auth_connector]
+              verbs: [create, update]
+            - resources: [session]
+              verbs: [delete]
+            - resources: [trusted_cluster]
+              verbs: [create, update]
+    view.yaml: |-
+      kind: "role"
+      version: "v3"
+      metadata:
+        name: "view"
+      spec:
+        options:
+          # max_session_ttl defines the TTL (time to live) of SSH certificates
+          # issued to the users with this role.
+          max_session_ttl: "{{ env "TELEPORT_SESSION_TTL" | default "4h" }}"
+          port_forwarding: true
+        allow:
+          logins: [admin]
+          ## Enable Kubernetes integration
+          kubernetes_groups: ["view"]
+          node_labels:
+            "*": "*"
+          rules:
+            - resources: [session]
+              verbs: [list, read]
