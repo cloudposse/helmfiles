@@ -35,14 +35,15 @@ releases:
   ## Configuration to be copied into Teleport container
   ## Also sets external DNS name and TLS Certificate common name
   - ./values/teleport-ent/teleport-ent-proxy.yaml.gotmpl
-  ## Remaining configuration
-  - image:
+    ## Remaining configuration
+  - name: proxy
+    nameOverride: "teleport-proxy"
+    image:
       repository: quay.io/gravitational/teleport-ent
       tag: '{{ env "TELEPORT_VERSION" | default "3.1.8" }}'
       pullPolicy: "IfNotPresent"
       # command: ["/usr/bin/dumb-init"]
       # args:  ["teleport", "start", "--insecure-no-tls", "-c", "/etc/teleport/teleport.yaml"]
-    name: proxy
 
     replicaCount: 1
 
