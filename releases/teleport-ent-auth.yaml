@@ -41,7 +41,9 @@ releases:
 {{- if env "TELEPORT_SAML_ENTITY_DESCRIPTOR" }}
   - ./values/teleport-ent/teleport-ent-saml-connector.yaml.gotmpl
 {{- end }}
-  - image:
+    ## Remaining configuration
+  - nameOverride: "teleport-auth"
+    image:
       repository: quay.io/gravitational/teleport-ent
       tag: '{{ env "TELEPORT_VERSION" | default "3.1.8" }}'
       pullPolicy: "IfNotPresent"
