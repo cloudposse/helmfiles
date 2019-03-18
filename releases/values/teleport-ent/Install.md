@@ -1,0 +1,51 @@
+INSTALL checklist
+
+- [ ] Update Geodesic, install teleport package
+- [ ] Decide on domain name for Teleport proxy
+- [ ] (MASTER ONLY) Find or generate ACM SSL certificate valid for that domain name
+- [ ] (MASTER ONLY) Set TELEPORT_SSL_CERTIFICATE_ARN to arn of SSL Certificate in Chamber
+- [ ] Set TELEPORT_PROXY_DOMAIN_NAME in chamber
+- [ ] (Optional) Set TELEPORT_AUTH_DOMAIN_NAME in chamber
+- [ ] (Optional) Set TELEPORT_CLUSTER_NAME in chamber
+- [ ] Set TELEPORT_VERSION in chamber
+- [ ] Set TELEPORT_LICENSE_PEM in chamber (download file from portal)
+- [ ] Update kops-aws-platform to enable external-dns to manage higher level names
+- [ ] Add config/teleport to provision teleport
+	- [ ] terraform.envrc, .envrc, terraform.tfvars, Makefile.tasks
+	- [ ] region="us-west-2"
+	- [ ] cluster_name="us-west-2.cloudposse.co"  # Used by kops-metadata to derive IAM role names for Master and Node instances
+	- [ ] permitted_nodes="masters" # Which nodes are allowed to assume Teleport role. With kiam, it is only master nodes.
+	- [ ] chamber_service="kops"    # Service under which parameters are stored in chamber
+- [ ] Apply Terraform plan to provision resources
+	- [ ] Remember to update environment from Chamber to pick up generated parameters
+- [ ] Update conf/helmfiles
+	- [ ] Add to helmfile.yaml "releases/teleport-ent-proxy.yaml", - "releases/teleport-ent-auth.yaml"
+	- [ ] Update helmfile.envrc (optional): add teleport comments
+- [ ] Configure SAML
+	- [ ] Generate SAML Entity Descriptor from your SAML provider (XML file)
+		- [ ] Use "https://${TELEPORT_PROXY_DOMAIN_NAME}/v1/webapi/saml/acs" as both ACS and Entity ID
+		- [ ] Decide on and configure fields for SAML provider to provide
+		- [ ] (Optional) Edit teleport-ent-roles.yaml.gotmpl to create named Teleport Roles and map to Unix logins and Kubernetes RBAC groups. 
+		- [ ] Edit teleport-ent-saml-connector.yaml.gotmpl to map SAML fields to Teleport Roles
+	- [ ] Set TELEPORT_SAML_ENTITY_DESCRIPTOR $(cat descriptor.xml) in Chamber
+- [ ] Deploy hemlfiles
+	- [ ] Verify deployment
+	- [ ] Verify web portal present (Master only)
+	- [ ] Verify proxy connected to auth server (view auth serer logs)
+	- [ ] tsh login to cluster
+	- [ ] kubectl exec to auth server
+	- [ ] join master cluster
+- [ ] Deploy teleport node agent to all nodes
+	- [ ] cd /conf/kops
+	- [ ] Update terraform.envrc to kops version 0.53.4
+	- [ ] make deps
+	- [ ] make kops/shell
+	- [ ] kops export kubecfg
+	- [ ] make kops/build-manifest
+	- [ ] kops replace -f ${KOPS_MANIFEST}
+	- [ ] kops update cluster
+	- [ ] kops update cluster --yes
+	- [ ] kops rolling-update cluster
+	- [ ] kops rolling-update cluster --yes
+	- [ ] kops validate cluster
+- [ ] Confirm access to nodes via Teleport

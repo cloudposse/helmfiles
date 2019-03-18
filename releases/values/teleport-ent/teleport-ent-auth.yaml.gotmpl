@@ -123,7 +123,7 @@ config:
       #
       # IMPORTANT: if you change cluster_name, it will invalidate all generated
       # certificates and keys (may need to wipe out /var/lib/teleport directory)
-      cluster_name: "{{ requiredEnv "TELEPORT_PROXY_DOMAIN_NAME" }}"
+      cluster_name: "{{ coalesce (env "TELEPORT_CLUSTER_NAME") (env "STAGE") (requiredEnv "TELEPORT_PROXY_DOMAIN_NAME") }}"
 
       # License file to start auth server with. Note that this setting is ignored
       # in open-source Teleport and is required only for Teleport Pro, Business
