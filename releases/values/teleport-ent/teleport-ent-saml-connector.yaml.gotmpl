@@ -1,0 +1,21 @@
+## SAML Configuration for Teleport Auth
+## See https://gravitational.com/teleport/docs/ssh_okta/
+bootstrap:
+  resources:
+    ## Connector config
+    saml-connector.yaml: |-
+      kind: saml
+      version: v2
+      metadata:
+        name: SAML
+      spec:
+        # display allows to set the caption of the "login" button in the Web interface
+        display: "Google GSuite"
+        # map SAML groups to Teleport roles
+        attributes_to_roles:
+          - {name: "groups", value: "SSH-Root", roles: ["root"]}
+          - {name: "groups", value: "SSH-Admin", roles: ["admin"]}
+          - {name: "groups", value: "SSH-User", roles: ["view"]}
+        acs: "https://{{ requiredEnv "TELEPORT_PROXY_DOMAIN_NAME" }}/v1/webapi/saml/acs"
+        entity_descriptor: |-
+{{ env "TELEPORT_SAML_ENTITY_DESCRIPTOR" | trim | indent 10 }}
