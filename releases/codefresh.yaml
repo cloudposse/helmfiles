@@ -110,6 +110,11 @@ releases:
 {{- if eq (env "CODEFRESH_INGRESS_CLASS" | default "nginx") "alb" }}
         type: NodePort
 {{- end }}
+{{- if eq (env "CODEFRESH_INGRESS_CLASS" | default "nginx") "alb" }}
+    nomios:
+      service:
+        type: NodePort
+{{- end }}
 
     context-manager:
       replicaCount: {{ env "CODEFRESH_CONTEXT_MANAGER_REPLICA_COUNT" | default "1" }}
