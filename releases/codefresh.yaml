@@ -105,11 +105,6 @@ releases:
       serviceType: NodePort
 {{- end }}
 
-    nomios:
-      service:
-{{- if eq (env "CODEFRESH_INGRESS_CLASS" | default "nginx") "alb" }}
-        type: NodePort
-{{- end }}
 {{- if eq (env "CODEFRESH_INGRESS_CLASS" | default "nginx") "alb" }}
     nomios:
       service:
