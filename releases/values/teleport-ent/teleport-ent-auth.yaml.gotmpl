@@ -15,7 +15,7 @@ service:
 
 ## teleport config file
 config:
-  teleport.yaml: |-
+  teleport.yaml: |
     # This section of the configuration file applies to all teleport services
     teleport:
       # nodename allows to assign an alternative name this node can be reached by
@@ -135,7 +135,7 @@ config:
       license_file: "/etc/teleport/license.pem"
 
   ## License file
-  license.pem: |-
+  license.pem: |
 {{ requiredEnv "TELEPORT_LICENSE_PEM" | trim | indent 4 }}
 
 bootstrap:

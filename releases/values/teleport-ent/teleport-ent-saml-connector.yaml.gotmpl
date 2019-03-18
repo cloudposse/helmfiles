@@ -3,7 +3,7 @@
 bootstrap:
   resources:
     ## Connector config
-    saml-connector.yaml: |-
+    saml-connector.yaml: |
       kind: saml
       version: v2
       metadata:
@@ -17,5 +17,5 @@ bootstrap:
           - {name: "groups", value: "SSH-Admin", roles: ["admin"]}
           - {name: "groups", value: "SSH-User", roles: ["view"]}
         acs: "https://{{ requiredEnv "TELEPORT_PROXY_DOMAIN_NAME" }}/v1/webapi/saml/acs"
-        entity_descriptor: |-
+        entity_descriptor: |
 {{ env "TELEPORT_SAML_ENTITY_DESCRIPTOR" | trim | indent 10 }}
