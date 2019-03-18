@@ -60,9 +60,14 @@ releases:
 
     ## Custom annotations for Codefresh ingress resource that override defaults
     annotations:
+{{ if eq (env "CODEFRESH_USE_EXTERNAL_INGRESS" | default "false") "true" }}
+      kubernetes.io/ingress.class: none
+{{ else }}
       kubernetes.io/ingress.class: {{ env "CODEFRESH_INGRESS_CLASS" | default "nginx" }}
       external-dns: enabled
       external-dns.alpha.kubernetes.io/hostname: {{ env "CODEFRESH_HOST" }}
+{{ end }}
+
 {{ if eq (env "CODEFRESH_INGRESS_CLASS" | default "nginx") "nginx" }}
       kubernetes.io/tls-acme: "true"
       external-dns.alpha.kubernetes.io/target: '{{ env "NGINX_INGRESS_HOSTNAME" }}'
@@ -98,6 +103,12 @@ releases:
         protocol: https
 {{- if eq (env "CODEFRESH_INGRESS_CLASS" | default "nginx") "alb" }}
       serviceType: NodePort
+{{- end }}
+
+    nomios:
+      service:
+{{- if eq (env "CODEFRESH_INGRESS_CLASS" | default "nginx") "alb" }}
+        type: NodePort
 {{- end }}
 
     context-manager:
@@ -251,30 +262,50 @@ releases:
   chart: "incubator/raw"
   version: "0.1.0"
   wait: true
+  installed: {{ env "CODEFRESH_USE_EXTERNAL_INGRESS" | default "false" }}
   values:
   - resources:
+{{ if eq (env "CODEFRESH_INGRESS_CLASS" | default "nginx") "alb" }}
+    - apiVersion: v1
+      kind: Secret
+      metadata:
+        namespace: codefresh
+        name: cf-extended
+      # use stringData: for strings, data: expects base64:
+      data:
+        clientId: {{ env "CODEFRESH_OIDC_CLIENT_ID" | b64enc }}
+        clientSecret: {{ env "CODEFRESH_OIDC_CLIENT_SECRET" | b64enc }}
+{{ end }}
     - apiVersion: extensions/v1beta1
       kind: Ingress
       metadata:
         namespace: codefresh
         name: cf-extended
-      annotations:
-        kubernetes.io/ingress.class: nginx
-        nginx.ingress.kubernetes.io/configuration-snippet: |
-          more_set_headers "X-Request-ID: $request_id";
-          proxy_set_header X-Request-ID $request_id;
-        nginx.ingress.kubernetes.io/service-upstream: "true"
-        nginx.ingress.kubernetes.io/ssl-redirect: "true"
-        nginx.org/redirect-to-https: "true"
+        annotations:
+          kubernetes.io/ingress.class: {{ env "CODEFRESH_INGRESS_CLASS" | default "nginx" | quote }}
+          external-dns: enabled
+          external-dns.alpha.kubernetes.io/hostname: {{ env "CODEFRESH_HOST" }}
+{{ if eq (env "CODEFRESH_INGRESS_CLASS" | default "nginx") "nginx" }}
+          nginx.ingress.kubernetes.io/configuration-snippet: |
+            more_set_headers "X-Request-ID: $request_id";
+            proxy_set_header X-Request-ID $request_id;
+          nginx.ingress.kubernetes.io/service-upstream: "true"
+          nginx.ingress.kubernetes.io/ssl-redirect: "true"
+          nginx.org/redirect-to-https: "true"
+{{ else if eq (env "CODEFRESH_INGRESS_CLASS" | default "nginx") "alb" }}
+          alb.ingress.kubernetes.io/scheme: "internet-facing"
+          alb.ingress.kubernetes.io/listen-ports: '[{"HTTP":80},{"HTTPS":443}]'
+          alb.ingress.kubernetes.io/certificate-arn: {{ env "CODEFRESH_ACM_CERTIFICATE_ARN" | quote }}
+          alb.ingress.kubernetes.io/actions.ssl-redirect: '{"Type": "redirect", "RedirectConfig": { "Protocol": "HTTPS", "Port": "443", "StatusCode": "HTTP_301"}}'
+          alb.ingress.kubernetes.io/auth-type: "oidc"
+          alb.ingress.kubernetes.io/auth-idp-oidc: '{"Issuer":"{{ env "CODEFRESH_OIDC_ISSUER" }}","AuthorizationEndpoint":"{{ env "CODEFRESH_OIDC_AUTH_ENDPOINT" }}","TokenEndpoint":"{{ env "CODEFRESH_OIDC_TOKEN_ENDPOINT" }}","UserInfoEndpoint":"{{ env "CODEFRESH_OIDC_USER_INFO_ENDPOINT" }}","SecretName":"cf-extended"}'
+{{ end }}
       spec:
         rules:
         - host: {{ env "CODEFRESH_HOST" }}
           http:
             paths:
-            - path: /
-              backend:
-                serviceName: cf-cfui
-                servicePort: 80
+{{ if eq (env "CODEFRESH_INGRESS_CLASS" | default "nginx") "nginx" }}
             - path: /api/
               backend:
                 serviceName: cf-cfapi
@@ -283,7 +314,28 @@ releases:
               backend:
                 serviceName: cf-nomios
                 servicePort: 80
+            - path: /
+              backend:
+                serviceName: cf-cfui
+                servicePort: 80
+{{ else if eq (env "CODEFRESH_INGRESS_CLASS" | default "nginx") "alb" }}
+            - path: /api/*
+              backend:
+                serviceName: cf-cfapi
+                servicePort: 80
+            - path: /nomios/*
+              backend:
+                serviceName: cf-nomios
+                servicePort: 80
+            - path: /*
+              backend:
+                serviceName: cf-cfui
+                servicePort: 80
+{{ end }}
+
+{{ if eq (env "CODEFRESH_INGRESS_CLASS" | default "nginx") "nginx" }}
         tls:
         - hosts:
           - {{ env "CODEFRESH_HOST" }}
           secretName: cf-codefresh-star-selfsigned
+{{ end }}
