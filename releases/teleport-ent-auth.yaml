@@ -1,0 +1,67 @@
+repositories:
+# Cloud Posse incubator repo of helm charts
+- name: "cloudposse-incubator"
+  url: "https://charts.cloudposse.com/incubator/"
+
+releases:
+#######################################################################################
+## Teleport auth                                                                     ##
+#######################################################################################
+
+#
+# References:
+#
+# https://gravitational.com/teleport/docs/admin-guide/#configuration-file
+# https://github.com/cloudposse/helmfiles/blob/0.20.0/releases/teleport-ent-auth.yaml
+# https://github.com/cloudposse/helmfiles/blob/0.20.0/releases/values/teleport-ent/teleport-ent-proxy.yaml.gotmpl
+# https://github.com/cloudposse/helmfiles/blob/0.20.0/releases/values/teleport-ent/teleport-ent-auth.yaml.gotmpl
+# https://github.com/cloudposse/helmfiles/blob/0.20.0/releases/values/teleport-ent/teleport-ent-roles.yaml.gotmpl
+# https://github.com/cloudposse/helmfiles/blob/0.20.0/releases/values/teleport-ent/teleport-ent-saml-connector.yaml.gotmpl
+# https://github.com/cloudposse/charts/blob/0.5.0/incubator/teleport-ent-auth/templates/deployment.yaml
+# https://github.com/cloudposse/charts/blob/0.5.0/incubator/teleport-ent-auth/values.yaml
+#
+#
+
+- name: "teleport-auth"
+  namespace: "teleport"
+  labels:
+    chart: "teleport-auth"
+    component: "teleport-auth"
+    namespace: "teleport"
+    vendor: "teleport"
+    default: "true"
+  chart: "cloudposse-incubator/teleport-ent-auth"
+  version: "0.1.0"
+  wait: true
+  values:
+  ## Configuration to be copied into Teleport container
+  - ./values/teleport-ent/teleport-ent-proxy.yaml.gotmpl
+  - ./values/teleport-ent/teleport-ent-auth.yaml.gotmpl
+  - ./values/teleport-ent/teleport-ent-roles.yaml.gotmpl
+{{- if env "TELEPORT_SAML_ENTITY_DESCRIPTOR" }}
+  - ./values/teleport-ent/teleport-ent-saml-connector.yaml.gotmpl
+{{- end }}
+    ## Remaining configuration
+  - nameOverride: "teleport-auth"
+    image:
+      repository: quay.io/gravitational/teleport-ent
+      tag: '{{ env "TELEPORT_VERSION" | default "3.1.8" }}'
+      pullPolicy: "IfNotPresent"
+      # command: ["/usr/bin/dumb-init"]
+      # args:  ["teleport", "start", "--insecure-no-tls", "-c", "/etc/teleport/teleport.yaml"]
+    rbac:
+      create: true
+    serviceAccount:
+      create: true
+    diagnostics:
+      # If diagnostics are not enabled, heath and readiness checks will not be performed
+      enabled: true
+      port: 3000
+      debugging: false
+    resources:
+      limits:
+        cpu: 1000m
+        memory: 2560Mi
+      requests:
+        cpu: 20m
+      memory: 128Mi
