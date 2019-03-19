@@ -90,10 +90,13 @@ config:
 
       kubernetes:
         enabled: yes
-        # public_addr can be a scalar or list. this is the address seen as
-        # "Kubernetes API endpoint" from the outside. if you are using a load-balancer
-        # in front of several proxies, you have to use LB's address here:
-        public_addr: {{ $proxyurl }}:3026
+        # public_addr can be a scalar or list. this is the domain name seen as
+        # "Kubernetes API endpoint" from the outside. If using trusted clusters, this will
+        # be a concatenation of the cluster name with the trusted proxy's domain name.
+        # That concatenated name will have to resolve to this proxy's public address.
+        # If you are using a load balancer in front of several proxies, all the domain names
+        # need to map to the load balancer address
+        public_addr: {{ env "TELEPORT_KUBERNETES_ENDPOINTS" | default $proxyurl }}
         # the listen address is what Teleport/Kubernetes proxy will listen on:
         listen_addr: 0.0.0.0:3026
 
