@@ -29,7 +29,7 @@ releases:
     vendor: "teleport"
     default: "true"
   chart: "cloudposse-incubator/teleport-ent-proxy"
-  version: "0.1.0"
+  version: "0.2.0"
   wait: true
   values:
   ## Configuration to be copied into Teleport container
@@ -45,22 +45,27 @@ releases:
       # command: ["/usr/bin/dumb-init"]
       # args:  ["teleport", "start", "--insecure-no-tls", "-c", "/etc/teleport/teleport.yaml"]
 
-    replicaCount: 1
+    replicaCount: {{ env "TELEPORT_PROXY_REPLICA_COUNT" | default 2 }}
 
     tls:
-      ## Enable mounting of TLS certificates from a secret
+      ## Enable mounting of TLS certificates from a secret NOT FULLY IMPLEMENTED
       ## If disabled, teleport proxy will generate self signed certs on launch
+{{- if env "TELEPORT_SSL_CERTIFICATE_ARN" }}
       enabled: false
-
-      ## Ingress to perform tls certification verifications through
-      ## See http://docs.cert-manager.io/en/latest/tutorials/acme/http-validation.html
-      ingressClass: secondary
+      useSelfSignedCert: false
+{{- else }}
+      enabled: true
+      useSelfSignedCert: true
+{{- end }}
+      ### Ingress to perform tls certification verifications through
+      ### See http://docs.cert-manager.io/en/latest/tutorials/acme/http-validation.html
+      #ingressClass: secondary
 
       ## Issue to use for tls certificates
-      issuer:
-        # name: letsencrypt-staging
-        name: letsencrypt-production
-        type: ClusterIssuer
+      #issuer:
+      #  # name: letsencrypt-staging
+      #  name: letsencrypt-production
+      #  type: ClusterIssuer
 
       ## Domain the certificate will be for
       # commonName: # set in ./values/teleport-ent/teleport-ent-proxy.yaml.gotmpl
@@ -70,18 +75,20 @@ releases:
       # secretName:
 
     service:
+{{- if env "TELEPORT_SSL_CERTIFICATE_ARN" }}
       type: LoadBalancer
       ## See https://kubernetes.io/docs/tutorials/services/source-ip
       externalTrafficPolicy: "Local"
       annotations:
         service.beta.kubernetes.io/aws-load-balancer-backend-protocol: tcp
-        service.beta.kubernetes.io/aws-load-balancer-ssl-ports: 443,3080
-        service.beta.kubernetes.io/aws-load-balancer-ssl-negotiation-policy: ELBSecurityPolicy-TLS-1-2-2017-01
         # service.beta.kubernetes.io/aws-load-balancer-type: nlb
         # external-dns.alpha.kubernetes.io/hostname: # set in ./values/teleport-ent/teleport-ent-proxy.yaml.gotmpl
-{{- if env "TELEPORT_SSL_CERTIFICATE_ARN" }}
+        service.beta.kubernetes.io/aws-load-balancer-ssl-ports: 443,3080
+        service.beta.kubernetes.io/aws-load-balancer-ssl-negotiation-policy: ELBSecurityPolicy-TLS-1-2-2017-01
         service.beta.kubernetes.io/aws-load-balancer-ssl-cert: '{{ env "TELEPORT_SSL_CERTIFICATE_ARN" }}'
-      external_ssl_cert: true
+        # service.beta.kubernetes.io/aws-load-balancer-type: nlb
+{{- else }}
+      type: ClusterIP
 {{- end }}
     ## Enable Teleport proxy diagnostics port
     ## This is required for liveness/readiness probes
