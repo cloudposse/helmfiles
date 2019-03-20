@@ -26,6 +26,7 @@ releases:
   chart: "incubator/aws-alb-ingress-controller"
   version: "0.1.4"
   wait: true
+  installed: {{ env "AWS_ALB_INGRESS_CONTROLLER_INSTALLED" | default "true" }}
   values:
   ### Required: AWS_ALB_INGRESS_CONTROLLER_KUBERNETES_CLUSTER_NAME;
   ###           e.g. "us-west-2.testing.cloudposse.co"

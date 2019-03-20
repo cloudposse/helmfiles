@@ -26,6 +26,7 @@ releases:
   chart: "cloudposse-incubator/monochart"
   version: "0.8.0"
   wait: true
+  installed: {{ env "ATLANTIS_INSTALLED" | default "true" }}
   values:
     - fullnameOverride: atlantis
       image:

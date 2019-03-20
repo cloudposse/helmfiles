@@ -37,6 +37,7 @@ releases:
   chart: "coreos-stable/kube-prometheus"
   version: "0.0.105"
   wait: true
+  installed: {{ env "KUBE_PROMETHEUS_INSTALLED" | default "true" }}
   values:
       ### Optional: KUBE_PROMETHEUS_EXTERNAL_VALUES_FILE;
     - '{{ env "KUBE_PROMETHEUS_EXTERNAL_VALUES_FILE" | default "values/kube-prometheus.grafana.dashboards.yaml" }}'
@@ -222,6 +223,7 @@ releases:
   chart: "stable/prometheus-pushgateway"
   version: "0.1.2"
   wait: true
+  installed: {{ env "KUBE_PROMETHEUS_PUSH_GATEWAY_INSTALLED" | default "true" }}
   values:
   - serviceAccount:
       ### Optional: RBAC_ENABLED;
@@ -249,6 +251,7 @@ releases:
   chart: "cloudposse-incubator/monochart"
   version: "0.4.0"
   wait: true
+  installed: {{ env "KUBE_PROMETHEUS_PUSH_GATEWAY_MONITOR_INSTALLED" | default "true" }}
   values:
   - serviceMonitors:
       nginx-ingress:
@@ -292,6 +295,7 @@ releases:
   chart: "cloudposse-incubator/monochart"
   version: "0.4.0"
   wait: true
+  installed: {{ env "KUBE_PROMETHEUS_GRAFANA_INSTALLED" | default "true" }}
   values:
   - configMaps:
       datasource:

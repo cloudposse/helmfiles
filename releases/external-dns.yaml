@@ -25,6 +25,7 @@ releases:
   chart: "stable/external-dns"
   version: "1.6.1"
   wait: true
+  installed: {{ env "EXTERNAL_DNS_INSTALLED" | default "true" }}
   values:
     - extraEnv:
       - name: EXTERNAL_DNS_SOURCE

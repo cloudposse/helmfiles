@@ -26,6 +26,7 @@ releases:
   chart: "stable/kube-lego"
   version: "0.4.2"
   wait: true
+  installed: {{ env "KUBE_LEGO_INSTALLED" | default "true" }}
   values:
   - config:
       ### Required: KUBE_LEGO_EMAIL; e.g. no-reply@cloudposse.org

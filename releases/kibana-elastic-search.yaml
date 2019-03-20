@@ -26,6 +26,7 @@ releases:
   chart: "incubator/raw"
   version: "0.1.0"
   wait: true
+  installed: {{ env "KIBANA_ELASTICSEARCH_INSTALLED" | default "true" }}
   values:
   - resources:
     - apiVersion: extensions/v1beta1

@@ -29,6 +29,7 @@ releases:
   chart: "stable/traefik"
   version: "1.59.1"
   wait: true
+  installed: {{ env "TRAEFIK_INSTALLED" | default "true" }}
   values:
   - image: traefik
     imageTag: 1.7.7

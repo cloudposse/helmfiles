@@ -26,6 +26,7 @@ releases:
   chart: "stable/cluster-autoscaler"
   version: "0.7.0"
   wait: true
+  installed: {{ env "CLUSTER_AUTOSCALER_INSTALLED" | default "true" }}
   values:
     - image:
         ### Optional: CLUSTER_AUTOSCALER_IMAGE_TAG;
