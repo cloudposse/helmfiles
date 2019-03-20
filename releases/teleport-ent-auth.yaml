@@ -37,7 +37,9 @@ releases:
   ## Configuration to be copied into Teleport container
   - ./values/teleport-ent/teleport-ent-proxy.yaml.gotmpl
   - ./values/teleport-ent/teleport-ent-auth.yaml.gotmpl
+{{- if eq (env "TELEPORT_LOAD_ROLES" | default "false") "true" }}
   - ./values/teleport-ent/teleport-ent-roles.yaml.gotmpl
+{{- end }}
 {{- if env "TELEPORT_SAML_ENTITY_DESCRIPTOR" }}
   - ./values/teleport-ent/teleport-ent-saml-connector.yaml.gotmpl
 {{- end }}
@@ -49,6 +51,7 @@ releases:
       pullPolicy: "IfNotPresent"
       # command: ["/usr/bin/dumb-init"]
       # args:  ["teleport", "start", "--insecure-no-tls", "-c", "/etc/teleport/teleport.yaml"]
+    replicaCount: {{ env "TELEPORT_AUTH_REPLICA_COUNT" | default 1 }}
     rbac:
       create: true
     serviceAccount:
