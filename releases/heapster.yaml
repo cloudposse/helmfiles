@@ -27,6 +27,7 @@ releases:
   chart: "stable/heapster"
   version: "0.2.10"
   wait: true
+  installed: {{ env "HEAPSTER_INSTALLED" | default "true" }}
   values:
       ### Optional: HEAPSTER_REPLICA_COUNT;
     - replicaCount: '{{ env "HEAPSTER_REPLICA_COUNT" | default "1" }}'

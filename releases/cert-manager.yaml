@@ -26,6 +26,7 @@ releases:
   chart: "stable/cert-manager"
   version: "v0.4.0"
   wait: true
+  installed: {{ env "CERT_MANAGER_INSTALLED" | default "true" }}
   values:
     - rbac:
         ### Optional: RBAC_ENABLED;

@@ -27,6 +27,7 @@ releases:
   chart: "coreos-stable/prometheus-operator"
   version: "0.0.29"
   wait: true
+  installed: {{ env "PROMETHEUS_OPERATOR_INSTALLED" | default "true" }}
   values:
       ### Optional: RBAC_ENABLED;
     - rbacEnable: {{ env "RBAC_ENABLED" | default "false" }}

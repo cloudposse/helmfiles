@@ -28,6 +28,7 @@ releases:
   chart: "cloudposse-incubator/monochart"
   version: "0.9.0"
   wait: true
+  installed: {{ env "CODEFRESH_RE_INSTALLED" | default "true" }}
   values:
     - fullnameOverride: codefresh-re
       replicaCount: 1

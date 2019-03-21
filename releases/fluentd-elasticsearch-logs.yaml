@@ -26,6 +26,7 @@ releases:
   chart: "cloudposse-incubator/fluentd-kubernetes"
   version: "0.3.0"
   wait: true
+  installed: {{ env "FLUENT_ELASTICSEARCH_INSTALLED" | default "true" }}
   values:
   - image:
       repository: "fluent/fluentd-kubernetes-daemonset"
