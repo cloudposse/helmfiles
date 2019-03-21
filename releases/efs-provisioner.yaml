@@ -26,6 +26,7 @@ releases:
   chart: "stable/efs-provisioner"
   version: "0.1.3"
   wait: true
+  installed: {{ env "EFS_PROVISIONER_INSTALLED" | default "true" }}
   values:
     - global:
         deployEnv: '{{ env "DEPLOY_ENV" | default "dev" }}'

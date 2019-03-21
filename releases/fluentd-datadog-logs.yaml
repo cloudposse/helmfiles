@@ -29,6 +29,7 @@ releases:
   chart: "cloudposse-incubator/fluentd-kubernetes"
   version: "0.2.0"
   wait: true
+  installed: {{ env "FLUENTD_DATADOG_LOGS_INSTALLED" | default "true" }}
   values:
   - image:
       repository: "cloudposse/fluentd-datadog-logs"

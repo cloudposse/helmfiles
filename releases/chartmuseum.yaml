@@ -25,6 +25,7 @@ releases:
   chart: "stable/chartmuseum"
   version: "1.4.0"
   wait: true
+  installed: {{ env "CHARTMUSEUM_INSTALLED" | default "true" }}
   values:
     - replicaCount: 1
       env:

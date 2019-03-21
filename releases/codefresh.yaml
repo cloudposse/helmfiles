@@ -28,6 +28,7 @@ releases:
   version: "0.7.11"
   wait: true
   force: true
+  installed: {{ env "CODEFRESH_INSTALLED" | default "true" }}
   values:
   - global:
       ### Instantiate databases with seed data. Usually used in dynamic and on-prem environments.

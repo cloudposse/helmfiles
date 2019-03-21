@@ -27,6 +27,7 @@ releases:
   chart: "stable/datadog"
   version: "1.22.0"
   wait: true
+  installed: {{ env "DATADOG_INSTALLED" | default "true" }}
   values:
     - image:
         repository: "datadog/agent"
