@@ -27,7 +27,7 @@ releases:
     component: "teleport-proxy"
     namespace: "teleport"
     vendor: "teleport"
-    default: "true"
+    default: "false"
   chart: "cloudposse-incubator/teleport-ent-proxy"
   version: "0.2.0"
   wait: true

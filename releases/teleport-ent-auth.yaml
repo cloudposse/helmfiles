@@ -29,7 +29,7 @@ releases:
     component: "teleport-auth"
     namespace: "teleport"
     vendor: "teleport"
-    default: "true"
+    default: "false"
   chart: "cloudposse-incubator/teleport-ent-auth"
   version: "0.1.0"
   wait: true
