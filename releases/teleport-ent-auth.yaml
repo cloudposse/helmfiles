@@ -33,6 +33,7 @@ releases:
   chart: "cloudposse-incubator/teleport-ent-auth"
   version: "0.1.0"
   wait: true
+  atomic: true
   installed: {{ env "TELEPORT_AUTH_INSTALLED" | default "true" }}
   values:
   ## Configuration to be copied into Teleport container
