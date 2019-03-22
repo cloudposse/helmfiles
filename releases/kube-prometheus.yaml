@@ -52,6 +52,8 @@ releases:
           requests:
             cpu: "5m"
             memory: "16Mi"
+        image:
+          tag: "v0.17.0"
       deployGrafana: {{ env "KUBE_PROMETHEUS_GRAFANA_INTERNAL_ENABLED" | default "true" }}
       grafana:
         resources:
@@ -198,7 +200,7 @@ releases:
 {{ end }}
   set:
   - name: "alertmanager.templateFiles.deployment\\.tmpl"
-    file: ./releases/values/kube-prometheus.alerts.template
+    file: ./values/kube-prometheus.alerts.template
 
 #######################################################################################
 ## kube-prometheus-pushgateway                                                       ##
