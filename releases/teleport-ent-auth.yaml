@@ -33,7 +33,8 @@ releases:
   chart: "cloudposse-incubator/teleport-ent-auth"
   version: "0.1.0"
   wait: true
-  atomic: true
+  # atomic is not widely supported yet, but when it is, we should use it
+  # atomic: true
   installed: {{ env "TELEPORT_AUTH_INSTALLED" | default "true" }}
   values:
   ## Configuration to be copied into Teleport container
