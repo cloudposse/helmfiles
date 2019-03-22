@@ -1,0 +1,24 @@
+repositories:
+# Stable repo of official helm charts
+- name: "kubecost"
+  url: "https://kubecost.github.io/cost-analyzer"
+releases:
+
+###################################################################################################
+## kubecost - Kubecost project, which is created to monitor and manage Kubernetes resource spend ##
+###################################################################################################
+
+- name: "kubecost"
+  namespace: "monitoring"
+  labels:
+    chart: "kubecost"
+    repo: "local"
+    vendor: "kubecost"
+    default: "true"
+  chart: "kubecost/cost-analyzer"
+  version: "1.13.1"
+  wait: true
+  values:
+    - global:
+        podAnnotations:
+          iam.amazonaws.com/role: '{{requiredEnv "KUBECOST_IAM_ROLE"}}'
