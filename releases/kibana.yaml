@@ -26,6 +26,7 @@ releases:
   chart: "stable/kibana"
   version: "0.10.0"
   wait: true
+  installed: {{ env "KIBANA_INSTALLED" | default "true" }}
   values:
   - replicaCount: '{{ env "KIBANA_REPLICA_COUNT" | default 1 }}'
     image:

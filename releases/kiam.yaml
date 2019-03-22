@@ -26,6 +26,7 @@ releases:
   chart: "stable/kiam"
   version: "2.0.0-rc1"
   wait: true
+  installed: {{ env "KIAM_INSTALLED" | default "true" }}
   values:
     - rbac:
         ### Optional: RBAC_ENABLED;

@@ -71,13 +71,13 @@ config:
       # defines the types and second factors the auth server supports
       authentication:
         # type can be local or oidc or saml
-{{- if env "TELEPORT_SAML_ENTITY_DESCRIPTOR" }}
+{{- if eq (env "TELEPORT_USE_SAML" | default "false") "true" }}
         type: saml
+        second_factor: off
 {{- else }}
         type: local
-{{- end }}
         # second_factor can be off, otp, or u2f
-        second_factor: otp
+        second_factor: {{ env "TELEPORT_LOCAL_SECOND_FACTOR" | default "off" }}
 
         # this section is only used if using u2f
         u2f:
@@ -88,6 +88,7 @@ config:
           facets:
           - https://0.0.0.0
           - https://0.0.0.0:3080
+{{- end }}
 
       # Determines if SSH sessions to cluster nodes are forcefully terminated
       # after no activity from a client (idle client).
