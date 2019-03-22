@@ -18,7 +18,7 @@ releases:
     component: "splunk"
     namespace: "kube-system"
     default: "false"
-  chart: "https://github.com/splunk/splunk-connect-for-kubernetes/releases/download/v1.0.1/splunk-kubernetes-logging-1.0.1.tgz"
+  chart: "https://github.com/splunk/splunk-connect-for-kubernetes/releases/download/1.1.0/splunk-kubernetes-logging-1.1.0.tgz"
   wait: true
   installed: {{ env "FLUENTD_SPLUNK_INSTALLED" | default "true" }}
   values:
