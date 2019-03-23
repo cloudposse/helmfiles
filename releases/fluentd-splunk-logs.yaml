@@ -22,7 +22,7 @@ releases:
   wait: true
   installed: {{ env "FLUENTD_SPLUNK_INSTALLED" | default "true" }}
   values:
-  - fullnameOverride: "splunk-logs"
+  - fullnameOverride: "splunk-kubernetes-logging"
   - splunk:
       # Configurations for HEC (HTTP Event Collector)
       hec:
