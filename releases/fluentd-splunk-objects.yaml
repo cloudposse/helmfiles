@@ -10,19 +10,19 @@ releases:
 #   - https://github.com/splunk/splunk-connect-for-kubernetes/blob/master/helm-chart/splunk-kubernetes-logging/values.yaml
 #
 
-- name: "fluentd-splunk-logs"
+- name: "fluentd-splunk-objects"
   namespace: "kube-system"
   labels:
-    chart: "splunk-kubernetes-logging"
+    chart: "splunk-kubernetes-objects"
     repo: "splunk"
     component: "splunk"
     namespace: "kube-system"
     default: "false"
-  chart: "https://github.com/splunk/splunk-connect-for-kubernetes/releases/download/1.1.0/splunk-kubernetes-logging-1.1.0.tgz"
+  chart: "https://github.com/splunk/splunk-connect-for-kubernetes/releases/download/1.1.0/splunk-kubernetes-objects-1.1.0.tgz"
   wait: true
   installed: {{ env "FLUENTD_SPLUNK_INSTALLED" | default "true" }}
   values:
-  - fullnameOverride: "splunk-kubernetes-logging"
+  - fullnameOverride: "splunk-kubernetes-objects"
   - splunk:
       # Configurations for HEC (HTTP Event Collector)
       hec:
@@ -35,7 +35,7 @@ releases:
         # protocol has two options: "http" and "https", default is "https"
         protocol: '{{ env "FLUENTD_SPLUNK_PROTOCOL" | default "https"}}'
         # indexName tells which index to use, this is optional. If it's not present, will use the default one configured in HEC.
-        indexName: '{{ env "FLUENTD_SPLUNK_LOGS_INDEX_NAME" | default "FLUENTD_SPLUNK_INDEX_NAME" }}'
+        indexName: '{{ env "FLUENTD_SPLUNK_OBJECTS_INDEX_NAME" | default "FLUENTD_SPLUNK_INDEX_NAME" }}'
         # insecureSSL is a boolean, it indecates should it allow inscure SSL connection (when protocol is "https"). Default is false.
         insecureSSL: '{{ env "FLUENTD_SPLUNK_INSECURE_SSL" | default "true"}}'
         # The PEM-format CA certificate for this client.
