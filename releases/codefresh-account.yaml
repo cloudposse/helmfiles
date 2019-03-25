@@ -1,7 +1,7 @@
 repositories:
 # Cloud Posse incubator repo of helm charts
 - name: "cloudposse-incubator-dev"
-  url: "https://charts.dev.cloudposse.com/codefresh-account-fix/incubator/"
+  url: "https://charts.cloudposse.com/incubator/"
 
 
 releases:
@@ -24,7 +24,7 @@ releases:
     namespace: "kube-system"
     vendor: "cloudposse"
     default: "false"
-  chart: "cloudposse-incubator-dev/codefresh-service-account"
+  chart: "cloudposse-incubator/codefresh-service-account"
   version: "0.2.0"
   wait: true
   installed: {{ env "CODEFRESH_SERVICE_ACCOUNT_INSTALLED" | default "true" }}
