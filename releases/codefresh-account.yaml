@@ -1,7 +1,7 @@
 repositories:
 # Cloud Posse incubator repo of helm charts
 - name: "cloudposse-incubator-dev"
-  url: "https://charts.dev.cloudposse.com/codefresh-acc/incubator/"
+  url: "https://charts.dev.cloudposse.com/codefresh-account-fix/incubator/"
 
 
 releases:
