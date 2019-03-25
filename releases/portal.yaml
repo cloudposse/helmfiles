@@ -27,6 +27,7 @@ releases:
   chart: "cloudposse-incubator/portal"
   version: "0.2.4"
   wait: true
+  installed: {{ env "PORTAL_INSTALLED" | default "true" }}
   values:
   - values/portal.backends.yaml
   - backends:

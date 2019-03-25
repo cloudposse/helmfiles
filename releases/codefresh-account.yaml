@@ -17,7 +17,7 @@ releases:
 #   - https://github.com/cloudposse/charts/pull/190
 #
 - name: "codefresh-service-account"
-  namespace: "codefresh"
+  namespace: "kube-system"
   labels:
     chart: "codefresh-service-account"
     component: "codefresh"

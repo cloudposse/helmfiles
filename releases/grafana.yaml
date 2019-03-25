@@ -21,6 +21,7 @@ releases:
   chart: "stable/grafana"
   version: "1.14.0"
   wait: true
+  installed: {{ env "GRAFANA_INSTALLED" | default "true" }}
   values:
     - rbac:
         ### Optional: RBAC_ENABLED;
@@ -152,6 +153,7 @@ releases:
   chart: "stable/mysql"
   version: "0.10.1"
   wait: true
+  installed: {{ env "GRAFANA_DB_INSTALLED" | default "true" }}
   values:
   - mysqlUser: '{{ env "GRAFANA_DB_USER" | default "grafana" }}'
     mysqlPassword: '{{ env "GRAFANA_DB_PASSWORD" | default "grafana"}}'

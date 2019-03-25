@@ -27,6 +27,7 @@ releases:
   chart: "stable/datadog"
   version: "1.22.0"
   wait: true
+  installed: {{ env "DATADOG_INSTALLED" | default "true" }}
   values:
     - image:
         repository: "datadog/agent"
@@ -64,6 +65,8 @@ releases:
         image:
           ### Version of cluster agent from https://hub.docker.com/r/datadog/cluster-agent/tags
           tag: {{ env "DATADOG_CLUSTER_AGENT_IMAGE_TAG" | default "latest" }}
+        # token: A cluster-internal secret for agent-to-agent communication. Must be 32+ characters a-zA-Z
+        token: {{ env "DATADOG_CLUSTER_AGENT_TOKEN" }}
         resources:
           limits:
             cpu: "256m"

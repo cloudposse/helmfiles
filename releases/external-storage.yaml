@@ -15,6 +15,7 @@ releases:
   wait: true
   force: true
   recreatePods: false
+  installed: {{ env "EXTERNAL_STORAGE_INSTALLED" | default "true" }}
   values:
     - resources:
       # Based on https://github.com/kubernetes-incubator/external-storage/blob/master/snapshot/deploy/kubernetes/aws/deployment.yaml

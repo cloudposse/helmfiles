@@ -32,6 +32,7 @@ releases:
   chart: "stable/nginx-ingress"
   version: "0.25.1"
   wait: true
+  installed: {{ env "NGINX_INGRESS_INSTALLED" | default "true" }}
   values:
     - controller:
         image:
@@ -117,6 +118,7 @@ releases:
   chart: "cloudposse-incubator/nginx-default-backend"
   version: "0.3.0"
   wait: true
+  installed: {{ env "NGINX_INGRESS_BACKEND_INSTALLED" | default "true" }}
   values:
     - nameOverride: default
       ### Optional: NGINX_INGRESS_BACKEND_REPLICA_COUNT; e.g. 2
@@ -170,6 +172,7 @@ releases:
   chart: "cloudposse-incubator/monochart"
   version: "0.4.0"
   wait: true
+  installed: {{ env "NGINX_INGRESS_METRICS_INSTALLED" | default "true" }}
   values:
   - prometheusRules:
       nginx-ingress:

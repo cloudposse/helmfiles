@@ -27,10 +27,12 @@ releases:
     component: "teleport-proxy"
     namespace: "teleport"
     vendor: "teleport"
-    default: "true"
+    default: "false"
   chart: "cloudposse-incubator/teleport-ent-proxy"
   version: "0.2.0"
   wait: true
+  force: true
+  installed: {{ env "TELEPORT_PROXY_INSTALLED" | default "true" }}
   values:
   ## Configuration to be copied into Teleport container
   ## Also sets external DNS name and TLS Certificate common name
@@ -113,7 +115,7 @@ releases:
         memory: 128Mi
       requests:
         cpu: 5m
-      memory: 16Mi
+        memory: 16Mi
 
     nodeSelector: {}
 
