@@ -2,12 +2,85 @@ repositories:
 # Stable repo of official helm charts
 - name: "stable"
   url: "https://kubernetes-charts.storage.googleapis.com"
+  # Kubernetes incubator repo of helm charts
+- name: "kubernetes-incubator"
+  url: "https://kubernetes-charts-incubator.storage.googleapis.com"
 
 releases:
 
 ################################################################################
 ## kiam - AWS Assumed Roles for Pods #######################################
 ################################################################################
+#
+# This release REQUIRES that cert-manager is installed and available, as it uses it to provision the
+# TLS certificates that secure the communication between the kiam agents and servers.
+#
+# Use cert-manager to provision the TLS secrets kiam will use
+#
+# Reference:  https://github.com/michas2/kiam/blob/ae9cbeb901e5c2682f17c773f9f965a9fe51720d/docs/TLS.md#cert-manager
+- name: 'kiam-tls'
+  chart: "kubernetes-incubator/raw"
+  namespace: kube-system
+  labels:
+    component: "iam"
+    namespace: "kube-system"
+    default: "true"
+  version: "0.1.0"
+  wait: true
+  force: true
+  recreatePods: false
+  installed: {{ env "KIAM_INSTALLED" | default "true" }}
+  values:
+    - resources:
+        - apiVersion: certmanager.k8s.io/v1alpha1
+          kind: Issuer
+          metadata:
+            name: kiam-selfsigning-issuer
+          spec:
+            selfSigned: {}
+
+        - apiVersion: certmanager.k8s.io/v1alpha1
+          kind: Certificate
+          metadata:
+            name: kiam-ca
+          spec:
+            secretName: kiam-ca-tls
+            commonName: "kiam-ca"
+            isCA: true
+            issuerRef:
+              name: kiam-selfsigning-issuer
+
+        - apiVersion: certmanager.k8s.io/v1alpha1
+          kind: Issuer
+          metadata:
+            name: kiam-ca-issuer
+          spec:
+            ca:
+              secretName: kiam-ca-tls
+
+        - apiVersion: certmanager.k8s.io/v1alpha1
+          kind: Certificate
+          metadata:
+            name: kiam-agent
+          spec:
+            secretName: kiam-agent-tls
+            commonName: agent
+            issuerRef:
+              name: kiam-ca-issuer
+
+        - apiVersion: certmanager.k8s.io/v1alpha1
+          kind: Certificate
+          metadata:
+            name: kiam-server
+          spec:
+            secretName: kiam-server-tls
+            issuerRef:
+              name: kiam-ca-issuer
+            dnsNames:
+              - "localhost"
+              - "kiam-server"
+            ipAddresses:
+              - "127.0.0.1"
 
 #
 # References:
@@ -24,7 +97,7 @@ releases:
     vendor: "uswitch"
     default: "true"
   chart: "stable/kiam"
-  version: "2.0.0-rc1"
+  version: "2.1.0"
   wait: true
   installed: {{ env "KIAM_INSTALLED" | default "true" }}
   values:
@@ -51,13 +124,11 @@ releases:
           kubernetes.io/role: "node"
         tolerations:
           - operator: "Exists"
-        tlsFiles:
-          ### Required: KIAM_AGENT_TLS_CA; e.g. base64-encoded ca.pem
-          ca: '{{ env "KIAM_AGENT_TLS_CA" }}'
-          ### Required: KIAM_AGENT_TLS_CERT; e.g. base64-encoded agent.pem
-          cert: '{{ env "KIAM_AGENT_TLS_CERT" }}'
-          ### Required: KIAM_AGENT_TLS_KEY; e.g. base64-encoded agent-key.pem
-          key: '{{ env "KIAM_AGENT_TLS_KEY" }}'
+        tlsSecret: kiam-agent-tls
+        tlsCerts:
+          certFileName: tls.crt
+          keyFileName:  tls.key
+          caFileName:    ca.crt
       server:
         gatewayTimeoutCreation: "5s"
         nodeSelector:
@@ -74,10 +145,8 @@ releases:
             mountPath: "/etc/ssl/certs"
             hostPath: '{{ env "KIAM_HOST_CERT_PATH" | default "/etc/ssl/certs" }}'
             readOnly: true
-        tlsFiles:
-          ### Required: KIAM_AGENT_TLS_CA; e.g. base64-encoded ca.pem
-          ca: '{{ env "KIAM_SERVER_TLS_CA" }}'
-          ### Required: KIAM_SERVER_TLS_CERT; e.g. base64-encoded server.pem
-          cert: '{{ env "KIAM_SERVER_TLS_CERT" }}'
-          ### Required: KIAM_SERVER_TLS_KEY; e.g. base64-encoded server-key.pem
-          key: '{{ env "KIAM_SERVER_TLS_KEY" }}'
+        tlsSecret: kiam-server-tls
+        tlsCerts:
+          certFileName: tls.crt
+          keyFileName:  tls.key
+          caFileName:    ca.crt
