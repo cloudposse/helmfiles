@@ -17,6 +17,8 @@ releases:
 #
 # Use cert-manager to provision the TLS secrets kiam will use
 #
+# If installed, will use stakater/reloader to automatically update `kiam` when the TLS certificates change
+#
 # Reference:  https://github.com/michas2/kiam/blob/ae9cbeb901e5c2682f17c773f9f965a9fe51720d/docs/TLS.md#cert-manager
 - name: 'kiam-tls'
   chart: "kubernetes-incubator/raw"
@@ -28,7 +30,7 @@ releases:
   version: "0.1.0"
   wait: true
   force: true
-  recreatePods: false
+  recreatePods: true
   installed: {{ env "KIAM_INSTALLED" | default "true" }}
   values:
     - resources:
@@ -99,7 +101,12 @@ releases:
   chart: "stable/kiam"
   version: "2.1.0"
   wait: true
+  recreatePods: true
   installed: {{ env "KIAM_INSTALLED" | default "true" }}
+  hooks:
+   - events: ["cleanup"]
+     command: "/bin/sh"
+     args: ["-c", "kubectl annotate --overwrite DaemonSet --selector=app=kiam reloader.stakater.com/auto=true"]
   values:
     - rbac:
         ### Optional: RBAC_ENABLED;
@@ -129,6 +136,7 @@ releases:
           certFileName: tls.crt
           keyFileName:  tls.key
           caFileName:    ca.crt
+        updateStrategy: RollingUpdate
       server:
         gatewayTimeoutCreation: "5s"
         nodeSelector:
@@ -139,7 +147,7 @@ releases:
             operator: "Exists"
         extraEnv:
           GRPC_GO_LOG_SEVERITY_LEVEL: '{{ env "GRPC_GO_LOG_SEVERITY_LEVEL" | default "info" }}'
-          GRPC_GO_LOG_VERBOSITY_LEVEL: '{{ env "GRPC_GO_LOG_VERBOSITY_LEVEL" | default "8" }}'
+          GRPC_GO_LOG_VERBOSITY_LEVEL: '{{ env "GRPC_GO_LOG_VERBOSITY_LEVEL" | default "1" }}'
         extraHostPathMounts:
           - name: "ssl-certs"
             mountPath: "/etc/ssl/certs"
@@ -150,3 +158,4 @@ releases:
           certFileName: tls.crt
           keyFileName:  tls.key
           caFileName:    ca.crt
+        updateStrategy: RollingUpdate
