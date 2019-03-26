@@ -1,0 +1,31 @@
+repositories:
+# Cloud Posse incubator repo of helm charts
+- name: "cloudposse-incubator-dev"
+  url: "https://charts.cloudposse.com/incubator/"
+
+
+releases:
+
+#######################################################################################
+## Codefresh Runtime Environments                                                    ##
+#######################################################################################
+
+#
+# References:
+#   - https://codefresh.io/docs/docs/deploy-to-kubernetes/add-kubernetes-cluster/
+#   - https://github.com/cloudposse/charts/tree/master/incubator/codefresh-service-account
+#   - https://github.com/cloudposse/charts/pull/190
+#
+- name: "codefresh-service-account"
+  namespace: "kube-system"
+  labels:
+    chart: "codefresh-service-account"
+    component: "codefresh"
+    namespace: "kube-system"
+    vendor: "cloudposse"
+    default: "false"
+  chart: "cloudposse-incubator/codefresh-service-account"
+  version: "0.2.0"
+  wait: true
+  installed: {{ env "CODEFRESH_SERVICE_ACCOUNT_INSTALLED" | default "true" }}
+

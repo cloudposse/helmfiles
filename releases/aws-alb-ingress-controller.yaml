@@ -1,0 +1,111 @@
+repositories:
+# Incubator repo of official helm charts
+- name: "incubator"
+  url: "http://storage.googleapis.com/kubernetes-charts-incubator"
+
+
+releases:
+
+################################################################################
+## AWS ALB Ingress Controller ####################################################
+################################################################################
+
+#
+# References:
+#   - https://github.com/helm/charts/blob/master/incubator/aws-alb-ingress-controller/values.yaml
+#
+- name: "alb-ingress"
+  namespace: "kube-system"
+  labels:
+    chart: "aws-alb-ingress-controller"
+    repo: "incubator"
+    component: "ingress"
+    namespace: "kube-system"
+    vendor: "kubernetes"
+    default: "false"
+  chart: "incubator/aws-alb-ingress-controller"
+  version: "0.1.4"
+  wait: true
+  installed: {{ env "AWS_ALB_INGRESS_CONTROLLER_INSTALLED" | default "true" }}
+  values:
+  ### Required: AWS_ALB_INGRESS_CONTROLLER_KUBERNETES_CLUSTER_NAME;
+  ###           e.g. "us-west-2.testing.cloudposse.co"
+  - rbac:
+      ## If true, create & use RBAC resources
+      ##
+      create: '{{ env "RBAC_ENABLED" | default "false" }}'
+      serviceAccountName: '{{ env "AWS_ALB_INGRESS_CONTROLLER_SERVICE_ACCOUNT_NAME" | default "default" }}'
+
+    clusterName: '{{ env "KOPS_CLUSTER_NAME" }}'
+    autoDiscoverAwsRegion: true
+    autoDiscoverAwsVpcID: true
+    scope:
+      ## If provided, the ALB ingress controller will only act on Ingress resources annotated with this class
+      ## Ref: https://github.com/kubernetes-sigs/aws-alb-ingress-controller/blob/master/docs/guide/controller/config.md#limiting-ingress-class
+      ### Optional: AWS_ALB_INGRESS_CONTROLLER_INGRESS_CLASS_NAME;
+      ingressClass: '{{ env "AWS_ALB_INGRESS_CONTROLLER_INGRESS_CLASS_NAME" | default "alb" }}'
+
+      ## If true, the ALB ingress controller will only act on Ingress resources in a single namespace
+      ## (Default: null) implies: watch all namespaces
+      singleNamespace: '{{ env "AWS_ALB_INGRESS_CONTROLLER_SINGLE_NAMESPACE" | default "" }}'
+
+      ## If scope.singleNamespace=true, the ALB ingress controller will only act on Ingress resources in this namespace
+      ## Ref: https://github.com/kubernetes-sigs/aws-alb-ingress-controller/blob/master/docs/guide/controller/config.md#limiting-namespaces
+      ## (Default: null) implies: use namespace of the ALB ingress controller.
+      watchNamespace: '{{ env "AWS_ALB_INGRESS_CONTROLLER_WATCH_NAMESPACE" | default "" }}'
+
+    extraArgs: {}
+
+    extraEnv: {}
+    # AWS_ACCESS_KEY_ID: ""
+    # AWS_SECRET_ACCESS_KEY: ""
+
+    podAnnotations:
+      ### Required: AWS_ALB_INGRESS_CONTROLLER_IAM_ROLE_NAME; e.g. cpco-testing-alb-ingress
+      iam.amazonaws.com/role: '{{ env "AWS_ALB_INGRESS_CONTROLLER_IAM_ROLE_NAME" }}'
+
+    podLabels: {}
+
+    # whether configure readinessProbe on controller pod
+    enableReadinessProbe: false
+
+    # How often (in seconds) to check controller readiness
+    readinessProbeInterval: 60
+
+    # How long to wait before timeout (in seconds) when checking controller readiness
+    readinessProbeTimeout: 3
+
+    # How long to wait (in seconds) before checking the readiness probe
+    readinessProbeInitialDelay: 30
+
+    # whether configure livenessProbe on controller pod
+    enableLivenessProbe: false
+
+    # How long to wait (in seconds) before checking the liveness probe
+    livenessProbeInitialDelay: 30
+
+    image:
+      repository: "docker.io/amazon/aws-alb-ingress-controller"
+      ### Optional: AWS_ALB_INGRESS_CONTROLLER_IMAGE_TAG;
+      tag: '{{ env "AWS_ALB_INGRESS_CONTROLLER_IMAGE_TAG" | default "v1.1.1" }}'
+      pullPolicy: Always
+
+    replicaCount: 1
+
+    resources:
+      limits:
+        cpu: '{{ env "AWS_ALB_INGRESS_CONTROLLER_LIMIT_CPU" | default "100m" }}'
+        memory: '{{ env "AWS_ALB_INGRESS_CONTROLLER_LIMIT_MEMORY" | default "128Mi" }}'
+      requests:
+        cpu: '{{ env "AWS_ALB_INGRESS_CONTROLLER_REQUEST_CPU" | default "100m" }}'
+        memory: '{{ env "AWS_ALB_INGRESS_CONTROLLER_REQUEST_MEMORY" | default "128Mi" }}'
+
+    nodeSelector: {}
+    # node-role.kubernetes.io/node: "true"
+    # tier: cs
+
+    tolerations: []
+    #  - key: "node-role.kubernetes.io/master"
+    #    effect: NoSchedule
+
+    affinity: {}

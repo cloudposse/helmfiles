@@ -27,6 +27,7 @@ releases:
   chart: "stable/kubernetes-dashboard"
   version: "0.10.0"
   wait: true
+  installed: {{ env "KUBERNETES_DASHBOARD_INSTALLED" | default "true" }}
   values:
     - image:
         repository: "k8s.gcr.io/kubernetes-dashboard-amd64"

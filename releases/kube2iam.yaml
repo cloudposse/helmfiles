@@ -25,6 +25,7 @@ releases:
   chart: "stable/kube2iam"
   version: "0.8.5"
   wait: true
+  installed: {{ env "KUBE2IAM_INSTALLED" | default "true" }}
   values:
     - tolerations:
         - key: "node-role.kubernetes.io/master"

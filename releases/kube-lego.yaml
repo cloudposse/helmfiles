@@ -26,6 +26,7 @@ releases:
   chart: "stable/kube-lego"
   version: "0.4.2"
   wait: true
+  installed: {{ env "KUBE_LEGO_INSTALLED" | default "true" }}
   values:
   - config:
       ### Required: KUBE_LEGO_EMAIL; e.g. no-reply@cloudposse.org
@@ -35,6 +36,8 @@ releases:
 {{- else }}
       LEGO_URL: https://acme-staging.api.letsencrypt.org/directory
 {{- end }}
+      ### Comma separted supported ingress classes. ex.: nginx,gce
+      LEGO_SUPPORTED_INGRESS_CLASS: '{{ env "KUBE_LEGO_SUPPORTED_INGRESS_CLASSES" | default "nginx" }}'
     replicaCount: {{ env "KUBE_LEGO_REPLICA_COUNT" | default "1" }}
     image:
       repository: "jetstack/kube-lego"

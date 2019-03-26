@@ -1,0 +1,95 @@
+repositories:
+# Stable repo of official helm charts
+- name: "stable"
+  url: "https://kubernetes-charts.storage.googleapis.com"
+
+releases:
+
+#######################################################################################
+## datadog                                                                           ##
+## Datadog is a hosted infrastructure monitoring platform                            ##
+#######################################################################################
+
+#
+# References:
+#   - https://github.com/helm/charts/tree/master/stable/datadog
+#   - https://github.com/helm/charts/blob/master/stable/datadog/values.yaml
+#
+- name: "datadog"
+  namespace: "monitoring"
+  labels:
+    chart: "datadog"
+    repo: "stable"
+    component: "monitoring"
+    namespace: "monitoring"
+    vendor: "datadog"
+    default: "false"
+  chart: "stable/datadog"
+  version: "1.22.0"
+  wait: true
+  installed: {{ env "DATADOG_INSTALLED" | default "true" }}
+  values:
+    - image:
+        repository: "datadog/agent"
+        ### Optional: DATADOG_IMAGE_TAG; e.g. 6.1.2
+        ### Version of datadog agent from https://hub.docker.com/r/datadog/agent/tags/
+        tag: '{{ env "DATADOG_IMAGE_TAG" | default "latest" }}'
+        pullPolicy: "IfNotPresent"
+      datadog:
+        ### Required: DATADOG_API_KEY;
+        apiKey: '{{ requiredEnv "DATADOG_API_KEY" }}'
+{{ if env "DATADOG_CLUSTER_AGENT_ENABLED" | default "false" | eq "true" }}
+        appKey: '{{ requiredEnv "DATADOG_APP_KEY" }}'
+{{ else if env "RBAC_ENABLED" | default "false" | eq "true" }}        
+        collectEvents: {{ env "DATADOG_COLLECT_EVENTS" | default "true" }}
+        # leaderElection is required if collectEvents: true
+        leaderElection: {{ env "DATADOG_COLLECT_EVENTS" | default "true" }}
+{{ end }}
+        ### Optional: DATADOG_APM_ENABLED; e.g. true
+        apmEnabled: {{ env "DATADOG_APM_ENABLED" | default "false" }}
+        ### Optional Live Process monitoring https://docs.datadoghq.com/graphing/infrastructure/process/
+        processAgentEnabled: {{ env "DATADOG_PROCESS_AGENT_ENABLED" | default "false" }}
+{{ if env "DATADOG_TAG_WITH_CLUSTER_NAME" | default "false" }}   
+        tags: 'cluster:{{ requiredEnv "KOPS_CLUSTER_NAME" }}' 
+{{ end }}
+        resources:
+          limits:
+            cpu: "256m"
+            memory: "512Mi"
+          requests:
+            cpu: "50m"
+            memory: "128Mi"
+      clusterAgent:
+        enabled: {{ env "DATADOG_CLUSTER_AGENT_ENABLED" | default "false" }}
+        repository: "datadog/cluster-agent"
+        image:
+          ### Version of cluster agent from https://hub.docker.com/r/datadog/cluster-agent/tags
+          tag: {{ env "DATADOG_CLUSTER_AGENT_IMAGE_TAG" | default "latest" }}
+        # token: A cluster-internal secret for agent-to-agent communication. Must be 32+ characters a-zA-Z
+        token: {{ env "DATADOG_CLUSTER_AGENT_TOKEN" }}
+        resources:
+          limits:
+            cpu: "256m"
+            memory: "512Mi"
+          requests:
+            cpu: "50m"
+            memory: "32Mi"
+      rbac:
+        ### Optional: RBAC_ENABLED;
+        create: {{ env "RBAC_ENABLED" | default "false" }}
+        ### Optional: DATADOG_RBAC_SERVICE_ACCOUNT_NAME;
+        serviceAccountName: '{{ env "DATADOG_RBAC_SERVICE_ACCOUNT_NAME" | default "default" }}'
+      kube-state-metrics:
+        rbac:
+          ### Optional: RBAC_ENABLED;
+          create: {{ env "RBAC_ENABLED" | default "false" }}
+          ### Optional: DATADOG_KUBE_STATE_METRICS_RBAC_SERVICE_ACCOUNT_NAME;
+          serviceAccountName: '{{ env "DATADOG_KUBE_STATE_METRICS_RBAC_SERVICE_ACCOUNT_NAME" | default "default" }}'
+      daemonset:
+        ### Optional: DATADOG_USE_HOST_PORT; e.g. false
+        useHostPort: {{ env "DATADOG_USE_HOST_PORT" | default "true" }}
+        ### Optional: DATADOG_UPDATE_STRATEGY; e.g. RollingUpdate
+        updateStrategy: '{{ env "DATADOG_UPDATE_STRATEGY" | default "OnDelete" }}'
+        tolerations:
+          - key: node-role.kubernetes.io/master
+            effect: NoSchedule

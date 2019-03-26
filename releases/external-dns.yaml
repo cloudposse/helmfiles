@@ -23,8 +23,9 @@ releases:
     vendor: "kubernetes-incubator"
     default: "true"
   chart: "stable/external-dns"
-  version: "1.0.2"
+  version: "1.6.1"
   wait: true
+  installed: {{ env "EXTERNAL_DNS_INSTALLED" | default "true" }}
   values:
     - extraEnv:
       - name: EXTERNAL_DNS_SOURCE

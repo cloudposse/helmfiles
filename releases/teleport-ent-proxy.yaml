@@ -1,0 +1,132 @@
+repositories:
+# Cloud Posse incubator repo of helm charts
+- name: "cloudposse-incubator"
+  url: "https://charts.cloudposse.com/incubator/"
+
+
+releases:
+#######################################################################################
+## Teleport proxy                                                                    ##
+#######################################################################################
+
+#
+# References:
+#
+# https://gravitational.com/teleport/docs/admin-guide/#configuration-file
+# https://github.com/cloudposse/helmfiles/blob/0.20.0/releases/teleport-ent-proxy.yaml
+# https://github.com/cloudposse/helmfiles/blob/0.20.0/releases/values/teleport-ent/teleport-ent-proxy.yaml.gotmpl
+# https://github.com/cloudposse/charts/blob/0.5.0/incubator/teleport-ent-proxy/templates/deployment.yaml
+# https://github.com/cloudposse/charts/blob/0.5.0/incubator/teleport-ent-proxy/values.yaml
+#
+#
+
+- name: "teleport-proxy"
+  namespace: "teleport"
+  labels:
+    chart: "teleport-proxy"
+    component: "teleport-proxy"
+    namespace: "teleport"
+    vendor: "teleport"
+    default: "false"
+  chart: "cloudposse-incubator/teleport-ent-proxy"
+  version: "0.2.0"
+  wait: true
+  force: true
+  installed: {{ env "TELEPORT_PROXY_INSTALLED" | default "true" }}
+  values:
+  ## Configuration to be copied into Teleport container
+  ## Also sets external DNS name and TLS Certificate common name
+  - ./values/teleport-ent/teleport-ent-proxy.yaml.gotmpl
+    ## Remaining configuration
+  - name: proxy
+    nameOverride: "teleport-proxy"
+    image:
+      repository: quay.io/gravitational/teleport-ent
+      tag: '{{ env "TELEPORT_VERSION" | default "3.1.8" }}'
+      pullPolicy: "IfNotPresent"
+      # command: ["/usr/bin/dumb-init"]
+      # args:  ["teleport", "start", "--insecure-no-tls", "-c", "/etc/teleport/teleport.yaml"]
+
+    replicaCount: {{ env "TELEPORT_PROXY_REPLICA_COUNT" | default 2 }}
+
+    tls:
+      ## Enable mounting of TLS certificates from a secret NOT FULLY IMPLEMENTED
+      ## If disabled, teleport proxy will generate self signed certs on launch
+{{- if env "TELEPORT_SSL_CERTIFICATE_ARN" }}
+      enabled: false
+      useSelfSignedCert: false
+{{- else }}
+      enabled: true
+      useSelfSignedCert: true
+{{- end }}
+      ### Ingress to perform tls certification verifications through
+      ### See http://docs.cert-manager.io/en/latest/tutorials/acme/http-validation.html
+      #ingressClass: secondary
+
+      ## Issue to use for tls certificates
+      #issuer:
+      #  # name: letsencrypt-staging
+      #  name: letsencrypt-production
+      #  type: ClusterIssuer
+
+      ## Domain the certificate will be for
+      # commonName: # set in ./values/teleport-ent/teleport-ent-proxy.yaml.gotmpl
+
+      ## Name of the Kubernetes secret containing the TLS certificates
+      ## Defaults to '$release-tls'
+      # secretName:
+
+    service:
+{{- if env "TELEPORT_SSL_CERTIFICATE_ARN" }}
+      type: LoadBalancer
+      ## See https://kubernetes.io/docs/tutorials/services/source-ip
+      externalTrafficPolicy: "Local"
+      annotations:
+        service.beta.kubernetes.io/aws-load-balancer-backend-protocol: tcp
+        # Set idle timeout in seconds as a string https://github.com/kubernetes/kubernetes/issues/68083#issuecomment-438304439
+        service.beta.kubernetes.io/aws-load-balancer-connection-idle-timeout: "900"
+        # service.beta.kubernetes.io/aws-load-balancer-type: nlb
+        # external-dns.alpha.kubernetes.io/hostname: # set in ./values/teleport-ent/teleport-ent-proxy.yaml.gotmpl
+        service.beta.kubernetes.io/aws-load-balancer-ssl-ports: 443,3080
+        service.beta.kubernetes.io/aws-load-balancer-ssl-negotiation-policy: ELBSecurityPolicy-TLS-1-2-2017-01
+        service.beta.kubernetes.io/aws-load-balancer-ssl-cert: '{{ env "TELEPORT_SSL_CERTIFICATE_ARN" }}'
+        # service.beta.kubernetes.io/aws-load-balancer-type: nlb
+{{- else }}
+      type: ClusterIP
+{{- end }}
+    ## Enable Teleport proxy diagnostics port
+    ## This is required for liveness/readiness probes
+    ## See https://gravitational.com/teleport/docs/admin-guide/#troubleshooting
+    diagnostics:
+      # If diagnostics are not enabled, heath and readiness checks will not be performed
+      enabled: true
+      port: 3000
+      debugging: false
+
+    ## Pod Security Context
+    securityContext:
+      enabled: true
+      fsGroup: 1000
+      runAsUser: 1000
+
+    resources:
+      limits:
+        cpu: 200m
+        memory: 128Mi
+      requests:
+        cpu: 5m
+        memory: 16Mi
+
+    nodeSelector: {}
+
+    tolerations: []
+
+    affinity: {}
+
+    ## Additional command line arguments to pass to Teleport
+    extraArgs:
+    ## Enable debug logs
+    # debug:
+
+    # A map of additional environment variables to pass to Teleport
+    extraEnv: {}

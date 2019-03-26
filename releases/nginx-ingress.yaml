@@ -32,6 +32,7 @@ releases:
   chart: "stable/nginx-ingress"
   version: "0.25.1"
   wait: true
+  installed: {{ env "NGINX_INGRESS_INSTALLED" | default "true" }}
   values:
     - controller:
         image:
@@ -51,6 +52,7 @@ releases:
         ## Optional: NGINX_INGRESS_KIND; Valid values: DaemonSet or Deployment
         kind: '{{ env "NGINX_INGRESS_KIND" | default "Deployment" }}'
         defaultBackendService: "kube-system/ingress-backend-default"
+        ingressClass: '{{ env "NGINX_INGRESS_CLASS" | default "nginx" }}'
         config:
           custom-http-errors: '{{ join "," $client_errors }},{{ join "," $server_errors }}'
         service:
@@ -102,7 +104,7 @@ releases:
           configMapKey: "template"
   set:
   - name: "controller.config.template"
-    file: ./releases/values/ingress.nginx.template
+    file: ./values/ingress.nginx.template
 ## Workaround until https://github.com/kubernetes/ingress-nginx/pull/2989 is merged
 
 - name: "ingress-backend"
@@ -116,6 +118,7 @@ releases:
   chart: "cloudposse-incubator/nginx-default-backend"
   version: "0.3.0"
   wait: true
+  installed: {{ env "NGINX_INGRESS_BACKEND_INSTALLED" | default "true" }}
   values:
     - nameOverride: default
       ### Optional: NGINX_INGRESS_BACKEND_REPLICA_COUNT; e.g. 2
@@ -157,6 +160,7 @@ releases:
 #   - https://grafana.com/grafana
 #   - https://github.com/helm/charts/tree/master/stable/grafana
 #
+{{ if eq ( env "NGINX_INGRESS_METRICS_ENABLED" | default "false" ) "true" }}
 - name: "ingress-monitoring"
   namespace: "monitoring"
   labels:
@@ -164,10 +168,11 @@ releases:
     component: "monitoring"
     namespace: "monitoring"
     vendor: "cloudposse"
-    default: '{{ env "NGINX_INGRESS_METRICS_ENABLED" | default "false" }}'
+    default: {{ env "NGINX_INGRESS_METRICS_ENABLED" | default "false" }}
   chart: "cloudposse-incubator/monochart"
   version: "0.4.0"
   wait: true
+  installed: {{ env "NGINX_INGRESS_METRICS_INSTALLED" | default "true" }}
   values:
   - prometheusRules:
       nginx-ingress:
@@ -208,3 +213,4 @@ releases:
   set:
   - name: "configMaps.dashboards.files.nginx\\.json"
     file: https://raw.githubusercontent.com/cloudposse/grafana-dashboards/{{ env "GRAFANA_DASHBOARDS_VERSION" | default "1.0" }}/nginx-ingress/nginx.json
+{{ end }}
