@@ -370,12 +370,12 @@ releases:
             http:
               paths:
 {{ if eq (env "CODEFRESH_INGRESS_CLASS" | default "nginx") "nginx" }}
-              - path: /api/providers/github/hook
+              - path: /api/providers/*
                 backend:
                   serviceName: cf-cfapi
                   servicePort: 80
 {{ else if eq (env "CODEFRESH_INGRESS_CLASS" | default "nginx") "alb" }}
-              - path: /api/providers/github/hook/*
+              - path: /api/providers/*
                 backend:
                   serviceName: cf-cfapi
                   servicePort: 80
