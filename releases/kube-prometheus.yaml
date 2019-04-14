@@ -199,7 +199,7 @@ releases:
 {{ end }}
   set:
   - name: "alertmanager.templateFiles.deployment\\.tmpl"
-    file: ./releases/values/kube-prometheus.alerts.template
+    file: ./values/kube-prometheus.alerts.template
 
 #######################################################################################
 ## kube-prometheus-pushgateway                                                       ##
