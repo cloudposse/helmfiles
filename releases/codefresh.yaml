@@ -40,6 +40,12 @@ releases:
 
       registryPort: {{ env "CODEFRESH_REGISTRY_PORT" | default "5000" }}
       exposeRegistry: {{ env "CODEFRESH_REGISTRY_EXPOSE" | default "false" }}
+
+      dindCPULimits: {{ env "CODEFRESH_DIND_LIMIT_CPU" | default "1000m" }}
+      dindMemoryLimits: {{ env "CODEFRESH_DIND_LIMIT_MEMORY" | default "4096Mi" }}
+      dindCPU: {{ env "CODEFRESH_DIND_REQUEST_CPU" | default "100m" }}
+      dindMemory: {{ env "CODEFRESH_DIND_REQUEST_MEMORY" | default "256Mi" }}
+
       # storageClass: {{ env "CODEFRESH_STORAGE_CLASS" | default "default" }}
       ### Codefresh App domain name
       appUrl: {{ env "CODEFRESH_HOST" }}
