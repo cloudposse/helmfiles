@@ -139,7 +139,7 @@ releases:
         enabled: {{ env "CODEFRESH_SELF_HOSTED_POSTGRESQL_ENABLED" | default "true" }}
 
     mongo:
-      enabled: {{ not (env "CODEFRESH_USE_EXTERNAL_MONGODB" | default "false") | quote }}
+      enabled: {{ not (env "CODEFRESH_USE_EXTERNAL_MONGODB" | default "false") }}
 
     mongodb:
       ## Provision new volume claim
