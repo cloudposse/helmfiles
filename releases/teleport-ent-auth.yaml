@@ -56,9 +56,9 @@ releases:
       # args:  ["teleport", "start", "--insecure-no-tls", "-c", "/etc/teleport/teleport.yaml"]
     replicaCount: {{ env "TELEPORT_AUTH_REPLICA_COUNT" | default 1 }}
     rbac:
-      create: true
+      create: false
     serviceAccount:
-      create: true
+      create: false
     diagnostics:
       # If diagnostics are not enabled, heath and readiness checks will not be performed
       enabled: true

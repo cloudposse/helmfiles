@@ -1,6 +1,6 @@
 ## Teleport Auth chart configuration
 
-{{- $authurl := env "TELEPORT_AUTH_DOMAIN_NAME" | default (print "auth." (requiredEnv "TELEPORT_PROXY_DOMAIN_NAME")) }}
+{{- $authdomain := env "TELEPORT_AUTH_DOMAIN_NAME" | default (print "auth." (requiredEnv "TELEPORT_PROXY_DOMAIN_NAME")) }}
 
 extraArgs:
   ## enable debug
@@ -11,7 +11,7 @@ podAnnotations:
 
 service:
   annotations:
-     external-dns.alpha.kubernetes.io/hostname: "{{ $authurl }}."
+     external-dns.alpha.kubernetes.io/hostname: "{{ $authdomain }}."
 
 ## teleport config file
 config:
@@ -101,7 +101,7 @@ config:
       listen_addr: 0.0.0.0:3025
 
       # The optional DNS name the auth server if located behind a load balancer.
-      public_addr: {{ $authurl }}
+      public_addr: {{ $authdomain }}
 
       # Pre-defined tokens for adding new nodes to a cluster. Each token specifies
       # the role a new node will be allowed to assume. The more secure way to
