@@ -1,7 +1,7 @@
 ## Teleport Proxy chart configuration
 
-{{- $authurl := env "TELEPORT_AUTH_DOMAIN_NAME" | default (print "auth." (requiredEnv "TELEPORT_PROXY_DOMAIN_NAME")) }}
-{{- $proxyurl := (requiredEnv "TELEPORT_PROXY_DOMAIN_NAME") }}
+{{- $authdomain := env "TELEPORT_AUTH_DOMAIN_NAME" | default (print "auth." (requiredEnv "TELEPORT_PROXY_DOMAIN_NAME")) }}
+{{- $proxydomain := (requiredEnv "TELEPORT_PROXY_DOMAIN_NAME") }}
 
 extraArgs:
   ## enable debug
@@ -9,11 +9,11 @@ extraArgs:
 
 tls:
   ## Request TLS certificate for the following domain
-  commonName: {{ $proxyurl }}
+  commonName: {{ $proxydomain }}
 
 service:
   annotations:
-    external-dns.alpha.kubernetes.io/hostname: "{{ $proxyurl }}."
+    external-dns.alpha.kubernetes.io/hostname: "{{ $proxydomain }}."
 
 ## Configuration to be copied into Teleport container
 ## Each entry must be an inline file that will be written to /etc/teleport
@@ -43,7 +43,7 @@ config:
       # list of auth servers in a cluster. you will have more than one auth server
       # if you configure teleport auth to run in HA configuration
       auth_servers:
-      - "{{- $authurl }}:3025"
+      - "{{- $authdomain }}:3025"
 
       # Teleport throttles all connections to avoid abuse. These settings allow
       # you to adjust the default limits
@@ -81,7 +81,7 @@ config:
       # The DNS name the proxy server is accessible by cluster users. Defaults to
       # the proxy's hostname if not specified. It is highly recommended to set it
       # to something meaningful when running multiple proxies behind a load balancer.
-      public_addr: {{ $proxyurl }}:443
+      public_addr: {{ $proxydomain }}:443
 
       # TLS certificate for the HTTPS connection. Configuring these properly is
       # critical for Teleport security.
@@ -91,12 +91,13 @@ config:
       kubernetes:
         enabled: yes
         # public_addr can be a scalar or list. this is the domain name seen as
-        # "Kubernetes API endpoint" from the outside. If using trusted clusters, this will
+        # "Kubernetes API endpoint" from the outside. If using trusted clusters in Teleport 3.1.x, this will
         # be a concatenation of the cluster name with the trusted proxy's domain name.
         # That concatenated name will have to resolve to this proxy's public address.
         # If you are using a load balancer in front of several proxies, all the domain names
-        # need to map to the load balancer address
-        public_addr: {{ env "TELEPORT_KUBERNETES_ENDPOINTS" | default $proxyurl }}
+        # need to map to the load balancer address. If you are using Teleport 3.2 or later,
+        # you can just use the public name of the proxy and have a *.proxydomain DNS CNAME for it.
+        public_addr: {{ env "TELEPORT_KUBERNETES_ENDPOINTS" | default $proxydomain }}
         # the listen address is what Teleport/Kubernetes proxy will listen on:
         listen_addr: 0.0.0.0:3026
 
