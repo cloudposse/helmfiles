@@ -1,34 +1,38 @@
 repositories:
-# Stable repo of official helm charts
-- name: "stable"
-  url: "https://kubernetes-charts.storage.googleapis.com"
+# Cloud Posse incubator repo of helm charts
+- name: "cloudposse-incubator"
+  url: "https://charts.cloudposse.com/incubator/"
 
 
 releases:
 
 ################################################################################
 ## CERT-MANAGER - Automatic Let's Encrypt for Ingress  #########################
+##   Also provides local CA for issuing locally valid TLS certificates  ########
 ################################################################################
 
 #
 # References:
-#   - https://github.com/helm/charts/blob/master/stable/cert-manager/values.yaml
+# - https://github.com/helm/charts/blob/master/stable/cert-manager/values.yaml
+# - https://github.com/jetstack/cert-manager/blob/release-0.7/deploy/charts/cert-manager/values.yaml
 #
+# Instructions for testing correct install are at
 - name: "cert-manager"
-  namespace: "kube-system"
+  namespace: "cert-manager"
   labels:
     chart: "cert-manager"
     repo: "stable"
-    component: "ingress"
-    namespace: "kube-system"
+    component: "kiam"
+    namespace: "cert-manager"
     vendor: "jetstack"
     default: "false"
-  chart: "stable/cert-manager"
-  version: "v0.4.0"
+  chart: "cloudposse-incubator/cert-manager"
+  version: "v0.7.0"
   wait: true
   installed: {{ env "CERT_MANAGER_INSTALLED" | default "true" }}
   values:
-    - rbac:
+    - fullnameOverride: cert-manager
+      rbac:
         ### Optional: RBAC_ENABLED;
         create: {{ env "RBAC_ENABLED" | default "false" }}
       ingressShim:

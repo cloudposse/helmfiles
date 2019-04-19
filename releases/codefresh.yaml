@@ -25,7 +25,7 @@ releases:
     vendor: "codefresh"
     default: "false"
   chart: "codefresh/codefresh"
-  version: "0.7.11"
+  version: "1.0.53"
   wait: true
   force: true
   installed: {{ env "CODEFRESH_INSTALLED" | default "true" }}
@@ -40,9 +40,18 @@ releases:
 
       registryPort: {{ env "CODEFRESH_REGISTRY_PORT" | default "5000" }}
       exposeRegistry: {{ env "CODEFRESH_REGISTRY_EXPOSE" | default "false" }}
+
+      dindCPULimits: {{ env "CODEFRESH_DIND_LIMIT_CPU" | default "1000m" }}
+      dindMemoryLimits: {{ env "CODEFRESH_DIND_LIMIT_MEMORY" | default "4096Mi" }}
+      dindCPU: {{ env "CODEFRESH_DIND_REQUEST_CPU" | default "100m" }}
+      dindMemory: {{ env "CODEFRESH_DIND_REQUEST_MEMORY" | default "256Mi" }}
+
       # storageClass: {{ env "CODEFRESH_STORAGE_CLASS" | default "default" }}
       ### Codefresh App domain name
       appUrl: {{ env "CODEFRESH_HOST" }}
+{{- if eq (env "CODEFRESH_USE_EXTERNAL_MONGODB" | default "false") "true" }}
+      mongoURI: {{ env "MONGODB_URI" }}
+{{- end }}
 {{- if eq (env "CODEFRESH_SELF_HOSTED_POSTGRESQL_ENABLED" | default "true") "false" }}
       postgresDatabase: {{ env "AURORA_POSTGRES_DATABASE_NAME" }}
       postgresPassword: {{ env "AURORA_POSTGRES_MASTER_PASSWORD" }}
@@ -98,6 +107,10 @@ releases:
       replicaCount: {{ env "CODEFRESH_API_REPLICA_COUNT" | default "1" }}
       rbacEnable: {{ env "RBAC_ENABLED" | default "false" }}
       redeploy: true
+      imageTag: saas-2127
+      env:
+        EVENT_REPORTING_URL: 'http://cf-cfapi:80/api/workflow/'
+        WEBHOOK_BASE_URL: https://hooks.{{ env "CODEFRESH_HOST" }}
       github:
         apiHost: api.github.com
         loginHost: github.com
@@ -130,6 +143,9 @@ releases:
       # presistence.enabled does not work anymore. Leave for back compatibility
       persistence:
         enabled: {{ env "CODEFRESH_SELF_HOSTED_POSTGRESQL_ENABLED" | default "true" }}
+
+    mongo:
+      enabled: {{ not (env "CODEFRESH_USE_EXTERNAL_MONGODB" | default "false") }}
 
     mongodb:
       ## Provision new volume claim
@@ -339,4 +355,46 @@ releases:
         - hosts:
           - {{ env "CODEFRESH_HOST" }}
           secretName: cf-codefresh-star-selfsigned
+{{ end }}
+
+    - apiVersion: extensions/v1beta1
+      kind: Ingress
+      metadata:
+        namespace: codefresh
+        name: cf-extended-webhooks
+        annotations:
+          kubernetes.io/ingress.class: {{ env "CODEFRESH_INGRESS_CLASS" | default "nginx" | quote }}
+          external-dns: enabled
+          external-dns.alpha.kubernetes.io/hostname: hooks.{{ env "CODEFRESH_HOST" }}
+{{ if eq (env "CODEFRESH_INGRESS_CLASS" | default "nginx") "nginx" }}
+          nginx.ingress.kubernetes.io/service-upstream: "true"
+          nginx.ingress.kubernetes.io/ssl-redirect: "true"
+          nginx.org/redirect-to-https: "true"
+{{ else if eq (env "CODEFRESH_INGRESS_CLASS" | default "nginx") "alb" }}
+          alb.ingress.kubernetes.io/scheme: "internet-facing"
+          alb.ingress.kubernetes.io/listen-ports: '[{"HTTP":80},{"HTTPS":443}]'
+          alb.ingress.kubernetes.io/certificate-arn: {{ env "CODEFRESH_ACM_CERTIFICATE_ARN" | quote }}
+          alb.ingress.kubernetes.io/actions.ssl-redirect: '{"Type": "redirect", "RedirectConfig": { "Protocol": "HTTPS", "Port": "443", "StatusCode": "HTTP_301"}}'
+{{ end }}
+      spec:
+        rules:
+          - host: hooks.{{ env "CODEFRESH_HOST" }}
+            http:
+              paths:
+{{ if eq (env "CODEFRESH_INGRESS_CLASS" | default "nginx") "nginx" }}
+              - path: /api/providers/*
+                backend:
+                  serviceName: cf-cfapi
+                  servicePort: 80
+{{ else if eq (env "CODEFRESH_INGRESS_CLASS" | default "nginx") "alb" }}
+              - path: /api/providers/*
+                backend:
+                  serviceName: cf-cfapi
+                  servicePort: 80
+{{ end }}
+{{ if eq (env "CODEFRESH_INGRESS_CLASS" | default "nginx") "nginx" }}
+      tls:
+        - hosts:
+          - hooks.{{ env "CODEFRESH_HOST" }}
+          secretName: cf-codefresh-hooks-selfsigned
 {{ end }}

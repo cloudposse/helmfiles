@@ -28,4 +28,35 @@ releases:
   version: "0.2.0"
   wait: true
   installed: {{ env "CODEFRESH_SERVICE_ACCOUNT_INSTALLED" | default "true" }}
+  values:
+  - clusterrole:
+      rules:
+        - apiGroups: ["batch"]
+          resources: ["jobs", "cronjobs"]
+          verbs: ["*"]
+        - apiGroups: [""]
+          resources: ["*"]
+          verbs: ["list", "watch", "get"]
+        - apiGroups: [""]
+          resources: ["pods"]
+          verbs: ["delete"]
+        - apiGroups: ["extensions", "apps"]
+          resources: ["deployments", "replicasets"]
+          verbs: ["*"]
+        - apiGroups: ["extensions"]
+          resources: ["ingresses"]
+          verbs: ["get", "list"]
+        - apiGroups: [""]
+          resources: ["namespaces"]
+{{ if eq (env "CODEFRESH_SERVICE_ACCOUNT_UNLIMITED_STAGING_ENABLED" | default "false") "true" }}
+          verbs: ["get", "list", "update", "patch", "delete"]
+{{ else }}
+          verbs: ["get", "list", "update", "patch"]
+{{ end }}
+        - apiGroups: ["storage.k8s.io"]
+          resources: ["storageclasses"]
+          verbs: ["get", "list", "watch"]
+        - apiGroups: [""]
+          resources: ["pods/portforward"]
+          verbs: ["create"]
 
