@@ -57,6 +57,8 @@ releases:
           custom-http-errors: '{{ join "," $client_errors }},{{ join "," $server_errors }}'
         service:
           annotations:
+            ### Optional: NGINX_INGRESS_SERVICE_AWS_LB_TYPE; e.g. elb
+            service.beta.kubernetes.io/aws-load-balancer-type: '{{ evn "NGINX_INGRESS_SERVICE_AWS_LB_TYPE" | default "elb" }}'
             ### Required: NGINX_INGRESS_HOSTNAME; e.g. ingress.us-west-2.cloudposse.org
             external-dns.alpha.kubernetes.io/hostname: '{{ env "NGINX_INGRESS_HOSTNAME" }}'
             ### Optional: NGINX_INGRESS_TTL; e.g. 60
@@ -97,6 +99,7 @@ releases:
         ### Optional: NGINX_INGRESS_SERVICE_ACCOUNT_NAME;
         name: '{{ env "NGINX_INGRESS_SERVICE_ACCOUNT_NAME" | default "" }}'
 
+{{ if eq ( env "NGINX_INGRESS_ENABLE_CUSTOM_ERRORS_FIX" | default "true" ) "true" }}
 ## Workaround until https://github.com/kubernetes/ingress-nginx/pull/2989 is merged
     - controller:
         customTemplate:
@@ -106,6 +109,7 @@ releases:
   - name: "controller.config.template"
     file: ./values/ingress.nginx.template
 ## Workaround until https://github.com/kubernetes/ingress-nginx/pull/2989 is merged
+{{ end }}
 
 - name: "ingress-backend"
   namespace: "kube-system"
