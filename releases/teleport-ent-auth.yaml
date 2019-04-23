@@ -50,7 +50,7 @@ releases:
   - nameOverride: "teleport-auth"
     image:
       repository: quay.io/gravitational/teleport-ent
-      tag: '{{ env "TELEPORT_VERSION" | default "3.1.8" }}'
+      tag: '{{ env "TELEPORT_VERSION" | default "3.2.2" }}'
       pullPolicy: "IfNotPresent"
       # command: ["/usr/bin/dumb-init"]
       # args:  ["teleport", "start", "--insecure-no-tls", "-c", "/etc/teleport/teleport.yaml"]
