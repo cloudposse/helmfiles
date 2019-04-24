@@ -27,27 +27,38 @@ releases:
     vendor: "kubernetes"
     default: "false"
   chart: "stable/traefik"
-  version: "1.59.1"
+  version: "1.67.0"
   wait: true
   installed: {{ env "TRAEFIK_INSTALLED" | default "true" }}
   values:
-  - image: traefik
-    imageTag: 1.7.7
-    serviceType: {{ env "TRAEFIK_INGESS_SERVICE_TYPE" | default "LoadBalancer" }}
-    externalTrafficPolicy: ''
+  - externalTrafficPolicy: Cluster
     replicas: {{ env "TRAEFIK_REPLICA_COUNT" | default "1" }}
-    cpuRequest: '{{ env "TRAEFIK_LIMIT_CPU" | default "100m" }}'
-    memoryRequest: '{{ env "TRAEFIK_LIMIT_MEMORY" | default "20Mi" }}'
-    cpuLimit: '{{ env "TRAEFIK_REQUEST_CPU" | default "100m" }}'
-    memoryLimit: '{{ env "TRAEFIK_REQUEST_MEMORY" | default "30Mi" }}'
-    debug:
-      enabled: {{ env "TRAEFIK_DEBUG" | default "false" }}
-    kubernetes:
-      ingressClass: {{ env "TRAEFIK_INGESS_CLASS" | default "traefik" }}
+    serviceType: {{ env "TRAEFIK_INGESS_SERVICE_TYPE" | default "LoadBalancer" }}
+    service:
+      annotations:
+        ### Optional: TRAEFIK_SERVICE_AWS_LB_INTERNAL; e.g. true/false
+        service.beta.kubernetes.io/aws-load-balancer-internal: {{ env "TRAEFIK_SERVICE_AWS_LB_INTERNAL" | default "false" }}
+        ### Required: TRAEFIK_SERVICE_HOSTNAME; e.g. ingress.us-west-2.cloudposse.org
+        external-dns.alpha.kubernetes.io/hostname: '{{ env "TRAEFIK_SERVICE_HOSTNAME" }}'
+        ### Optional: TRAEFIK_SERVICE_HOSTNAME_TTL; e.g. 60
+        external-dns.alpha.kubernetes.io/ttl: '{{ env "TRAEFIK_SERVICE_HOSTNAME_TTL" | default "60" }}'
+    resources:
+      limits:
+        cpu: '{{ env "TRAEFIK_LIMIT_CPU" | default "200m" }}'
+        memory: '{{ env "TRAEFIK_LIMIT_MEMORY" | default "256Mi" }}'
+      requests:
+        cpu: '{{ env "TRAEFIK_REQUEST_CPU" | default "50m" }}'
+        memory: '{{ env "TRAEFIK_REQUEST_MEMORY" | default "30Mi" }}'
     deploymentStrategy:
       rollingUpdate:
-       maxSurge: 1
-       maxUnavailable: 0
+        maxSurge: 1
+        maxUnavailable: 0
       type: RollingUpdate
+    debug:
+      enabled: {{ env "TRAEFIK_DEBUG" | default "false" }}
+    accessLogs:
+      enabled: {{ env "TRAEFIK_DEBUG" | default "false" }}
+    kubernetes:
+      ingressClass: '{{ env "TRAEFIK_INGESS_CLASS" | default "traefik" }}'
     rbac:
       enabled: {{ env "RBAC_ENABLED" | default "false" }}
