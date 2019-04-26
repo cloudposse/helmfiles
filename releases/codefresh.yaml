@@ -31,9 +31,9 @@ releases:
   installed: {{ env "CODEFRESH_INSTALLED" | default "true" }}
   values:
   ## Enable cf-broadcaster in future versions - when it would be required
-  - cf-broadcaster:
-      enabled: false
-    global:
+  - global:
+    #cf-broadcaster:
+    #  enabled: false
       ### Instantiate databases with seed data. Usually used in dynamic and on-prem environments.
       seedJobs: {{ env "CODEFRESH_SEED_JOBS_ENABLED" | default "false" }}
       certsJobs: {{ env "CODEFRESH_CERT_JOBS_ENABLED" | default "false" }}
@@ -271,6 +271,12 @@ releases:
         auths:
           gcr.io:
             auth: {{ cat "_json_key:" ( env "CODEFRESH_SA") | b64enc }}
+            
+    cf-broadcaster:
+      dockerconfigjson:
+        auths:
+          gcr.io:
+            auth: {{ cat "_json_key:" ( env "CODEFRESH_SA") | b64enc }}            
 
 - name: "cf-ext"
   namespace: "codefresh"
