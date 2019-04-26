@@ -25,7 +25,7 @@ releases:
     vendor: "codefresh"
     default: "false"
   chart: "codefresh/codefresh"
-  version: "1.0.53"
+  version: "1.0.65"
   wait: true
   force: true
   installed: {{ env "CODEFRESH_INSTALLED" | default "true" }}
@@ -107,7 +107,8 @@ releases:
       replicaCount: {{ env "CODEFRESH_API_REPLICA_COUNT" | default "1" }}
       rbacEnable: {{ env "RBAC_ENABLED" | default "false" }}
       redeploy: true
-      imageTag: saas-2127
+      # 
+      # imageTag: saas-2127
       env:
         EVENT_REPORTING_URL: 'http://cf-cfapi:80/api/workflow/'
         WEBHOOK_BASE_URL: https://hooks.{{ env "CODEFRESH_HOST" }}
@@ -155,7 +156,7 @@ releases:
         ## Default: volume.alpha.kubernetes.io/storage-class: default
         ##
         accessMode: ReadWriteOnce
-        size: 8Gi
+        size: '{{ env "CODEFRESH_SELF_HOSTED_MONGODB_STORAGE_SIZE" | default "8Gi" }}'
 
     redis:
       enabled: {{ env "CODEFRESH_SELF_HOSTED_REDIS_ENABLED" | default "true" }}
@@ -219,7 +220,7 @@ releases:
       dockerCleanerCron: 0 0 * * *
       ## Override builder PV initial size
       varLibDockerVolume:
-        storageSize: 100Gi
+        storageSize: '{{ env "CODEFRESH_BUILDER_STORAGE_SIZE" | default "100Gi" }}'
 
     runner:
       replicaCount: {{ env "CODEFRESH_RUNNER_REPLICA_COUNT" | default "1" }}
@@ -227,7 +228,7 @@ releases:
       dockerCleanerCron: 0 0 * * *
       ## Override runner PV initial size
       varLibDockerVolume:
-        storageSize: 100Gi
+        storageSize: '{{ env "CODEFRESH_RUNNER_STORAGE_SIZE" | default "100Gi" }}'
 
     backups:
       #enabled: true
