@@ -30,10 +30,10 @@ releases:
   force: true
   installed: {{ env "CODEFRESH_INSTALLED" | default "true" }}
   values:
-  - global:
-      ## Enable cf-broadcaster in future versions - when it would be required
-      cf-broadcaster:
-        enabled: false
+  ## Enable cf-broadcaster in future versions - when it would be required
+  - cf-broadcaster:
+      enabled: false
+    global:
       ### Instantiate databases with seed data. Usually used in dynamic and on-prem environments.
       seedJobs: {{ env "CODEFRESH_SEED_JOBS_ENABLED" | default "false" }}
       certsJobs: {{ env "CODEFRESH_CERT_JOBS_ENABLED" | default "false" }}
