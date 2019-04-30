@@ -1,0 +1,81 @@
+repositories:
+# Official repo for Keycloak chart (helm repo deprecated
+- name: "codecentric"
+  url: "https://codecentric.github.io/helm-charts"
+
+releases:
+
+#######################################################################################
+## keycloak                                                                          ##
+## Keycloak is an open source identity and access management system                  ##
+#######################################################################################
+
+#
+# References:
+#   - https://github.com/codecentric/helm-charts/tree/master/charts/keycloak
+#   - https://www.keycloak.org/
+#
+- name: "keycloak"
+  namespace: "kube-system"
+  labels:
+    chart: "keycloak"
+    repo: "stable"
+    component: "iap"
+    namespace: "kube-system"
+    vendor: "keycloak"
+    default: "false"
+  chart: "codecentric/keycloak"
+  version: "4.10.2"
+  wait: false
+  installed: {{ env "KEYCLOAK_INSTALLED" | default "true" }}
+  values:
+  - init:
+      image:
+        pullPolicy: "IfNotPresent"
+    test:
+      enabled: {{ env "KEYCLOAK_TEST_ENABLED" | default "false" }}
+    keycloak:
+      extraEnv: |
+      {{- if env "KEYCLOAK_LOGLEVEL" }}
+        - name: KEYCLOAK_LOGLEVEL
+          value: '{{- env "KEYCLOAK_LOGLEVEL" }}'
+        - name: WILDFLY_LOGLEVEL
+          value: '{{- env "KEYCLOAK_LOGLEVEL" }}'
+      {{- end }}
+      image:
+          pullPolicy: "IfNotPresent"
+      replicas: {{ env "KEYCLOAK_REPLICAS" | default 1 }}
+      # Keycloack admin username and password, separate from database user/password
+      username: '{{ env "KEYCLOAK_USERNAME" | default "keycloak" }}'
+      password: '{{ env "KEYCLOAK_PASSWORD" | default "keycloak" }}'
+      ingress:
+        enabled: '{{ env "KEYCLOAK_INGRESS_ENABLED" | default "true" }}'
+        annotations:
+          kubernetes.io/ingress.class: nginx
+          kubernetes.io/tls-acme: "true"
+          ingress.kubernetes.io/affinity: cookie
+          external-dns.alpha.kubernetes.io/target: '{{ requiredEnv "NGINX_INGRESS_HOSTNAME" }}'
+          external-dns.alpha.kubernetes.io/ttl: "60"
+        hosts: [{{ env "KEYCLOAK_INGRESS_HOSTS" }}]
+        tls:
+        - secretName: keycloak-http-tls
+          hosts:  [{{ env "KEYCLOAK_INGRESS_HOSTS" }}]
+      livenessProbe:
+        timeoutSeconds: 600
+      readinessProbe:
+        timeoutSeconds: 900
+      resources:
+        limits:
+          cpu: "1000m"
+          memory: "1024Mi"
+        requests:
+          cpu: "50m"
+          memory: "512Mi"
+      persistence:
+        deployPostgres: {{ env "KEYCLOAK_DEPLOY_POSTGRES" | default "false" }}
+        dbVendor: '{{ env "KEYCLOAK_DBVENDOR" | default "h2" }}'
+        dbName: '{{ env "KEYCLOAK_DBNAME" | default "keycloak" }}'
+        dbHost: '{{ env "KEYCLOAK_DBHOST" | default "mykeycloak" }}'
+        dbPort: '{{ env "KEYCLOAK_DBPORT" | default "5432" }}'
+        dbUser: '{{ env "KEYCLOAK_DBUSER" | default "keycloak" }}'
+        dbPassword: '{{ env "KEYCLOAK_DBPASSWORD" }}'
