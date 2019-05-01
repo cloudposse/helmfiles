@@ -73,9 +73,9 @@ releases:
           memory: "512Mi"
       persistence:
         deployPostgres: {{ env "KEYCLOAK_DEPLOY_POSTGRES" | default "false" }}
-        dbVendor: '{{ env "KEYCLOAK_DBVENDOR" | default "h2" }}'
-        dbName: '{{ env "KEYCLOAK_DBNAME" | default "keycloak" }}'
-        dbHost: '{{ env "KEYCLOAK_DBHOST" | default "mykeycloak" }}'
-        dbPort: '{{ env "KEYCLOAK_DBPORT" | default "5432" }}'
-        dbUser: '{{ env "KEYCLOAK_DBUSER" | default "keycloak" }}'
-        dbPassword: '{{ env "KEYCLOAK_DBPASSWORD" }}'
+        dbVendor: '{{ env "KEYCLOAK_DB_VENDOR" | default "h2" }}'
+        dbName: '{{ env "KEYCLOAK_DB_NAME" | default "keycloak" }}'
+        dbHost: '{{ env "KEYCLOAK_DB_HOST" | default "mykeycloak" }}'
+        dbPort: '{{ env "KEYCLOAK_DB_PORT" | default "5432" }}'
+        dbUser: '{{ env "KEYCLOAK_DB_USER" | default "keycloak" }}'
+        dbPassword: '{{ env "KEYCLOAK_DB_PASSWORD" }}'

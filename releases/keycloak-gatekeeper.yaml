@@ -85,8 +85,8 @@ releases:
     discoveryURL: '{{- requiredEnv "KOPS_OIDC_ISSUER_URL" }}'
     upstreamURL: '{{- $service.upstream }}'
     skipUpstreamTlsVerify: {{ index $service "skipUpstreamTlsVerify" | default "false" }}
-    ClientID: 'kubernetes'
-    ClientSecret: '{{- requiredEnv "KEYCLOAK_GATEKEEPER_DASHBOARD_CLIENT_SECRET" }}'
+    ClientID: '{{- env "KEYCLOAK_GATEKEEPER_CLIENT_ID" | default "kubernetes" }}'
+    ClientSecret: '{{- requiredEnv "KEYCLOAK_GATEKEEPER_CLIENT_SECRET" }}'
     scopes:
       - roles
     rules:
