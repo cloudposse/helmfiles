@@ -4,31 +4,13 @@ repositories:
   url: "https://gabibbo97.github.io/charts/"
 
 ######
-# You need to create a gatekeeper.yaml file with an array of services, with values that do not use go templating
-# Here is an example:, with comments. Most elements can be omitted
-# services:
-#    - name: dashboard  # the service name
-#      portalName: "Kubernetes Dashboard"  # The name as it should appear in the Forecastle portal (omit to hide)
-#      host: dashboard.us-west-2.corp.cpco.io # The DNS name of the public endpoint
-#      useTLS: false  # True to generate a TLS certificate and use an HTTPS endpoint
-#      upstream: https://kubernetes-dashboard.kube-system.svc.cluster.local  # The service URL
-#      skipUpstreamTlsVerify: true # True to skip the validity check of the TLS certificate of the upstream URL
-#      rules: # Array of access control rules
-#        - "uri=/*|roles=kube-admin"
-#      replicas: 1 # number of replicas
-#    - name: forecastle
-#      debug: true
-#      host: forecastle.us-west-2.corp.cpco.io
-#      upstream: http://forecastle.kube-system.svc.cluster.local
-#      rules:
-#        - "uri=/*|roles=kube-admin,user|require-any-role=true"
-######
-
+# You need to create a keycloak-gatekeeper.yaml file with an array of services, with values that do not use go templating
+# See values/keycloak-gatekeeper.yaml for an example
 #
 environments:
   default:
     values:
-     - ../gatekeeper.yaml
+     - ../keycloak-gatekeeper.yaml
 
 releases:
 
