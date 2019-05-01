@@ -1,0 +1,44 @@
+repositories:
+  # Official repo for Keycloak chart (helm repo deprecated
+  - name: "forecastle"
+    # url: "git+https://github.com/stakater/Forecastle@deployments/kubernetes/chart?ref=v1.0.22"
+    url: "git+https://github.com/stakater/Forecastle@deployments/kubernetes/chart?ref=8d6e5cd2dba3ad6c265ae94138c40276425b7634"
+
+releases:
+
+  #######################################################################################
+  ## forecastle                                                                        ##
+  ## Forecastle is a dynamic web portal for Kubernetes services                        ##
+  #######################################################################################
+
+  #
+  # References:
+  #   - https://github.com/codecentric/helm-charts/tree/master/charts/keycloak
+  #   - https://github.com/stakater/Forecastle
+  #
+  - name: "forecastle"
+    namespace: "kube-system"
+    labels:
+      chart: "forecastle"
+      repo: "github"
+      component: "forecastle"
+      namespace: "kube-system"
+      vendor: "stakater"
+      default: "false"
+    chart: "forecastle/forecastle"
+    version: "v1.0.22"
+    wait: false
+    installed: {{ env "FORECASTLE_INSTALLED" | default "true" }}
+    values:
+      - forecastle:
+          image:
+            pullPolicy: "IfNotPresent"
+          namespace: "kube-system"
+          deployment:
+            annotations: ""
+          config:
+            namespaces: [{{- env "FORECASTLE_NAMESPACES" | default "kube-system,monitoring" }}]
+            title: {{ env "FORECASTLE_TITLE" | default "Portal" }}
+          service:
+            annotations: ""
+            expose: "true"

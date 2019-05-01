@@ -1,0 +1,96 @@
+repositories:
+# No official chart, this user's chart seems to be the best there is
+- name: "gabibbo97"
+  url: "https://gabibbo97.github.io/charts/"
+
+######
+# You need to create a keycloak-gatekeeper.yaml file with an array of services, with values that do not use go templating
+# See values/keycloak-gatekeeper.yaml for an example
+#
+environments:
+  default:
+    values:
+     - ../keycloak-gatekeeper.yaml
+
+releases:
+
+#######################################################################################
+## keycloak-gatekeeper (formerly keycloak-proxy)                                     ##
+## keycloak-gatekeeper is an open source identity-aware proxy                        ##
+#######################################################################################
+
+#
+# References:
+#   - https://github.com/gabibbo97/charts/tree/master/charts/keycloak-gatekeeper
+#   - https://hub.helm.sh/charts/gabibbo97/keycloak-gatekeeper
+#   - https://www.keycloak.org/
+#
+{{ range $index, $service := .Environment.Values.services }}
+- name: "key-gate-{{- $service.name }}"
+  namespace: "kube-system"
+  labels:
+    chart: "keycloak-gatekeeper"
+    repo: "gabibbo97"
+    component: "iap"
+    namespace: "kube-system"
+    vendor: "keycloak"
+    default: "false"
+  chart: "gabibbo97/keycloak-gatekeeper"
+  version: "1.1.1"
+  wait: false
+  installed: true
+  values:
+  - nameOverride: "key-gate-{{- $service.name }}"
+    fullNameOverride: "key-gate-{{- $service.name }}"
+    image:
+      tag: 5.0.0
+      pullPolicy: "IfNotPresent"
+    debug: {{ index $service "debug" | default "false" }}
+    replicas: {{ index $service "replicas" | default 1 }}
+    ingress:
+      enabled: '{{ env "KEYCLOAK_GATEKEEPER_INGRESS_ENABLED" | default "true" }}'
+      annotations:
+        kubernetes.io/ingress.class: nginx
+        nginx.ingress.kubernetes.io/proxy-buffer-size: "16k"
+        kubernetes.io/tls-acme: "{{ index $service "useTLS" | default "false" }}"
+        external-dns.alpha.kubernetes.io/target: '{{ requiredEnv "NGINX_INGRESS_HOSTNAME" }}'
+        external-dns.alpha.kubernetes.io/ttl: "60"
+        {{- if index $service "portalName"  }}
+        forecastle.stakater.com/expose: "true"
+        forecastle.stakater.com/appName: "{{ $service.portalName }}"
+        {{- end }}
+      hosts: [{{- $service.host }}]
+      {{- if eq (index $service "useTLS") "true" }}
+      tls:
+        - secretName: "key-gate-{{- $service.name }}"
+          hosts: [{{- $service.host }}]
+      {{- end }}
+    discoveryURL: '{{- requiredEnv "KOPS_OIDC_ISSUER_URL" }}'
+    upstreamURL: '{{- $service.upstream }}'
+    skipUpstreamTlsVerify: {{ index $service "skipUpstreamTlsVerify" | default "false" }}
+    ClientID: '{{- env "KEYCLOAK_GATEKEEPER_CLIENT_ID" | default "kubernetes" }}'
+    ClientSecret: '{{- requiredEnv "KEYCLOAK_GATEKEEPER_CLIENT_SECRET" }}'
+    scopes:
+      - roles
+    rules:
+      {{- range $i, $rule := $service.rules }}
+      - "{{ $rule }}"
+      {{- end }}
+    ### Optional: RBAC_ENABLED;
+    rbac:
+      create: {{ env "RBAC_ENABLED" | default "false" }}
+    serviceAccount:
+      create: {{ env "RBAC_ENABLED" | default "false" }}
+      name: "key-gate-{{- $service.name }}"
+    livenessProbe:
+      timeoutSeconds: 60
+    readinessProbe:
+      timeoutSeconds: 90
+    resources:
+      limits:
+        cpu: "100m"
+        memory: "128Mi"
+      requests:
+        cpu: "10m"
+        memory: "10Mi"
+{{- end }}
