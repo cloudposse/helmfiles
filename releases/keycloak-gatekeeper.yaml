@@ -1,13 +1,40 @@
 repositories:
-# Stable repo of official helm charts
+# No official chart, this user's chart seems to be the best there is
 - name: "gabibbo97"
   url: "https://gabibbo97.github.io/charts/"
+
+######
+# You need to create a gatekeeper.yaml file with an array of services, with values that do not use go templating
+# Here is an example:, with comments. Most elements can be omitted
+# services:
+#    - name: dashboard  # the service name
+#      portalName: "Kubernetes Dashboard"  # The name as it should appear in the Forecastle portal (omit to hide)
+#      host: dashboard.us-west-2.corp.cpco.io # The DNS name of the public endpoint
+#      useTLS: false  # True to generate a TLS certificate and use an HTTPS endpoint
+#      upstream: https://kubernetes-dashboard.kube-system.svc.cluster.local  # The service URL
+#      skipUpstreamTlsVerify: true # True to skip the validity check of the TLS certificate of the upstream URL
+#      rules: # Array of access control rules
+#        - "uri=/*|roles=kube-admin"
+#      replicas: 1 # number of replicas
+#    - name: forecastle
+#      debug: true
+#      host: forecastle.us-west-2.corp.cpco.io
+#      upstream: http://forecastle.kube-system.svc.cluster.local
+#      rules:
+#        - "uri=/*|roles=kube-admin,user|require-any-role=true"
+######
+
+#
+environments:
+  default:
+    values:
+     - ../gatekeeper.yaml
 
 releases:
 
 #######################################################################################
-## keycloak                                                                          ##
-## Keycloak is an open source identity and access management system                  ##
+## keycloak-gatekeeper (formerly keycloak-proxy)                                     ##
+## keycloak-gatekeeper is an open source identity-aware proxy                        ##
 #######################################################################################
 
 #
@@ -16,11 +43,8 @@ releases:
 #   - https://hub.helm.sh/charts/gabibbo97/keycloak-gatekeeper
 #   - https://www.keycloak.org/
 #
-{{ range $index, $service := (env "KEYCLOAK_GATEKEEPER_SERVICES" | splitList ",") }}
-{{- $hosts := (env "KEYCLOAK_GATEKEEPER_HOSTS" | splitList ",") }}
-{{- $upstreams := (env "KEYCLOAK_GATEKEEPER_UPSTREAMS" | splitList ",") }}
-{{- $rules := (env "KEYCLOAK_GATEKEEPER_RULES" | splitList "#") }}
-- name: "key-gate-{{- $service }}"
+{{ range $index, $service := .Environment.Values.services }}
+- name: "key-gate-{{- $service.name }}"
   namespace: "kube-system"
   labels:
     chart: "keycloak-gatekeeper"
@@ -34,39 +58,47 @@ releases:
   wait: false
   installed: true
   values:
-  - image:
+  - nameOverride: "key-gate-{{- $service.name }}"
+    fullNameOverride: "key-gate-{{- $service.name }}"
+    image:
       tag: 5.0.0
       pullPolicy: "IfNotPresent"
-    debug: {{ env "KEYCLOAK_GATEKEEPER_DEBUG" | default "false" }}
-    replicas: {{ env "KEYCLOAK_GATEKEEPER_REPLICAS" | default 1 }}
+    debug: {{ index $service "debug" | default "false" }}
+    replicas: {{ index $service "replicas" | default 1 }}
     ingress:
       enabled: '{{ env "KEYCLOAK_GATEKEEPER_INGRESS_ENABLED" | default "true" }}'
       annotations:
         kubernetes.io/ingress.class: nginx
         nginx.ingress.kubernetes.io/proxy-buffer-size: "16k"
-        kubernetes.io/tls-acme: "false"
+        kubernetes.io/tls-acme: "{{ index $service "useTLS" | default "false" }}"
         external-dns.alpha.kubernetes.io/target: '{{ requiredEnv "NGINX_INGRESS_HOSTNAME" }}'
         external-dns.alpha.kubernetes.io/ttl: "60"
+        {{- if index $service "portalName"  }}
+        forecastle.stakater.com/expose: "true"
+        forecastle.stakater.com/appName: "{{ $service.portalName }}"
+        {{- end }}
       hosts:
-      - {{ index $hosts $index }}.{{- requiredEnv "KOPS_CLUSTER_NAME" }}
+      - {{ $service.host }}
       # tls:
       #  - secretName: keycloak-http-tls
       #    hosts:  [{{ env "KEYCLOAK_INGRESS_HOSTS" }}]
     discoveryURL: '{{- requiredEnv "KOPS_OIDC_ISSUER_URL" }}'
-    upstreamURL: '{{- index $upstreams $index }}'
-    skipUpstreamTlsVerify: true
+    upstreamURL: '{{- $service.upstream }}'
+    skipUpstreamTlsVerify: {{ index $service "skipUpstreamTlsVerify" | default "false" }}
     ClientID: 'kubernetes'
     ClientSecret: '{{- requiredEnv "KEYCLOAK_GATEKEEPER_DASHBOARD_CLIENT_SECRET" }}'
     scopes:
-      - email
+      - roles
     rules:
-      - {{ index $rules $index }}
+      {{- range $i, $rule := $service.rules }}
+      - "{{ $rule }}"
+      {{- end }}
     ### Optional: RBAC_ENABLED;
     rbac:
       create: {{ env "RBAC_ENABLED" | default "false" }}
     serviceAccount:
       create: {{ env "RBAC_ENABLED" | default "false" }}
-      name: "key-gate-{{- $service }}"
+      name: "key-gate-{{- $service.name }}"
     livenessProbe:
       timeoutSeconds: 60
     readinessProbe:

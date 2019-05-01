@@ -1,5 +1,5 @@
 repositories:
-# Official repo for Keycloak chart (helm repo deprecated
+# Official repo for Keycloak chart (helm stable repo deprecated)
 - name: "codecentric"
   url: "https://codecentric.github.io/helm-charts"
 
