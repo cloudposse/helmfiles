@@ -61,9 +61,14 @@ releases:
         - secretName: keycloak-http-tls
           hosts:  [{{ env "KEYCLOAK_INGRESS_HOSTS" }}]
       livenessProbe:
-        timeoutSeconds: 600
+        initialDelaySeconds: 30
+        periodSeconds: 30
+        timeoutSeconds: 5
+        failureThreshold: 20
       readinessProbe:
-        timeoutSeconds: 900
+        initialDelaySeconds: 30
+        periodSeconds: 60
+        timeoutSeconds: 5
       resources:
         limits:
           cpu: "1000m"

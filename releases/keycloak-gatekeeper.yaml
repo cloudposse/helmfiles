@@ -60,15 +60,15 @@ releases:
         forecastle.stakater.com/appName: "{{ $service.portalName }}"
         {{- end }}
       hosts: [{{- $service.host }}]
-      {{- if eq (index $service "useTLS") "true" }}
+      {{- if eq (index $service "useTLS" | default "false") "true" }}
       tls:
         - secretName: "key-gate-{{- $service.name }}"
           hosts: [{{- $service.host }}]
       {{- end }}
-    discoveryURL: '{{- requiredEnv "KOPS_OIDC_ISSUER_URL" }}'
+    discoveryURL: '{{- coalesce (env "KEYCLOAK_GATEKEEPER_DISCOVERY_URL") (env "KOPS_OIDC_ISSUER_URL") }}'
     upstreamURL: '{{- $service.upstream }}'
     skipUpstreamTlsVerify: {{ index $service "skipUpstreamTlsVerify" | default "false" }}
-    ClientID: '{{- env "KEYCLOAK_GATEKEEPER_CLIENT_ID" | default "kubernetes" }}'
+    ClientID: '{{- coalesce (env "KEYCLOAK_GATEKEEPER_CLIENT_ID") (env "KOPS_OIDC_CLIENT_ID") "kubernetes" }}'
     ClientSecret: '{{- requiredEnv "KEYCLOAK_GATEKEEPER_CLIENT_SECRET" }}'
     scopes:
       - roles
@@ -83,9 +83,14 @@ releases:
       create: {{ env "RBAC_ENABLED" | default "false" }}
       name: "key-gate-{{- $service.name }}"
     livenessProbe:
-      timeoutSeconds: 60
+      initialDelaySeconds: 10
+      periodSeconds: 30
+      timeoutSeconds: 1
+      failureThreshold: 5
     readinessProbe:
-      timeoutSeconds: 90
+      initialDelaySeconds: 10
+      periodSeconds: 30
+      timeoutSeconds: 1
     resources:
       limits:
         cpu: "100m"
