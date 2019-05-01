@@ -59,11 +59,12 @@ releases:
         forecastle.stakater.com/expose: "true"
         forecastle.stakater.com/appName: "{{ $service.portalName }}"
         {{- end }}
-      hosts:
-      - {{ $service.host }}
-      # tls:
-      #  - secretName: keycloak-http-tls
-      #    hosts:  [{{ env "KEYCLOAK_INGRESS_HOSTS" }}]
+      hosts: [{{- $service.host }}]
+      {{- if eq (index $service "useTLS") "true" }}
+      tls:
+        - secretName: "key-gate-{{- $service.name }}"
+          hosts: [{{- $service.host }}]
+      {{- end }}
     discoveryURL: '{{- requiredEnv "KOPS_OIDC_ISSUER_URL" }}'
     upstreamURL: '{{- $service.upstream }}'
     skipUpstreamTlsVerify: {{ index $service "skipUpstreamTlsVerify" | default "false" }}
