@@ -1,65 +1,130 @@
+#####
+# WARNING: This is a complete rewrite of this release as we switch from
+# the deprecated coreos-stable chart at https://github.com/coreos/prometheus-operator/tree/master/helm/prometheus-operator
+# to the current helm stable chart at https://github.com/helm/charts/tree/master/stable/prometheus-operator
+#
+# OLD References:
+# OLD  - https://github.com/coreos/prometheus-operator/tree/master/helm/prometheus-operator
+# OLD  - https://github.com/coreos/prometheus-operator
+#
 repositories:
-# CoreOS Stable helm charts
-- name: "coreos-stable"
-  url: "https://s3-eu-west-1.amazonaws.com/coreos-charts/stable"
+  # Official helm charts
+  - name: "stable"
+    url: "https://kubernetes-charts.storage.googleapis.com/"
 
 releases:
 
-#######################################################################################
-## prometheus-operator                                                               ##
-## creates/configures/manages Prometheus clusters atop Kubernetes                    ##
-#######################################################################################
+  #######################################################################################
+  ## prometheus-operator                                                               ##
+  ## creates/configures/manages Prometheus clusters atop Kubernetes                    ##
+  ## This is the all-in-one version that                                               ##
+  ## replaces https://github.com/coreos/prometheus-operator/tree/master/helm           ##
+  #######################################################################################
 
-#
-# References:
-#   - https://github.com/coreos/prometheus-operator/tree/master/helm/prometheus-operator
-#   - https://github.com/coreos/prometheus-operator
-#
-- name: "prometheus-operator"
-  namespace: "kube-system"
-  labels:
-    chart: "prometheus-operator"
-    repo: "coreos-stable"
-    component: "monitoring"
-    namespace: "kube-system"
-    vendor: "coreos"
-    default: "true"
-  chart: "coreos-stable/prometheus-operator"
-  version: "0.0.29"
-  wait: true
-  installed: {{ env "PROMETHEUS_OPERATOR_INSTALLED" | default "true" }}
-  values:
-      ### Optional: RBAC_ENABLED;
-    - rbacEnable: {{ env "RBAC_ENABLED" | default "false" }}
-      jobLabel: "prometheus-operator"
-      image:
-        repository: "quay.io/coreos/prometheus-operator"
-        ### Optional: PROMETHEUS_OPERATOR_IMAGE_TAG; e.g. v0.20.0
-        tag: '{{ env "PROMETHEUS_OPERATOR_IMAGE_TAG" | default "v0.23.2" }}'
-        pullPolicy: "IfNotPresent"
-      resources:
-        limits:
-          cpu: '{{ env "PROMETHEUS_OPERATOR_LIMIT_CPU" | default "10m" }}'
-          memory: '{{ env "PROMETHEUS_OPERATOR_LIMIT_MEMORY" | default "64Mi" }}'
-        requests:
-          cpu: '{{ env "PROMETHEUS_OPERATOR_REQUEST_CPU" | default "5m" }}'
-          memory: '{{ env "PROMETHEUS_OPERATOR_REQUEST_MEMORY" | default "32Mi" }}'
-      global:
-        hyperkube:
-          repository: "quay.io/coreos/hyperkube"
-          ### Optional: PROMETHEUS_OPERATOR_GLOBAL_HYPERKUBE_IMAGE_TAG; e.g. v1.7.6_coreos.0
-          tag: '{{ env "PROMETHEUS_OPERATOR_GLOBAL_HYPERKUBE_IMAGE_TAG" | default "v1.7.6_coreos.0" }}'
+  #
+  # References:
+  #   - https://github.com/helm/charts/tree/master/stable/prometheus-operator
+  #   - https://github.com/coreos/prometheus-operator
+  #
+  - name: "prometheus-operator"
+    namespace: "monitoring"
+    labels:
+      chart: "prometheus-operator"
+      repo: "coreos-stable"
+      component: "monitoring"
+      namespace: "monitoring"
+      vendor: "coreos"
+      default: "true"
+    chart: "stable/prometheus-operator"
+    version: "5.5.0"
+    wait: true
+    installed: {{ env "PROMETHEUS_OPERATOR_INSTALLED" | default "true" }}
+    hooks:
+    # This hoook installs the prometheuses.monitoring.coreos.com CustomResourceDefinition if needed
+    - events: ["prepare"]
+      command: "/bin/sh"
+      args: ["-c", "kubectl get crd prometheuses.monitoring.coreos.com >/dev/null 2>&1 || \
+             kubectl apply -f https://raw.githubusercontent.com/coreos/prometheus-operator/master/example/prometheus-operator-crd/prometheus.crd.yaml"]
+    # This hoook installs the alertmanagers.monitoring.coreos.com CustomResourceDefinition if needed
+    - events: ["prepare"]
+      command: "/bin/sh"
+      args: ["-c", "kubectl get crd alertmanagers.monitoring.coreos.com >/dev/null 2>&1 || \
+             kubectl apply -f https://raw.githubusercontent.com/coreos/prometheus-operator/master/example/prometheus-operator-crd/alertmanager.crd.yaml"]
+    # This hoook installs the prometheusrules.monitoring.coreos.com CustomResourceDefinition if needed
+    - events: ["prepare"]
+      command: "/bin/sh"
+      args: ["-c", "kubectl get crd prometheusrules.monitoring.coreos.com >/dev/null 2>&1 || \
+             kubectl apply -f https://raw.githubusercontent.com/coreos/prometheus-operator/master/example/prometheus-operator-crd/prometheusrule.crd.yaml"]
+    # This hoook installs the servicemonitors.monitoring.coreos.com CustomResourceDefinition if needed
+    - events: ["prepare"]
+      command: "/bin/sh"
+      args: ["-c", "kubectl get crd servicemonitors.monitoring.coreos.com >/dev/null 2>&1 || \
+             kubectl apply -f https://raw.githubusercontent.com/coreos/prometheus-operator/master/example/prometheus-operator-crd/servicemonitor.crd.yaml"]
+    values:
+    - global:
+        rbac:
+          create: {{ env "RBAC_ENABLED" | default "true" }}
+          pspEnabled: {{ coalesce (env "POD_SECURITY_POLICY_ENALBED") (env "RBAC_ENABLED") "true" }}
+      defaultRules:
+        create: true
+      additionalPrometheusRules: []
+      prometheusOperator:
+        enabled: {{ env "PROMETHEUS_OPERATOR_INSTALLED" | default "true" }}
+        ### Create CRDs separately
+        createCustomResource: false
+        # log level must be one of "all", "debug",	"info", "warn",	"error", "none"
+        logLevel: "warn"
+        resources:
+          limits:
+            cpu: '{{ env "PROMETHEUS_OPERATOR_LIMIT_CPU" | default "10m" }}'
+            memory: '{{ env "PROMETHEUS_OPERATOR_LIMIT_MEMORY" | default "64Mi" }}'
+          requests:
+            cpu: '{{ env "PROMETHEUS_OPERATOR_REQUEST_CPU" | default "5m" }}'
+            memory: '{{ env "PROMETHEUS_OPERATOR_REQUEST_MEMORY" | default "32Mi" }}'
+        image:
           pullPolicy: "IfNotPresent"
-      prometheusConfigReloader:
-        repository: "quay.io/coreos/prometheus-config-reloader"
-        ### Optional: PROMETHEUS_OPERATOR_PROMETHEUS_CONFIG_RELOADER_IMAGE_TAG; e.g. v0.20.0
-        tag: '{{ env "PROMETHEUS_OPERATOR_PROMETHEUS_CONFIG_RELOADER_IMAGE_TAG" | default "v0.23.2" }}'
-      configmapReload:
-        repository: "quay.io/coreos/configmap-reload"
-        ### Optional: PROMETHEUS_OPERATOR_CONFIGMAP_RELOAD_IMAGE_TAG; e.g. v0.0.1
-        tag: '{{ env "PROMETHEUS_OPERATOR_CONFIGMAP_RELOAD_IMAGE_TAG" | default "v0.0.1" }}'
-      kubeletService:
-        # If enabled, prometheus-operator will create a service for scraping kubelets
-        enable: true
-        namespace: "kube-system"
-        name: "kubelet"
+      prometheus:
+        enabled: {{ env "PROMETHEUS_OPERATOR_INSTALLED" | default "true" }}
+        podDisruptionBudget:
+          enabled: false
+        ingress:
+          enabled: false
+        additionalServiceMonitors: []
+        prometheusSpec:
+          replicas: 1
+          retention: 45d
+          logLevel: "warn"
+          scrapeInterval: ""
+          evaluationInterval: ""
+          externalUrl: "http://{{- print "prometheus." (env "KOPS_CLUSTER_NAME") }}"
+      alertmanager:
+        enabled: {{ env "ALERTMANAGER_INSTALLED" | default "true" }}
+        alertmanagerSpec:
+          externalUrl: "http://{{- print "alertmanager." (env "KOPS_CLUSTER_NAME") }}"
+      grafana:
+        enabled: {{ env "GRAFANA_INSTALLED" | default "true" }}
+        adminPassword: {{ env "GRAFANA_ADMIN_PASSWORD" | default "prom-operator" }}
+        grafana.ini:
+          server:
+            # root_url: "https://api.{{- env "KOPS_CLUSTER_NAME" }}/api/v1/namespaces/kube-system/services/prometheus-operator-grafana:service/proxy/"
+            root_url: "http://{{- print "grafana." (env "KOPS_CLUSTER_NAME") }}"
+          auth.anonymous:
+            enabled: true
+            org_role: Admin
+      kubeApiServer:
+        enabled: true
+      kubelet:
+        enabled: true
+      coreDns:
+        enabled: {{ coalesce (env "PROMETHEUS_EXPORTER_CORE_DNS_ENABLED") "true" }}
+      kubeDns:
+        enabled: {{ coalesce (env "PROMETHEUS_EXPORTER_KUBE_DNS_ENABLED") "false" }}
+      kubeEtcd:
+        enabled: true
+      kubeScheduler:
+        enabled: true
+      nodeExporter:
+        enabled: true
+    {{- if env "PROMETHEUS_ADDITIONAL_CONFIG_YAML" }}
+    - {{ env "PROMETHEUS_ADDITIONAL_CONFIG_YAML" }}
+    {{ end }}
