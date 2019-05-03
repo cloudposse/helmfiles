@@ -1,6 +1,7 @@
 repositories:
-  # Official repo for Keycloak chart (helm repo deprecated
+  # Forecastle does not have a chart in a helm repo. Use plugin to pull the chart from GitHub repo
   - name: "forecastle"
+    # Cannot use release tags, see https://github.com/aslafy-z/helm-git/issues/9
     # url: "git+https://github.com/stakater/Forecastle@deployments/kubernetes/chart?ref=v1.0.22"
     url: "git+https://github.com/stakater/Forecastle@deployments/kubernetes/chart?ref=8d6e5cd2dba3ad6c265ae94138c40276425b7634"
 
