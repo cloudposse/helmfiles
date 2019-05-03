@@ -1,0 +1,43 @@
+repositories:
+  # Get chart from Istio GitHub repo (helm repo deprecated)
+  # See https://github.com/aslafy-z/helm-git/issues/6
+#  - name: "istio.io"
+#    # url: "git+https://github.com/istio/cni@deployments/kubernetes/install/helm/istio-cni?ref=1.1.4"
+#    url: "git+https://github.com/istio/cni@deployments/kubernetes/install/helm/istio-cni?ref=de2ae6dcce2cd3ac55823b9aa099c2b462a8ba6e"
+  - name: "istio"
+    # Cannot use release tags, see https://github.com/aslafy-z/helm-git/issues/9
+    # url: "git+https://github.com/istio/istio@install/kubernetes/helm?ref=1.1.4"
+    url: "git+https://github.com/istio/istio@install/kubernetes/helm?ref=bc7465793cbff4c4189639b3f404e21c517cbdc6"
+
+releases:
+
+  #######################################################################################
+  ## istio-init                                                                        ##
+  ## istio is a service mesh for Kubernetes. istio-init installs the CRDs it needs.    ##
+  #######################################################################################
+
+  #
+  # References:
+  #   - https://github.com/istio/istio/tree/1.1.4/install/kubernetes/helm/istio-init
+  #   - https://github.com/istio/istio
+  #
+  - name: "istio-init"
+    namespace: "istio-system"
+    labels:
+      chart: "istio-init"
+      repo: "github"
+      component: "istio"
+      namespace: "istio-system"
+      vendor: "istio"
+      default: "true"
+    chart: "istio/istio-init"
+    version: "1.1.0"
+    wait: true
+    installed: {{ env "ISTIO_INSTALLED" | default "true" }}
+    values:
+    - certmanager:
+        enabled: {{ env "ISTIO_CERTMANAGER_ENABLED" | default "true" }}
+      global:
+        hub: "docker.io/istio"
+        tag: "{{ coalesce (env "ISTIO_INIT_IMAGE_TAG") (env "ISTIO_IMAGE_TAG") "1.1.4" }}"
+        pullPolicy: "IfNotPresent"
