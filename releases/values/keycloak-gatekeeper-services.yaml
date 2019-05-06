@@ -1,5 +1,5 @@
 ######
-# Example keycloak-gatekeeper.yaml with comments. Most elements can be omitted.
+# Example keycloak-gatekeeper-services.yaml with comments. Most elements can be omitted.
 # services:
 #    - name: dashboard  # the service name
 #      portalName: "Kubernetes Dashboard"  # The name as it should appear in the Forecastle portal (omit to hide)
@@ -16,4 +16,9 @@
 #      upstream: http://forecastle.kube-system.svc.cluster.local
 #      rules:
 #        - "uri=/*|roles=kube-admin,user|require-any-role=true"
+#      extraArgs:
+#        - enable-token-header=false
+#        - enable-authorization-header=false
+#        - enable-authorization-cookies=false
+
 ######
