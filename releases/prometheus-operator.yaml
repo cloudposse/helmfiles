@@ -115,6 +115,19 @@ releases:
         enabled: true
       kubelet:
         enabled: true
+        # In general, few clusters are set up to allow kublet to authenticate a bearer token, and
+        # the HTTPS endpoint requires authentication, so Prometheus cannot access it.
+        # The HTTP endpoint does not require authentication, so Prometheus can access it.
+        # See https://github.com/coreos/prometheus-operator/issues/926
+        https: {{ env "PROMETHEUS_KUBELET_HTTPS" | default "false" }}
+      kubeControllerManager:
+        enabled: true
+        {{- if eq (env "PROMETHEUS_KUBE_K8S_APP_LABEL_NAME" | default "false") "true" }}
+        service:
+          selector:
+            k8s-app: "kube-controller-manager"
+            component: null
+        {{- end }}
       coreDns:
         enabled: {{ coalesce (env "PROMETHEUS_EXPORTER_CORE_DNS_ENABLED") "true" }}
       kubeDns:
@@ -123,6 +136,12 @@ releases:
         enabled: true
       kubeScheduler:
         enabled: true
+        {{- if eq (env "PROMETHEUS_KUBE_K8S_APP_LABEL_NAME" | default "false") "true" }}
+        service:
+          selector:
+            k8s-app: "kube-scheduler"
+            component: null
+        {{- end }}
       nodeExporter:
         enabled: true
     {{- if env "PROMETHEUS_ADDITIONAL_CONFIG_YAML" }}
