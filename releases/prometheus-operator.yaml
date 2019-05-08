@@ -76,11 +76,11 @@ releases:
         logLevel: "warn"
         resources:
           limits:
-            cpu: '{{ env "PROMETHEUS_OPERATOR_LIMIT_CPU" | default "10m" }}'
-            memory: '{{ env "PROMETHEUS_OPERATOR_LIMIT_MEMORY" | default "64Mi" }}'
+            cpu: '{{ env "PROMETHEUS_OPERATOR_LIMIT_CPU" | default "100m" }}'
+            memory: '{{ env "PROMETHEUS_OPERATOR_LIMIT_MEMORY" | default "96Mi" }}'
           requests:
-            cpu: '{{ env "PROMETHEUS_OPERATOR_REQUEST_CPU" | default "5m" }}'
-            memory: '{{ env "PROMETHEUS_OPERATOR_REQUEST_MEMORY" | default "32Mi" }}'
+            cpu: '{{ env "PROMETHEUS_OPERATOR_REQUEST_CPU" | default "20m" }}'
+            memory: '{{ env "PROMETHEUS_OPERATOR_REQUEST_MEMORY" | default "48Mi" }}'
         image:
           pullPolicy: "IfNotPresent"
       prometheus:
@@ -96,21 +96,44 @@ releases:
           logLevel: "warn"
           scrapeInterval: ""
           evaluationInterval: ""
-          externalUrl: "http://{{- print "prometheus." (env "KOPS_CLUSTER_NAME") }}"
+          ## If true, a nil or {} value for prometheus.prometheusSpec.ruleSelector will cause the
+          ## prometheus resource to be created with selectors based on values in the helm deployment,
+          ## which will also match the PrometheusRule resources created.
+          ## If false, a nil or or {} value for ruleSelector will select all PrometheusRule resources.
+          ruleSelectorNilUsesHelmValues: false
+          ## serviceMonitorSelectorNilUsesHelmValues works just like ruleSelectorNilUsesHelmValues
+          serviceMonitorSelectorNilUsesHelmValues: false
+          externalUrl: "{{- env "PROMETHEUS_PROMETHEUS_EXTERNAL_URL" | default (print "https://api." (env "KOPS_CLUSTER_NAME") "/api/v1/namespaces/monitoring/services/prometheus-operator-prometheus:web/proxy/") }}"
+          resources:
+            limits:
+              cpu: '{{ env "PROMETHEUS_PROMETHEUS_LIMIT_CPU" | default "300m" }}'
+              memory: '{{ env "PROMETHEUS_PROMETHEUS_LIMIT_MEMORY" | default "1Gi" }}'
+            requests:
+              cpu: '{{ env "PROMETHEUS_PROMETHEUS_REQUEST_CPU" | default "50m" }}'
+              memory: '{{ env "PROMETHEUS_PROMETHEUS_REQUEST_MEMORY" | default "512Mi" }}'
       alertmanager:
         enabled: {{ env "ALERTMANAGER_INSTALLED" | default "true" }}
         alertmanagerSpec:
-          externalUrl: "http://{{- print "alertmanager." (env "KOPS_CLUSTER_NAME") }}"
+          externalUrl: "{{- env "PROMETHEUS_ALERTMANAGER_EXTERNAL_URL" | default (print "https://api." (env "KOPS_CLUSTER_NAME") "/api/v1/namespaces/monitoring/services/prometheus-operator-alertmanager:web/proxy/") }}"
+          resources:
+            limits:
+              cpu: '{{ env "PROMETHEUS_ALERTMANAGER_LIMIT_CPU" | default "200m" }}'
+              memory: '{{ env "PROMETHEUS_ALERTMANAGER_LIMIT_MEMORY" | default "96Mi" }}'
+            requests:
+              cpu: '{{ env "PROMETHEUS_ALERTMANAGER_REQUEST_CPU" | default "10m" }}'
+              memory: '{{ env "PROMETHEUS_ALERTMANAGER_REQUEST_MEMORY" | default "24Mi" }}'
       grafana:
         enabled: {{ env "GRAFANA_INSTALLED" | default "true" }}
         adminPassword: {{ env "GRAFANA_ADMIN_PASSWORD" | default "prom-operator" }}
         grafana.ini:
           server:
             # root_url: "https://api.{{- env "KOPS_CLUSTER_NAME" }}/api/v1/namespaces/kube-system/services/prometheus-operator-grafana:service/proxy/"
-            root_url: "http://{{- print "grafana." (env "KOPS_CLUSTER_NAME") }}"
+            root_url: "{{- env "PROMETHEUS_GRAFANA_ROOT_URL" | default (print "https://api." (env "KOPS_CLUSTER_NAME") "/api/v1/namespaces/monitoring/services/prometheus-operator-grafana:service/proxy/") }}"
+          {{- if eq (env "PROMETHEUS_ANONYMOUS_ADMIN_ENABLED" | default "true") "true" }}
           auth.anonymous:
             enabled: true
             org_role: Admin
+          {{- end }}
       kubeApiServer:
         enabled: true
       kubelet:
