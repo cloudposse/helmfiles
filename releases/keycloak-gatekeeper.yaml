@@ -37,8 +37,6 @@ releases:
     vendor: "keycloak"
     default: "false"
   chart: "gabibbo97/keycloak-gatekeeper"
-  # chart: "cloudposse-keycloak-gatekeeper-chart/keycloak-gatekeeper"
-  # chart: "/Users/jgro/CP_dev/keycloak-gatekeeper-chart/charts/keycloak-gatekeeper"
   version: "1.2.0"
   wait: false
   installed: true
