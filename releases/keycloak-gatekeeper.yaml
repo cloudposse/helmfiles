@@ -4,13 +4,14 @@ repositories:
   url: "https://gabibbo97.github.io/charts/"
 
 ######
-# You need to create a keycloak-gatekeeper.yaml file with an array of services, with values that do not use go templating
-# See values/keycloak-gatekeeper.yaml for an example
+# You need to create a keycloak-gatekeeper-services.yaml file with an array of services,
+# with values that do not use go templating
+# See values/keycloak-gatekeeper-services.yaml for an example
 #
 environments:
   default:
     values:
-     - ../keycloak-gatekeeper.yaml
+      - {{ env "KEYCLOAK_GATEKEEPER_SERVICES_YAML" | default "keycloak-gatekeeper-services.yaml" }}
 
 releases:
 
@@ -36,7 +37,7 @@ releases:
     vendor: "keycloak"
     default: "false"
   chart: "gabibbo97/keycloak-gatekeeper"
-  version: "1.1.1"
+  version: "1.2.0"
   wait: false
   installed: true
   values:
@@ -47,6 +48,9 @@ releases:
       pullPolicy: "IfNotPresent"
     debug: {{ index $service "debug" | default "false" }}
     replicas: {{ index $service "replicas" | default 1 }}
+    logging: false
+    sessionCookies: false
+    droolsPolicyEnabled: false
     ingress:
       enabled: '{{ env "KEYCLOAK_GATEKEEPER_INGRESS_ENABLED" | default "true" }}'
       annotations:
@@ -70,12 +74,21 @@ releases:
     skipUpstreamTlsVerify: {{ index $service "skipUpstreamTlsVerify" | default "false" }}
     ClientID: '{{- coalesce (env "KEYCLOAK_GATEKEEPER_CLIENT_ID") (env "KOPS_OIDC_CLIENT_ID") "kubernetes" }}'
     ClientSecret: '{{- requiredEnv "KEYCLOAK_GATEKEEPER_CLIENT_SECRET" }}'
+    # If encryption key is not provided, one will be generated, but it will change on each install
+    # Should be 16 or 32 ASCII characters for for AES-128/AES-256
+    encryptionKey: {{ env "KEYCLOAK_GATEKEEPER_ENCRYPTION_KEY" | quote }}
     scopes:
       - roles
     rules:
       {{- range $i, $rule := $service.rules }}
       - "{{ $rule }}"
       {{- end }}
+    {{- if index $service "extraArgs" }}
+    extraArgs:
+      {{- range $i, $arg := $service.extraArgs }}
+      - {{ $arg }}
+      {{- end }}
+    {{- end }}
     ### Optional: RBAC_ENABLED;
     rbac:
       create: {{ env "RBAC_ENABLED" | default "false" }}

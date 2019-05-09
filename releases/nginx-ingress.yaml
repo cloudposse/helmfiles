@@ -170,14 +170,15 @@ releases:
     vendor: "cloudposse"
     default: {{ env "NGINX_INGRESS_METRICS_ENABLED" | default "false" }}
   chart: "cloudposse-incubator/monochart"
-  version: "0.4.0"
+  version: "0.10.0"
   wait: true
   installed: {{ env "NGINX_INGRESS_METRICS_INSTALLED" | default "true" }}
   values:
   - prometheusRules:
       nginx-ingress:
         labels:
-          prometheus: kube-prometheus
+          app: prometheus-operator
+          release: prometheus-operator
         groups:
         - name: nginx-ingress.rules
           rules:
@@ -192,7 +193,8 @@ releases:
     serviceMonitors:
       nginx-ingress:
         labels:
-          prometheus: kube-prometheus
+          app: prometheus-operator
+          release: prometheus-operator
         selector:
           matchLabels:
             app: nginx-ingress
@@ -209,8 +211,7 @@ releases:
         enabled: true
         labels:
           grafana_dashboard: "true"
-
-  set:
-  - name: "configMaps.dashboards.files.nginx\\.json"
-    file: https://raw.githubusercontent.com/cloudposse/grafana-dashboards/{{ env "GRAFANA_DASHBOARDS_VERSION" | default "1.0" }}/nginx-ingress/nginx.json
+        files:
+          nginx-ingress.json: |
+{{ exec "curl" (list "-fsSL" (print "https://raw.githubusercontent.com/cloudposse/grafana-dashboards/" (env "GRAFANA_DASHBOARDS_VERSION" | default "1.0") "/nginx-ingress/nginx.json")) | indent 12 }}
 {{ end }}
