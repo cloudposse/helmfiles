@@ -26,13 +26,15 @@ releases:
     chart: "cloudposse-incubator/fluentd-kubernetes-aws"
     version: "0.1.0"
     wait: true
-    installed: {{ env "FLUENT_ELASTICSEARCH_INSTALLED" | default "true" }}
+    installed: {{ env "FLUENTD_ELASTICSEARCH_AWS_INSTALLED" | default "true" }}
     values:
-      - image:
-          repository: "fluent/fluentd-kubernetes-daemonset"
+      - nameOverride: "fluentd-elasticsearch-aws"
+        image:
+          repository: '{{ env "FLUENTD_ELASTICSEARCH_IMAGE_REPO" | default "fluent/fluentd-kubernetes-daemonset" }}'
           tag: '{{ env "FLUENTD_ELASTICSEARCH_IMAGE_TAG" | default "v1.3.3-debian-elasticsearch-1.8" }}'
-          pullPolicy: "IfNotPresent"
-        role: '{{ requiredEnv "FLUENTED_ELASTICSEARCH_IAM_ROLE" }}'
+          pullPolicy: '{{ env "FLUENTD_ELASTICSEARCH_IMAGE_PULL_POLICY" | default "IfNotPresent" }}'
+        # Leave role empty if you are not uisng IAM based access control
+        role: '{{ env "FLUENTED_ELASTICSEARCH_IAM_ROLE" | default "" }}'
         elasticsearch:
           endpoint: '{{ requiredEnv "FLUENTD_ELASTICSEARCH_ENDPOINT" }}'
           region: '{{ coalesce (env "FLUENTD_ELASTICSEARCH_REGION") (env "AWS_REGION") (env "AWS_DEFAULT_REGION") }}'
@@ -45,9 +47,17 @@ releases:
             app: prometheus-operator
             release: prometheus-operator
         env:
-          FLUENT_ELASTICSEARCH_BUFFER_CHUNK_LIMIT_SIZE: 8M
-          FLUENT_ELASTICSEARCH_BUFFER_QUEUE_LIMIT_LENGTH: 64
-          FLUENT_ELASTICSEARCH_BUFFER_FLUSH_INTERVAL: 2s
+          FLUENT_ELASTICSEARCH_BUFFER_CHUNK_LIMIT_SIZE: '{{- env "FLUENTD_ELASTICSEARCH_BUFFER_CHUNK_LIMIT_SIZE" | default "8M" }}'
+          FLUENT_ELASTICSEARCH_BUFFER_QUEUE_LIMIT_LENGTH: '{{- env "FLUENTD_ELASTICSEARCH_BUFFER_QUEUE_LIMIT_LENGTH" | default "64" }}'
+          FLUENT_ELASTICSEARCH_BUFFER_FLUSH_INTERVAL: '{{- env "FLUENTD_ELASTICSEARCH_BUFFER_FLUSH_INTERVAL" | default "5s" }}'
+          # Reload Connections must be false for AWS
+          # https://github.com/atomita/fluent-plugin-aws-elasticsearch-service/commit/3289962dd4d6c5de7996c618eb6edc5f769174d8
+          FLUENT_ELASTICSEARCH_RELOAD_CONNECTIONS: false
+          FLUENT_ELASTICSEARCH_RECONNECT_ON_ERROR: true
+          FLUENT_ELASTICSEARCH_RELOAD_ON_FAILURE: true
+          FLUENT_ELASTICSEARCH_SSL_VERSION: "TLSv1_2"
+          # AWS imposed limit
+          FLUENT_ELASTICSEARCH_BULK_MESSAGE_REQUEST_THRESHOLD: '{{- env "FLUENTD_ELASTICSEARCH_BULK_MESSAGE_REQUEST_THRESHOLD" | default "10M" }}'
         resources:
           limits:
             cpu: "100m"
