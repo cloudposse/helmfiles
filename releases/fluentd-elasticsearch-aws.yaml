@@ -1,0 +1,57 @@
+repositories:
+  # Cloud Posse incubator repo of helm charts
+  - name: "cloudposse-incubator"
+    url: "https://charts.cloudposse.com/incubator/"
+
+releases:
+
+  #######################################################################################
+  ## Fluentd to AWS Elasticsearch                                                      ##
+  ## Forward logs to AWS Elasticsearch with fluentd                                    ##
+  #######################################################################################
+
+  #
+  # References:
+  #   - https://github.com/cloudposse/charts/blob/master/incubator/fluentd-kubernetes-aws/values.yaml
+  #
+
+  - name: "fluentd-elasticsearch-aws"
+    namespace: "monitoring"
+    labels:
+      chart: "fluentd-kubernetes-aws"
+      repo: "cloudposse-incubator"
+      component: "fluentd"
+      namespace: "monitoring"
+      default: "false"
+    chart: "cloudposse-incubator/fluentd-kubernetes-aws"
+    version: "0.1.0"
+    wait: true
+    installed: {{ env "FLUENT_ELASTICSEARCH_INSTALLED" | default "true" }}
+    values:
+      - image:
+          repository: "fluent/fluentd-kubernetes-daemonset"
+          tag: '{{ env "FLUENTD_ELASTICSEARCH_IMAGE_TAG" | default "v1.3.3-debian-elasticsearch-1.8" }}'
+          pullPolicy: "IfNotPresent"
+        role: '{{ requiredEnv "FLUENTED_ELASTICSEARCH_IAM_ROLE" }}'
+        elasticsearch:
+          endpoint: '{{ requiredEnv "FLUENTD_ELASTICSEARCH_ENDPOINT" }}'
+          region: '{{ coalesce (env "FLUENTD_ELASTICSEARCH_REGION") (env "AWS_REGION") (env "AWS_DEFAULT_REGION") }}'
+
+        prometheus:
+          createService: {{ env "FLUENTD_PROMETHEUS_CREATE_SERVICE" | default "true" }}
+          createServiceMonitor: {{ env "FLUENTD_PROMETHEUS_CREATE_SERVICE_MONITOR" | default "true" }}
+          createRule: {{ env "FLUENTD_PROMETHEUS_CREATE_RULE" | default "true" }}
+          labels:
+            app: prometheus-operator
+            release: prometheus-operator
+        env:
+          FLUENT_ELASTICSEARCH_BUFFER_CHUNK_LIMIT_SIZE: 8M
+          FLUENT_ELASTICSEARCH_BUFFER_QUEUE_LIMIT_LENGTH: 64
+          FLUENT_ELASTICSEARCH_BUFFER_FLUSH_INTERVAL: 2s
+        resources:
+          limits:
+            cpu: "100m"
+            memory: "512Mi"
+          requests:
+            cpu: "20m"
+            memory: "256Mi"
