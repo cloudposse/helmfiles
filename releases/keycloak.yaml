@@ -56,6 +56,10 @@ releases:
           ingress.kubernetes.io/affinity: cookie
           external-dns.alpha.kubernetes.io/target: '{{ requiredEnv "NGINX_INGRESS_HOSTNAME" }}'
           external-dns.alpha.kubernetes.io/ttl: "60"
+          {{- if eq (env "KEYCLOAK_FORECASTLE_EXPOSE" | default "true") "true" }}
+          forecastle.stakater.com/expose: "true"
+          forecastle.stakater.com/appName: "Keycloak"
+          {{- end }}
         hosts: [{{ env "KEYCLOAK_INGRESS_HOSTS" }}]
         tls:
         - secretName: keycloak-http-tls
