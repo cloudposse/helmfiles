@@ -116,11 +116,11 @@ releases:
 
     resources:
       limits:
-        cpu: 200m
+        cpu: 100m
         memory: 128Mi
       requests:
-        cpu: 5m
-        memory: 16Mi
+        cpu: 100m
+        memory: 128Mi
 
     nodeSelector: {}
 

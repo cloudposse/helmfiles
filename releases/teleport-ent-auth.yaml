@@ -66,8 +66,8 @@ releases:
       debugging: false
     resources:
       limits:
-        cpu: 1000m
-        memory: 2560Mi
+        cpu: 100m
+        memory: 128Mi
       requests:
-        cpu: 20m
+        cpu: 100m
         memory: 128Mi
