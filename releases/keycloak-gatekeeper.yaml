@@ -37,7 +37,7 @@ releases:
     vendor: "keycloak"
     default: "false"
   chart: "gabibbo97/keycloak-gatekeeper"
-  version: "1.2.0"
+  version: "1.2.1"
   wait: false
   installed: true
   values:
@@ -51,6 +51,12 @@ releases:
     logging: false
     sessionCookies: false
     droolsPolicyEnabled: false
+    {{- if index $service "podAnnotations" }}
+    podAnnotations:
+{{- with $service.podAnnotations }}
+{{ toYaml . | indent 6 }}
+{{- end }}
+    {{- end }}
     ingress:
       enabled: '{{ env "KEYCLOAK_GATEKEEPER_INGRESS_ENABLED" | default "true" }}'
       annotations:
@@ -63,6 +69,11 @@ releases:
         forecastle.stakater.com/expose: "true"
         forecastle.stakater.com/appName: "{{ $service.portalName }}"
         {{- end }}
+        {{- if index $service "ingressAnnotations" }}
+{{- with $service.ingressAnnotations }}
+{{ toYaml . | indent 8 }}
+{{- end }}
+      {{- end }}
       hosts: [{{- $service.host }}]
       {{- if eq (index $service "useTLS" | default "false") "true" }}
       tls:
@@ -71,6 +82,14 @@ releases:
       {{- end }}
     discoveryURL: '{{- coalesce (env "KEYCLOAK_GATEKEEPER_DISCOVERY_URL") (env "KOPS_OIDC_ISSUER_URL") }}'
     upstreamURL: '{{- $service.upstream }}'
+    # Once we find an adequate sidecar proxy, this will allow us to configure it.
+    # At the moment, awsSigning has no effect
+    {{- if index $service "awsSigning" }}
+    awsSigning:
+    {{- range $key, $value := $service.awsSigning }}
+      {{ $key }}: {{ $value }}
+    {{- end }}
+    {{- end }}
     skipUpstreamTlsVerify: {{ index $service "skipUpstreamTlsVerify" | default "false" }}
     ClientID: '{{- coalesce (env "KEYCLOAK_GATEKEEPER_CLIENT_ID") (env "KOPS_OIDC_CLIENT_ID") "kubernetes" }}'
     ClientSecret: '{{- requiredEnv "KEYCLOAK_GATEKEEPER_CLIENT_SECRET" }}'
