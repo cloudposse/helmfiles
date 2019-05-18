@@ -62,7 +62,7 @@ releases:
       annotations:
         kubernetes.io/ingress.class: nginx
         nginx.ingress.kubernetes.io/proxy-buffer-size: "16k"
-        kubernetes.io/tls-acme: "{{ index $service "useTLS" | default "false" }}"
+        kubernetes.io/tls-acme: "{{ index $service "useTLS" | default false }}"
         external-dns.alpha.kubernetes.io/target: '{{ requiredEnv "NGINX_INGRESS_HOSTNAME" }}'
         external-dns.alpha.kubernetes.io/ttl: "60"
         {{- if index $service "portalName"  }}
@@ -75,9 +75,9 @@ releases:
 {{- end }}
       {{- end }}
       hosts: [{{- $service.host }}]
-      {{- if eq (index $service "useTLS" | default "false") "true" }}
+      {{- if (index $service "useTLS" | default false) }}
       tls:
-        - secretName: "key-gate-{{- $service.name }}"
+        - secretName: "key-gate-{{- $service.name }}-tls"
           hosts: [{{- $service.host }}]
       {{- end }}
     discoveryURL: '{{- coalesce (env "KEYCLOAK_GATEKEEPER_DISCOVERY_URL") (env "KOPS_OIDC_ISSUER_URL") }}'
