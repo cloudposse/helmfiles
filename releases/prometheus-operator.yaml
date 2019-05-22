@@ -1,7 +1,7 @@
 #####
-# WARNING: This is a complete rewrite of this release as we switch from
-# the deprecated coreos-stable chart at https://github.com/coreos/prometheus-operator/tree/master/helm/prometheus-operator
+# WARNING: This is a complete rewrite of this release as we switch
 # to the current helm stable chart at https://github.com/helm/charts/tree/master/stable/prometheus-operator
+# from the deprecated coreos-stable chart at https://github.com/coreos/prometheus-operator/tree/master/helm/prometheus-operator
 #
 # OLD References:
 # OLD  - https://github.com/coreos/prometheus-operator/tree/master/helm/prometheus-operator
@@ -40,23 +40,26 @@ releases:
     wait: true
     installed: {{ env "PROMETHEUS_OPERATOR_INSTALLED" | default "true" }}
     hooks:
-    # This hoook installs the prometheuses.monitoring.coreos.com CustomResourceDefinition if needed
-    - events: ["prepare"]
+    # Hooks associated to presync events are triggered before each release is applied to the remote cluster.
+    # This is the ideal event to execute any commands that may mutate the cluster state as it
+    # will not be run for read-only operations like lint, diff or template.
+    # These hoook install the prometheuses.monitoring.coreos.com CustomResourceDefinition if needed
+    - events: ["presync"]
       command: "/bin/sh"
       args: ["-c", "kubectl get crd prometheuses.monitoring.coreos.com >/dev/null 2>&1 || \
              kubectl apply -f https://raw.githubusercontent.com/coreos/prometheus-operator/master/example/prometheus-operator-crd/prometheus.crd.yaml"]
     # This hoook installs the alertmanagers.monitoring.coreos.com CustomResourceDefinition if needed
-    - events: ["prepare"]
+    - events: ["presync"]
       command: "/bin/sh"
       args: ["-c", "kubectl get crd alertmanagers.monitoring.coreos.com >/dev/null 2>&1 || \
              kubectl apply -f https://raw.githubusercontent.com/coreos/prometheus-operator/master/example/prometheus-operator-crd/alertmanager.crd.yaml"]
     # This hoook installs the prometheusrules.monitoring.coreos.com CustomResourceDefinition if needed
-    - events: ["prepare"]
+    - events: ["presync"]
       command: "/bin/sh"
       args: ["-c", "kubectl get crd prometheusrules.monitoring.coreos.com >/dev/null 2>&1 || \
              kubectl apply -f https://raw.githubusercontent.com/coreos/prometheus-operator/master/example/prometheus-operator-crd/prometheusrule.crd.yaml"]
     # This hoook installs the servicemonitors.monitoring.coreos.com CustomResourceDefinition if needed
-    - events: ["prepare"]
+    - events: ["presync"]
       command: "/bin/sh"
       args: ["-c", "kubectl get crd servicemonitors.monitoring.coreos.com >/dev/null 2>&1 || \
              kubectl apply -f https://raw.githubusercontent.com/coreos/prometheus-operator/master/example/prometheus-operator-crd/servicemonitor.crd.yaml"]
@@ -142,7 +145,8 @@ releases:
         # the HTTPS endpoint requires authentication, so Prometheus cannot access it.
         # The HTTP endpoint does not require authentication, so Prometheus can access it.
         # See https://github.com/coreos/prometheus-operator/issues/926
-        https: {{ env "PROMETHEUS_KUBELET_HTTPS" | default "false" }}
+        serviceMonitor:
+          https: {{ env "PROMETHEUS_KUBELET_HTTPS" | default "false" }}
       kubeControllerManager:
         enabled: true
         {{- if eq (env "PROMETHEUS_KUBE_K8S_APP_LABEL_NAME" | default "false") "true" }}
