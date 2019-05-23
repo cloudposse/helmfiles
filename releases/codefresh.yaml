@@ -147,9 +147,9 @@ releases:
 
     mongo:
 {{- if eq (env "CODEFRESH_USE_EXTERNAL_MONGODB" | default "false") "true" }}
-      enabled: true
-{{- else }}
       enabled: false
+{{- else }}
+      enabled: true
 {{- end }}
     
 
