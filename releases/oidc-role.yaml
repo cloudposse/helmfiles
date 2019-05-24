@@ -1,0 +1,37 @@
+repositories:
+# Kubernetes incubator repo of helm charts
+- name: "kubernetes-incubator"
+  url: "https://kubernetes-charts-incubator.storage.googleapis.com"
+
+releases:
+#######################################################################################
+## oidc-role                                                                         ##
+## This installs a cluster role binding intended to allow Kubernetes cluster         ## 
+## access, particularly to the Kubernetes Dashboard, via an OIDC role                ##
+#######################################################################################
+
+# References:
+#   - https://github.com/helm/charts/tree/master/incubator/raw
+#
+- name: 'oidc-role'
+  chart: "kubernetes-incubator/raw"
+  namespace: kube-system
+  version: "0.2.3"
+  wait: true
+  force: true
+  recreatePods: false
+  installed: {{ env "OIDC_ROLE_ENABLED" | default "true" }}
+  values:
+    - resources:
+      - apiVersion: rbac.authorization.k8s.io/v1
+        kind: ClusterRoleBinding
+        metadata:
+          name: {{ env "OIDC_ROLE_ROLE_NAME" | default "oidc-role" }}
+        roleRef:
+          apiGroup: rbac.authorization.k8s.io
+          kind: ClusterRole
+          name: {{ env "OIDC_ROLE_CLUSTER_ROLE" | default "cluster-admin" }}
+        subjects:
+        - apiGroup: rbac.authorization.k8s.io
+          kind: Group
+          name: {{ env "OIDC_ROLE_CLIENT_ROLE" | default "oidc:kube-admin" }}
