@@ -128,6 +128,12 @@ releases:
       grafana:
         enabled: {{ env "GRAFANA_INSTALLED" | default "true" }}
         adminPassword: {{ env "GRAFANA_ADMIN_PASSWORD" | default "prom-operator" }}
+        defaultDashboardsEnabled: true
+        sidecar:
+          dashboards:
+            enabled: true
+            searchNamespace: ALL
+            defaultFolderName: "AutoLoaded"
         grafana.ini:
           server:
             # root_url: "https://api.{{- env "KOPS_CLUSTER_NAME" }}/api/v1/namespaces/kube-system/services/prometheus-operator-grafana:service/proxy/"
