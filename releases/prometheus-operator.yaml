@@ -94,6 +94,15 @@ releases:
           enabled: false
         additionalServiceMonitors: []
         prometheusSpec:
+          {{- if or (env "PROMETHEUS_OPERATOR_PROMETHEUS_IMAGE_REPOSITORY") (env "PROMETHEUS_OPERATOR_PROMETHEUS_IMAGE_TAG") }}
+          image:
+            {{- if env "PROMETHEUS_OPERATOR_PROMETHEUS_IMAGE_REPOSITORY" }}
+            repository: {{ env "PROMETHEUS_OPERATOR_PROMETHEUS_IMAGE_REPOSITORY" }}
+            {{- end }}
+            {{- if env "PROMETHEUS_OPERATOR_PROMETHEUS_IMAGE_TAG" }}
+            tag: {{ env "PROMETHEUS_OPERATOR_PROMETHEUS_IMAGE_TAG" }}
+            {{- end }}
+          {{- end }}
           replicas: 1
           retention: 45d
           logLevel: "warn"
