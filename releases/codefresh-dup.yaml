@@ -16,12 +16,12 @@ releases:
 # References:
 #   - https://github.com/codefresh-io/onprem
 #
-- name: "cf"
-  namespace: "codefresh"
+- name: "cf-dup"
+  namespace: "codefresh-dup"
   labels:
     chart: "codefresh"
     component: "codefresh"
-    namespace: "codefresh"
+    namespace: "codefresh-dup"
     vendor: "codefresh"
     default: "false"
   chart: "codefresh/codefresh"
@@ -48,7 +48,7 @@ releases:
 
       # storageClass: {{ env "CODEFRESH_STORAGE_CLASS" | default "default" }}
       ### Codefresh App domain name
-      appUrl: {{ env "CODEFRESH_HOST" }}
+      appUrl: dup.{{ env "CODEFRESH_HOST" }}
       mongoURI: {{ env "MONGODB_URI" }}
 {{- if eq (env "CODEFRESH_SELF_HOSTED_POSTGRESQL_ENABLED" | default "true") "false" }}
       postgresDatabase: {{ env "AURORA_POSTGRES_DATABASE_NAME" }}
@@ -283,12 +283,12 @@ releases:
           gcr.io:
             auth: {{ cat "_json_key:" ( env "CODEFRESH_SA") | b64enc }}            
 
-- name: "cf-ext"
+- name: "cf-ext-dup"
   namespace: "codefresh"
   labels:
     chart: "raw"
     component: "codefresh"
-    namespace: "codefresh"
+    namespace: "cf-ext-dup"
     vendor: "kubernetes-incubator"
     default: "false"
   chart: "incubator/raw"
@@ -316,7 +316,7 @@ releases:
         annotations:
           kubernetes.io/ingress.class: {{ env "CODEFRESH_INGRESS_CLASS" | default "nginx" | quote }}
           external-dns: enabled
-          external-dns.alpha.kubernetes.io/hostname: {{ env "CODEFRESH_HOST" }}
+          external-dns.alpha.kubernetes.io/hostname: dup.{{ env "CODEFRESH_HOST" }}
 {{ if eq (env "CODEFRESH_INGRESS_CLASS" | default "nginx") "nginx" }}
           nginx.ingress.kubernetes.io/configuration-snippet: |
             more_set_headers "X-Request-ID: $request_id";
@@ -334,7 +334,7 @@ releases:
 {{ end }}
       spec:
         rules:
-        - host: {{ env "CODEFRESH_HOST" }}
+        - host: dup.{{ env "CODEFRESH_HOST" }}
           http:
             paths:
 {{ if eq (env "CODEFRESH_INGRESS_CLASS" | default "nginx") "nginx" }}
@@ -368,7 +368,7 @@ releases:
 {{ if eq (env "CODEFRESH_INGRESS_CLASS" | default "nginx") "nginx" }}
         tls:
         - hosts:
-          - {{ env "CODEFRESH_HOST" }}
+          - dup.{{ env "CODEFRESH_HOST" }}
           secretName: cf-codefresh-star-selfsigned
 {{ end }}
 
@@ -380,7 +380,7 @@ releases:
         annotations:
           kubernetes.io/ingress.class: {{ env "CODEFRESH_INGRESS_CLASS" | default "nginx" | quote }}
           external-dns: enabled
-          external-dns.alpha.kubernetes.io/hostname: hooks.{{ env "CODEFRESH_HOST" }}
+          external-dns.alpha.kubernetes.io/hostname: hooks.dup.{{ env "CODEFRESH_HOST" }}
 {{ if eq (env "CODEFRESH_INGRESS_CLASS" | default "nginx") "nginx" }}
           nginx.ingress.kubernetes.io/service-upstream: "true"
           nginx.ingress.kubernetes.io/ssl-redirect: "true"
@@ -393,7 +393,7 @@ releases:
 {{ end }}
       spec:
         rules:
-          - host: hooks.{{ env "CODEFRESH_HOST" }}
+          - host: hooks.dup.{{ env "CODEFRESH_HOST" }}
             http:
               paths:
 {{ if eq (env "CODEFRESH_INGRESS_CLASS" | default "nginx") "nginx" }}
@@ -410,6 +410,6 @@ releases:
 {{ if eq (env "CODEFRESH_INGRESS_CLASS" | default "nginx") "nginx" }}
       tls:
         - hosts:
-          - hooks.{{ env "CODEFRESH_HOST" }}
+          - hooks.dup.{{ env "CODEFRESH_HOST" }}
           secretName: cf-codefresh-hooks-selfsigned
 {{ end }}
