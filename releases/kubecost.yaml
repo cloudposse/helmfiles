@@ -60,7 +60,6 @@ releases:
             datasources:
               enabled: true
       {{- end }}
-{{- if eq (env "PROMETHEUS_OPERATOR_INSTALLED" | default "true") "true" }}
 # References:
 #   - https://github.com/helm/charts/tree/master/incubator/raw
 #
@@ -70,6 +69,7 @@ releases:
     version: "0.2.3"
     wait: true
     force: true
+    installed: {{ env "PROMETHEUS_OPERATOR_INSTALLED" | default "true" }}
     values:
     - resources:
       - apiVersion: monitoring.coreos.com/v1
@@ -89,4 +89,3 @@ releases:
             scrapeTimeout: 10s
             metrics_path: /metrics
             scheme: http
-{{- end }}
