@@ -47,7 +47,17 @@ releases:
             app: prometheus-operator
             release: prometheus-operator
         env:
-          FLUENT_ELASTICSEARCH_BUFFER_CHUNK_LIMIT_SIZE: '{{- env "FLUENTD_ELASTICSEARCH_BUFFER_CHUNK_LIMIT_SIZE" | default "8M" }}'
+          # The AWS Elasticsearch server (at with least the smaller machines) has a hard limit on request size of 10 MB. 
+          # When sending bulk updates, such as catching up on old logs after a log forwarding outage, requests can get 
+          # substantially bigger than this.
+          # As of 3.5.1, the fluentd-plugin-elasticearch has a configurable threshold, and when the potential bulk
+          # request size gets above the threshold, it will start breaking down the request into smaller requests. However,
+          # there is no guarantee that the decomposed requests will themselves be smaller than the threshold. So we need
+          # to set both the threshold and the maximum chunck size to smaller numbers that guarantee the behavior of the
+          # algorithm is such that in the end the 10 MB limit is not reached.
+          # See https://github.com/uken/fluent-plugin-elasticsearch/issues/588
+          FLUENT_ELASTICSEARCH_BUFFER_CHUNK_LIMIT_SIZE: '{{- env "FLUENTD_ELASTICSEARCH_BUFFER_CHUNK_LIMIT_SIZE" | default "4M" }}'
+          FLUENT_ELASTICSEARCH_BULK_MESSAGE_REQUEST_THRESHOLD: '{{- env "FLUENTD_ELASTICSEARCH_BULK_MESSAGE_REQUEST_THRESHOLD" | default "4M" }}'
           FLUENT_ELASTICSEARCH_BUFFER_QUEUE_LIMIT_LENGTH: '{{- env "FLUENTD_ELASTICSEARCH_BUFFER_QUEUE_LIMIT_LENGTH" | default "64" }}'
           FLUENT_ELASTICSEARCH_BUFFER_FLUSH_INTERVAL: '{{- env "FLUENTD_ELASTICSEARCH_BUFFER_FLUSH_INTERVAL" | default "5s" }}'
           # Reload Connections must be false for AWS
@@ -56,8 +66,6 @@ releases:
           FLUENT_ELASTICSEARCH_RECONNECT_ON_ERROR: true
           FLUENT_ELASTICSEARCH_RELOAD_ON_FAILURE: true
           FLUENT_ELASTICSEARCH_SSL_VERSION: "TLSv1_2"
-          # AWS imposed limit
-          FLUENT_ELASTICSEARCH_BULK_MESSAGE_REQUEST_THRESHOLD: '{{- env "FLUENTD_ELASTICSEARCH_BULK_MESSAGE_REQUEST_THRESHOLD" | default "10M" }}'
         resources:
           limits:
             cpu: "100m"
