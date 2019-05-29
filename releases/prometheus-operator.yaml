@@ -152,6 +152,18 @@ releases:
             enabled: true
             org_role: Admin
           {{- end }}
+      kubeStateMetrics:
+        enabled: true
+      {{- if or (env "PROMETHEUS_OPERATOR_KSM_IMAGE_REPOSITORY") (env "PROMETHEUS_OPERATOR_KSM_IMAGE_TAG") }}
+      kube-state-metrics:
+        image:
+          {{- if env "PROMETHEUS_OPERATOR_KSM_IMAGE_REPOSITORY" }}
+          repository: {{ env "PROMETHEUS_OPERATOR_KSM_IMAGE_REPOSITORY" }}
+          {{- end }}
+          {{- if env "PROMETHEUS_OPERATOR_KSM_IMAGE_TAG" }}
+          tag: {{ env "PROMETHEUS_OPERATOR_KSM_IMAGE_TAG" }}
+          {{- end }}
+      {{- end }}
       kubeApiServer:
         enabled: true
       kubelet:
@@ -175,7 +187,15 @@ releases:
       kubeDns:
         enabled: {{ coalesce (env "PROMETHEUS_EXPORTER_KUBE_DNS_ENABLED") "false" }}
       kubeEtcd:
-        enabled: true
+        # Access to etcd is a huge security risk, so nodes are blocked from accessing it.
+        # Therefore Prometheus cannot access it without extra setup, which is beyond the scope of this helmfile.
+        # See https://github.com/kubernetes/kops/issues/5852
+        #     https://github.com/kubernetes/kops/issues/4975#issuecomment-381055946
+        #     https://github.com/coreos/prometheus-operator/issues/2397
+        #     https://github.com/coreos/prometheus-operator/blob/v0.19.0/contrib/kube-prometheus/docs/Monitoring%20external%20etcd.md
+        #     https://gist.github.com/jhohertz/476bd616d4171649a794b8c409f8d548
+        # So we disable it since it is not going to work anyway
+        enabled: false
       kubeScheduler:
         enabled: true
         {{- if eq (env "PROMETHEUS_KUBE_K8S_APP_LABEL_NAME" | default "false") "true" }}
