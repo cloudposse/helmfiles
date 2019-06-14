@@ -49,7 +49,10 @@ releases:
       # storageClass: {{ env "CODEFRESH_STORAGE_CLASS" | default "default" }}
       ### Codefresh App domain name
       appUrl: {{ env "CODEFRESH_HOST" }}
+{{- if eq (env "CODEFRESH_USE_EXTERNAL_MONGODB" | default "false") "true" }}
       mongoURI: {{ env "MONGODB_URI" }}
+{{- end }}
+
 {{- if eq (env "CODEFRESH_SELF_HOSTED_POSTGRESQL_ENABLED" | default "true") "false" }}
       postgresDatabase: {{ env "AURORA_POSTGRES_DATABASE_NAME" }}
       postgresPassword: {{ env "AURORA_POSTGRES_MASTER_PASSWORD" }}
