@@ -161,6 +161,8 @@ releases:
                     firing: '{{"{{"}} template "pagerduty.default.firing" . {{"}}"}}'
                     resolved: '{{"{{"}} template "pagerduty.default.resolved" . {{"}}"}}'
 {{ end }}
+          templates:
+            - ./*.tmpl
         alertmanagerSpec:
           externalUrl: "{{- env "PROMETHEUS_ALERTMANAGER_EXTERNAL_URL" | default (print "https://api." (env "KOPS_CLUSTER_NAME") "/api/v1/namespaces/monitoring/services/prometheus-operator-alertmanager:web/proxy/") }}"
           resources:
@@ -245,3 +247,6 @@ releases:
     {{- if env "PROMETHEUS_ADDITIONAL_CONFIG_YAML" }}
     - {{ env "PROMETHEUS_ADDITIONAL_CONFIG_YAML" }}
     {{ end }}
+    set:
+    - name: "alertmanager.templateFiles.deployment\\.tmpl"
+      file: ./values/kube-prometheus.alerts.template
