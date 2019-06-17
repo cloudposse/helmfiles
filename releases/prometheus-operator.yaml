@@ -125,6 +125,42 @@ releases:
               memory: '{{ env "PROMETHEUS_PROMETHEUS_REQUEST_MEMORY" | default "512Mi" }}'
       alertmanager:
         enabled: {{ env "ALERTMANAGER_INSTALLED" | default "true" }}
+        ## Alertmanager configuration directives
+        ## ref: https://prometheus.io/docs/alerting/configuration/#configuration-file
+        ##      https://prometheus.io/webtools/alerting/routing-tree-editor/
+        ##
+        config:
+          global:
+            resolve_timeout: 5m
+          route:
+            group_by: ['job']
+            group_wait: 30s
+            group_interval: 5m
+            repeat_interval: 12h
+            receiver: 'null'
+            routes:
+              - match:
+                  alertname: Watchdog
+                receiver: 'null'
+          receivers:
+            - name: 'null'
+            - name: "general"
+{{ if not ( env "KUBE_PROMETHEUS_ALERT_MANAGER_SLACK_WEBHOOK_URL" | empty ) }}
+              slack_configs:
+                ### Required: KUBE_PROMETHEUS_ALERT_MANAGER_SLACK_WEBHOOK_URL
+                - api_url: '{{ env "KUBE_PROMETHEUS_ALERT_MANAGER_SLACK_WEBHOOK_URL" }}'
+                  ### Required: KUBE_PROMETHEUS_ALERT_MANAGER_SLACK_CHANNEL; e.g. #alerts-staging
+                  channel: '{{ env "KUBE_PROMETHEUS_ALERT_MANAGER_SLACK_CHANNEL" }}'
+                  send_resolved: true
+{{ end }}
+{{ if not ( env "KUBE_PROMETHEUS_ALERT_MANAGER_PAGERDUTY_INTEGRATION_KEY" | empty ) }}
+              pagerduty_configs:
+                - routing_key: '{{ env "KUBE_PROMETHEUS_ALERT_MANAGER_PAGERDUTY_INTEGRATION_KEY" }}'
+                  send_resolved: true
+                  details:
+                    firing: '{{"{{"}} template "pagerduty.default.firing" . {{"}}"}}'
+                    resolved: '{{"{{"}} template "pagerduty.default.resolved" . {{"}}"}}'
+{{ end }}
         alertmanagerSpec:
           externalUrl: "{{- env "PROMETHEUS_ALERTMANAGER_EXTERNAL_URL" | default (print "https://api." (env "KOPS_CLUSTER_NAME") "/api/v1/namespaces/monitoring/services/prometheus-operator-alertmanager:web/proxy/") }}"
           resources:
