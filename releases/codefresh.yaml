@@ -25,7 +25,7 @@ releases:
     vendor: "codefresh"
     default: "false"
   chart: "codefresh/codefresh"
-  version: "1.0.70"
+  version: "1.0.78"
   wait: true
   force: true
   installed: {{ env "CODEFRESH_INSTALLED" | default "true" }}
@@ -220,7 +220,11 @@ releases:
       store:
         size: '{{ env "CODEFRESH_CRONUS_STORAGE_SIZE" | default "1Gi" }}'
       storageClass: '{{ env "CODEFRESH_CRONUS_STORAGE_CLASS" | default "default"}}'
-
+      
+    chartmuseum:
+      storageSize: '{{ env "CODEFRESH_CHARTMUSEUM_STORAGE_SIZE" | default "8Gi" }}'
+      storageClass: '{{ env "CODEFRESH_CHARTMUSEUM_STORAGE_CLASS" | default "default"}}'
+      
     builder:
       replicaCount: {{ env "CODEFRESH_BUILDER_REPLICA_COUNT" | default "1" }}
       ## Use existing volume claim name
