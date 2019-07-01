@@ -292,7 +292,8 @@ releases:
   wait: true
   installed: {{ env "CODEFRESH_BACKUP_ENABLED" | default "true" }}
   values:
-    - apiVersion: batch/v1beta1
+  - resources:
+      apiVersion: batch/v1beta1
       kind: CronJob
       metadata:
         name: codefresh-backup
