@@ -315,7 +315,7 @@ releases:
                       - name: MONGO_ROOT_USER
                         value: "root"
                       - name: MONGO_HOST
-                        value: "cf-mongodb"
+                        value: "mongodb"
                       - name: MONGO_PORT
                         value: "27017"
                     command:
