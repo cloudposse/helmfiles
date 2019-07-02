@@ -307,17 +307,17 @@ releases:
                     - name: mongo-backup
                       image: mongo
                       env:
-                      - name: MONGO_PWD
-                        valueFrom:
-                          secretKeyRef:
-                            key: mongodb-root-password
-                            name: cf-mongodb
-                      - name: MONGO_ROOT_USER
-                        value: root
-                      - name: MONGO_HOST
-                        value: cf-mongodb
-                      - name: MONGO_PORT
-                        value: 27017
+                        - name: MONGO_PWD
+                          valueFrom:
+                            secretKeyRef:
+                              key: mongodb-root-password
+                              name: cf-mongodb
+                        - name: MONGO_ROOT_USER
+                          value: "root"
+                        - name: MONGO_HOST
+                          value: "cf-mongodb"
+                        - name: MONGO_PORT
+                          value: "27017"
                       command:
                         - "/bin/sh"
                         - "-ec"
