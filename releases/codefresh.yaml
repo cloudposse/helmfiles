@@ -331,6 +331,40 @@ releases:
                     volumeMounts:
                       - name: backup-data
                         mountPath: /backup
+                  - name: consul-backup
+                    image: consul
+                    command:
+                      - "/bin/sh"
+                      - "-ec"
+                      - |
+                        DATE=$(cat /backup/export_date)
+                        mkdir -p /backup/$DATE/consul
+                        echo "Starting Consul backup"
+                        curl http://cf-consul:8500/v1/snapshot > /backup/$DATE/consul/consul.bkp || (echo "Consul backup has failed for date $DATE"; exit 1)
+                        echo "Consul backup completed successfully"
+                    volumeMounts:
+                      - name: backup-data
+                        mountPath: /backup
+                  - name: redis-backup
+                    image: codefresh/rdbtools:master
+                    env:
+                      - name: REDIS_PWD
+                        valueFrom:
+                          secretKeyRef:
+                            key: redis-password
+                            name: cf-store
+                    command:
+                      - "/bin/sh"
+                      - "-ec"
+                      - |
+                        DATE=$(cat /backup/export_date)
+                        mkdir -p /backup/$DATE/redis
+                        echo "Starting Redis backup"
+                        redis-cli -u redis://cf-store:6379 -a $REDIS_PWD --rdb /backup/$DATE/redis/redis.bkp || (echo "Redis backup has failed for date $DATE"; exit 1)
+                        echo "Redis backup completed successfully"
+                    volumeMounts:
+                      - name: backup-data
+                        mountPath: /backup
                 containers:
                   - name: aws-cli
                     image: mesosphere/aws-cli
