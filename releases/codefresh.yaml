@@ -342,7 +342,7 @@ releases:
                       - name: S3_URL
                         value: s3://{{ env "CODEFRESH_BACKUPS_BUCKET_NAME" }}
                       - name: AWS_DEFAULT_REGION
-                        value: {{ env "CODEFRESH_BACKUPS_BUCKET_NAME" | default "us-west-2" }}
+                        value: {{ env "CODEFRESH_BACKUPS_AWS_DEFAULT_REGION" | default "us-west-2" }}
                     command:
                       - "/bin/sh"
                       - "-ec"
@@ -350,8 +350,7 @@ releases:
                         DATE=$(cat /backup/export_date)
                         tar -zcvf cf-backup-$DATE.tar.gz /backup/$DATE/
                         echo "Uploading to S3"
-                        sleep 1000
-                        aws s3 cp cf-backup-$DATE.tar.gz $S3_URL
+                        aws s3 cp cf-backup-$DATE.tar.gz $S3_URL/cf-backup-$DATE.tar.gz
                         rm cf-backup-$DATE.tar.gz
                         rm -r /backup/$DATE
                     volumeMounts:
