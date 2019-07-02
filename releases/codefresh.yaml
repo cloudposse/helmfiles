@@ -315,7 +315,7 @@ releases:
                       - name: MONGO_ROOT_USER
                         value: "root"
                       - name: MONGO_HOST
-                        value: "mongodb"
+                        value:  {{ env "CODEFRESH_BACKUPS_MONGODB_HOST" | default "mongodb" | quote }}
                       - name: MONGO_PORT
                         value: "27017"
                     command:
@@ -350,7 +350,8 @@ releases:
                         DATE=$(cat /backup/export_date)
                         tar -zcvf cf-backup-$DATE.tar.gz /backup/$DATE/
                         echo "Uploading to S3"
-                        aws s3 cp cf-backup-$DATE.tar.gz $S3_URL/cf-backup-$DATE.tar.gz
+                        sleep 1000
+                        aws s3 cp cf-backup-$DATE.tar.gz $S3_URL
                         rm cf-backup-$DATE.tar.gz
                         rm -r /backup/$DATE
                     volumeMounts:
