@@ -316,7 +316,7 @@ releases:
                           value: {{ env "CODEFRESH_BACKUPS_MONGODB_HOST" }}
                         - name: MONGO_PORT
                           value: {{ env "CODEFRESH_BACKUPS_MONGODB_PORT" }}
-{- else }}
+{{- else }}
                         - name: MONGO_PWD
                           valueFrom:
                             secretKeyRef:
