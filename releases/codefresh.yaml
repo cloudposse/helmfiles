@@ -303,6 +303,34 @@ releases:
           spec:
             template:
               spec:
+                initContainers:
+                  - name: mongo-backup
+                    image: mongo
+                    env:
+                      - name: MONGO_PWD
+                        valueFrom:
+                          secretKeyRef:
+                            key: mongodb-root-password
+                            name: cf-mongodb
+                      - name: MONGO_ROOT_USER
+                        value: "root"
+                      - name: MONGO_HOST
+                        value: "cf-mongodb"
+                      - name: MONGO_PORT
+                        value: "27017"
+                    command:
+                      - "/bin/sh"
+                      - "-ec"
+                      - |-
+                          DATE=$(date +%Y%m%d_%H%M%S)
+                          echo $DATE > /backup/export_date
+                          mkdir -p /backup/$DATE/mongo
+                          echo "Starting Mongo backup"
+                          mongodump --out /backup/$DATE/mongo/ --host $MONGO_HOST:$MONGO_PORT -u $MONGO_ROOT_USER -p $MONGO_PWD || (echo "Mongo backup has failed for date $DATE"; exit 1)
+                          echo "Mongo backup completed successfully"
+                    volumeMounts:
+                      - name: backup-data
+                        mountPath: /backup
                 containers:
                   - name: aws-cli
                     image: mesosphere/aws-cli
