@@ -298,7 +298,7 @@ releases:
         metadata:
           name: codefresh-backup
         spec:
-          schedule: "0 1 * * *"
+          schedule: {{ env "CODEFRESH_BACKUPS_SCHEDULE" | default "0 1 * * *" }}
           jobTemplate:
             spec:
               template:
@@ -381,9 +381,9 @@ releases:
                       image: mesosphere/aws-cli
                       env:
                         - name: AWS_ACCESS_KEY_ID
-                          value: {{ env "CODEFRESH_BACKUPS_AWS_ACCESS_KEY" }}
+                          value: {{ env "CODEFRESH_BACKUPS_AWS_ACCESS_KEY_ID" }}
                         - name: AWS_SECRET_ACCESS_KEY
-                          value: {{ env "CODEFRESH_BACKUPS_AWS_ACCESS_SECRET" }}
+                          value: {{ env "CODEFRESH_BACKUPS_AWS_SECRET_ACCESS_KEY" }}
                         - name: S3_URL
                           value: s3://{{ env "CODEFRESH_BACKUPS_BUCKET_NAME" }}
                         - name: AWS_DEFAULT_REGION
