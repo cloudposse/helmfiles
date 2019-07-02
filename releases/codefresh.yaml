@@ -308,26 +308,26 @@ releases:
                       image: mongo
                       env:
 {{- if eq (env "CODEFRESH_USE_EXTERNAL_MONGODB" | default "false") "true" }}
-                      - name: MONGO_PWD
-                        value: {{ env "CODEFRESH_BACKUPS_MONGODB_ROOT_PASSWORD" }}
-                      - name: MONGO_ROOT_USER
-                        value: {{ env "CODEFRESH_BACKUPS_MONGODB_ROOT_USER" }}
-                      - name: MONGO_HOST
-                        value: {{ env "CODEFRESH_BACKUPS_MONGODB_HOST" }}
-                      - name: MONGO_PORT
-                        value: {{ env "CODEFRESH_BACKUPS_MONGODB_PORT" }}
+                        - name: MONGO_PWD
+                          value: {{ env "CODEFRESH_BACKUPS_MONGODB_ROOT_PASSWORD" }}
+                        - name: MONGO_ROOT_USER
+                          value: {{ env "CODEFRESH_BACKUPS_MONGODB_ROOT_USER" }}
+                        - name: MONGO_HOST
+                          value: {{ env "CODEFRESH_BACKUPS_MONGODB_HOST" }}
+                        - name: MONGO_PORT
+                          value: {{ env "CODEFRESH_BACKUPS_MONGODB_PORT" }}
 {- else }}
-                      - name: MONGO_PWD
-                        valueFrom:
-                          secretKeyRef:
-                            key: mongodb-root-password
-                            name: cf-mongodb
-                      - name: MONGO_ROOT_USER
-                        value: root
-                      - name: MONGO_HOST
-                        value: cf-mongodb
-                      - name: MONGO_PORT
-                        value: 27017
+                        - name: MONGO_PWD
+                          valueFrom:
+                            secretKeyRef:
+                              key: mongodb-root-password
+                              name: cf-mongodb
+                        - name: MONGO_ROOT_USER
+                          value: root
+                        - name: MONGO_HOST
+                          value: cf-mongodb
+                        - name: MONGO_PORT
+                          value: 27017
 {{- end }}
                       command:
                         - "/bin/sh"
@@ -360,7 +360,10 @@ releases:
                       image: codefresh/rdbtools:master
                       env:
                         - name: REDIS_PWD
-                          value: ...
+                          valueFrom:
+                            secretKeyRef:
+                              key: redis-password
+                              name: cf-store
                       command:
                         - "/bin/sh"
                         - "-ec"
