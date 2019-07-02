@@ -298,7 +298,7 @@ releases:
         metadata:
           name: codefresh-backup
         spec:
-          schedule: {{ env "CODEFRESH_BACKUPS_SCHEDULE" | default "0 1 * * *" }}
+          schedule: {{ env "CODEFRESH_BACKUPS_SCHEDULE" | default "0 1 * * *" | quote }}
           jobTemplate:
             spec:
               template:
