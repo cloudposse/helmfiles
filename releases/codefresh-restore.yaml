@@ -1,0 +1,131 @@
+repositories:
+# Incubator repo of official helm charts
+- name: "incubator"
+  url: "https://kubernetes-charts-incubator.storage.googleapis.com/"
+
+releases:
+
+- name: "cf-restore"
+  namespace: "codefresh"
+  labels:
+    chart: "raw"
+    component: "codefresh"
+    namespace: "codefresh"
+    vendor: "kubernetes-incubator"
+    default: "false"
+  chart: "incubator/raw"
+  version: "0.1.0"
+  wait: true
+  installed: {{ env "CODEFRESH_RESTORE_ENABLED" | default "FALSE" }}
+  values:
+  - resources:
+    - apiVersion: v1
+      kind: Secret
+      metadata:
+        name: codefresh-restore
+      type: Opaque
+      data:
+        aws_access_key_id: {{ env "CODEFRESH_BACKUPS_AWS_ACCESS_KEY_ID" | b64enc | quote }}
+        aws_secret_access_key: {{ env "CODEFRESH_BACKUPS_AWS_SECRET_ACCESS_KEY" | b64enc | quote }}
+
+    - apiVersion: batch/v1
+      kind: Job
+      metadata:
+        name: codefresh-restore-job
+        annotations:
+          "helm.sh/hook": "post-install,post-upgrade"
+          "helm.sh/hook-delete-policy": "before-hook-creation"
+      spec:
+        template:
+          spec:
+            initContainers:
+              - name: aws-cli
+                image: mesosphere/aws-cli
+                env:
+                  - name: AWS_ACCESS_KEY_ID
+                    valueFrom:
+                      secretKeyRef:
+                        key: aws_access_key_id
+                        name: codefresh-restore
+                  - name: AWS_SECRET_ACCESS_KEY
+                    valueFrom:
+                      secretKeyRef:
+                        key: aws_secret_access_key
+                        name: codefresh-restore
+                  - name: S3_URL
+                    value: s3://{{ env "CODEFRESH_BACKUPS_BUCKET_NAME" }}
+                  - name: AWS_DEFAULT_REGION
+                    value: {{ env "CODEFRESH_BACKUPS_AWS_DEFAULT_REGION" | default "us-west-2" }}
+                  - name: BACKUP_TO_RESTORE
+                    value: {{ requiredEnv "CODEFRESH_BACKUPS_BACKUP_TO_RESTORE" }}
+                command:
+                  - "/bin/sh"
+                  - "-ec"
+                  - |
+                    cd /restored
+                    aws s3 cp $S3_URL/$BACKUP_TO_RESTORE $BACKUP_TO_RESTORE
+                    tar -xzvf $BACKUP_TO_RESTORE
+                volumeMounts:
+                  - name: restored-data
+                    mountPath: /restored
+            containers:
+              - name: consul-restore
+                image: consul
+                command:
+                  - "/bin/sh"
+                  - "-ec"
+                  - |
+                    cd /restored/backup/*/consul
+                    echo "Starting Consul restore"
+                    curl -v -T consul.bkp http://cf-consul:8500/v1/snapshot
+                    echo "Consul restore completed successfully"
+                volumeMounts:
+                  - name: restored-data
+                    mountPath: /restored
+              - name: redis-restore
+                image: codefresh/rdbtools:master
+                env:
+                  - name: REDIS_PWD
+                    valueFrom:
+                      secretKeyRef:
+                        key: redis-password
+                        name: cf-store
+                command:
+                  - "/bin/sh"
+                  - "-ec"
+                  - |
+                    cd /restored/backup/*/redis
+                    echo "Starting Redis restore"
+                    rdb --c protocol ./redis.bkp | redis-cli -u redis://cf-store:6379 -a $REDIS_PWD --pipe
+                    echo "Redis restore completed successfully"
+                volumeMounts:
+                  - name: restored-data
+                    mountPath: /restored
+              - name: mongo-restore
+                image: mongo
+                env:
+                  - name: MONGO_PWD
+                    valueFrom:
+                      secretKeyRef:
+                        key: mongodb-root-password
+                        name: cf-mongodb
+                  - name: MONGO_ROOT_USER
+                    value: "root"
+                  - name: MONGO_HOST
+                    value:  {{ env "CODEFRESH_BACKUPS_MONGODB_HOST" | default "mongodb" | quote }}
+                  - name: MONGO_PORT
+                    value: "27017"
+                command:
+                  - "/bin/sh"
+                  - "-ec"
+                  - |
+                    cd /restored/backup/*
+                    mongorestore mongo --host $MONGO_HOST:$MONGO_PORT -u $MONGO_ROOT_USER -p $MONGO_PWD --drop
+                    echo "Mongo restore completed successfully"
+                volumeMounts:
+                  - name: restored-data
+                    mountPath: /restored
+            restartPolicy: Never
+            volumes:
+              - name: restored-data
+                emptyDir: {}
