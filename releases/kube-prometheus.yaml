@@ -39,8 +39,6 @@ releases:
   wait: true
   installed: {{ env "KUBE_PROMETHEUS_INSTALLED" | default "true" }}
   values:
-      ### Optional: KUBE_PROMETHEUS_EXTERNAL_VALUES_FILE;
-    - '{{ env "KUBE_PROMETHEUS_EXTERNAL_VALUES_FILE" | default "values/kube-prometheus.grafana.dashboards.yaml" }}'
     - global:
         ### Optional: RBAC_ENABLED;
         rbacEnable: {{ env "RBAC_ENABLED" | default "false" }}
@@ -197,6 +195,8 @@ releases:
 {{ if not ( env "KUBE_PROMETHEUS_URL" | empty ) }}
         externalUrl: '{{ env "KUBE_PROMETHEUS_URL" }}'
 {{ end }}
+      ### Optional: KUBE_PROMETHEUS_EXTERNAL_VALUES_FILE;
+    - '{{ env "KUBE_PROMETHEUS_EXTERNAL_VALUES_FILE" | default "values/kube-prometheus.values.override.yaml" }}'
   set:
   - name: "alertmanager.templateFiles.deployment\\.tmpl"
     file: ./values/kube-prometheus.alerts.template
