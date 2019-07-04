@@ -1,0 +1,2 @@
+# Use your own file with KUBE_PROMETHEUS_EXTERNAL_VALUES_FILE environment variable
+# instead of this empty one to add/override values for kube-prometheus

@@ -196,7 +196,7 @@ releases:
         externalUrl: '{{ env "KUBE_PROMETHEUS_URL" }}'
 {{ end }}
       ### Optional: KUBE_PROMETHEUS_EXTERNAL_VALUES_FILE;
-    - '{{ env "KUBE_PROMETHEUS_EXTERNAL_VALUES_FILE" | default "values/kube-prometheus.grafana.dashboards.yaml" }}'
+    - '{{ env "KUBE_PROMETHEUS_EXTERNAL_VALUES_FILE" | default "values/kube-prometheus.values.override.yaml" }}'
   set:
   - name: "alertmanager.templateFiles.deployment\\.tmpl"
     file: ./values/kube-prometheus.alerts.template
