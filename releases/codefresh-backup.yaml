@@ -1,0 +1,137 @@
+repositories:
+# Incubator repo of official helm charts
+- name: "incubator"
+  url: "https://kubernetes-charts-incubator.storage.googleapis.com/"
+
+releases:
+
+- name: "cf-backup"
+  namespace: "codefresh"
+  labels:
+    chart: "raw"
+    component: "codefresh"
+    namespace: "codefresh"
+    vendor: "kubernetes-incubator"
+    default: "false"
+  chart: "incubator/raw"
+  version: "0.1.0"
+  wait: true
+  installed: {{ env "CODEFRESH_BACKUP_ENABLED" | default "true" }}
+  values:
+  - resources:
+    - apiVersion: v1
+      kind: Secret
+      metadata:
+        name: codefresh-backup
+      type: Opaque
+      data:
+        aws_access_key_id: {{ env "CODEFRESH_BACKUPS_AWS_ACCESS_KEY_ID" | b64enc | quote }}
+        aws_secret_access_key: {{ env "CODEFRESH_BACKUPS_AWS_SECRET_ACCESS_KEY" | b64enc | quote }}
+
+    - apiVersion: batch/v1beta1
+      kind: CronJob
+      metadata:
+        name: codefresh-backup
+      spec:
+        schedule: {{ env "CODEFRESH_BACKUPS_SCHEDULE" | default "0 1 * * *" | quote }}
+        jobTemplate:
+          spec:
+            template:
+              spec:
+                initContainers:
+                  - name: mongo-backup
+                    image: mongo
+                    env:
+                      - name: MONGO_PWD
+                        valueFrom:
+                          secretKeyRef:
+                            key: mongodb-root-password
+                            name: cf-mongodb
+                      - name: MONGO_ROOT_USER
+                        value: "root"
+                      - name: MONGO_HOST
+                        value:  {{ env "CODEFRESH_BACKUPS_MONGODB_HOST" | default "mongodb" | quote }}
+                      - name: MONGO_PORT
+                        value: "27017"
+                    command:
+                      - "/bin/sh"
+                      - "-ec"
+                      - |-
+                          DATE=$(date +%Y%m%d_%H%M%S)
+                          echo $DATE > /backup/export_date
+                          mkdir -p /backup/$DATE/mongo
+                          echo "Starting Mongo backup"
+                          mongodump --out /backup/$DATE/mongo/ --host $MONGO_HOST:$MONGO_PORT -u $MONGO_ROOT_USER -p $MONGO_PWD || (echo "Mongo backup has failed for date $DATE"; exit 1)
+                          echo "Mongo backup completed successfully"
+                    volumeMounts:
+                      - name: backup-data
+                        mountPath: /backup
+                  - name: consul-backup
+                    image: consul
+                    command:
+                      - "/bin/sh"
+                      - "-ec"
+                      - |
+                        DATE=$(cat /backup/export_date)
+                        mkdir -p /backup/$DATE/consul
+                        echo "Starting Consul backup"
+                        curl http://cf-consul:8500/v1/snapshot > /backup/$DATE/consul/consul.bkp || (echo "Consul backup has failed for date $DATE"; exit 1)
+                        echo "Consul backup completed successfully"
+                    volumeMounts:
+                      - name: backup-data
+                        mountPath: /backup
+                  - name: redis-backup
+                    image: codefresh/rdbtools:master
+                    env:
+                      - name: REDIS_PWD
+                        valueFrom:
+                          secretKeyRef:
+                            key: redis-password
+                            name: cf-store
+                    command:
+                      - "/bin/sh"
+                      - "-ec"
+                      - |
+                        DATE=$(cat /backup/export_date)
+                        mkdir -p /backup/$DATE/redis
+                        echo "Starting Redis backup"
+                        redis-cli -u redis://cf-store:6379 -a $REDIS_PWD --rdb /backup/$DATE/redis/redis.bkp || (echo "Redis backup has failed for date $DATE"; exit 1)
+                        echo "Redis backup completed successfully"
+                    volumeMounts:
+                      - name: backup-data
+                        mountPath: /backup
+                containers:
+                  - name: aws-cli
+                    image: mesosphere/aws-cli
+                    env:
+                      - name: AWS_ACCESS_KEY_ID
+                        valueFrom:
+                          secretKeyRef:
+                            key: aws_access_key_id
+                            name: codefresh-backup
+                      - name: AWS_SECRET_ACCESS_KEY
+                        valueFrom:
+                          secretKeyRef:
+                            key: aws_secret_access_key
+                            name: codefresh-backup
+                      - name: S3_URL
+                        value: s3://{{ env "CODEFRESH_BACKUPS_BUCKET_NAME" }}
+                      - name: AWS_DEFAULT_REGION
+                        value: {{ env "CODEFRESH_BACKUPS_AWS_DEFAULT_REGION" | default "us-west-2" }}
+                    command:
+                      - "/bin/sh"
+                      - "-ec"
+                      - |
+                        DATE=$(cat /backup/export_date)
+                        tar -zcvf cf-backup-$DATE.tar.gz /backup/$DATE/
+                        echo "Uploading to S3"
+                        aws s3 cp cf-backup-$DATE.tar.gz $S3_URL/cf-backup-$DATE.tar.gz
+                        rm cf-backup-$DATE.tar.gz
+                        rm -r /backup/$DATE
+                    volumeMounts:
+                      - name: backup-data
+                        mountPath: /backup
+                restartPolicy: Never
+                volumes:
+                  - name: backup-data
+                    emptyDir: {}

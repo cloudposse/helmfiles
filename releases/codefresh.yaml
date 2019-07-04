@@ -152,7 +152,6 @@ releases:
 {{- else }}
       enabled: true
 {{- end }}
-    
 
     mongodb:
       ## Provision new volume claim
@@ -238,12 +237,6 @@ releases:
       ## Override runner PV initial size
       varLibDockerVolume:
         storageSize: '{{ env "CODEFRESH_RUNNER_STORAGE_SIZE" | default "100Gi" }}'
-
-    backups:
-      #enabled: true
-      awsAccessKey: '{{ env "CODEFRESH_BACKUPS_AWS_ACCESS_KEY" }}'
-      awsSecretAccessKey: '{{ env "CODEFRESH_BACKUPS_AWS_ACCESS_SECRET" }}'
-      s3Url: s3://{{ env "CODEFRESH_BACKUPS_BUCKET_NAME" }}
 
     dockerconfigjson:
       auths:
