@@ -16,7 +16,7 @@ releases:
   chart: "incubator/raw"
   version: "0.1.0"
   wait: true
-  installed: {{ env "CODEFRESH_USE_EXTERNAL_INGRESS" | default "false" }}
+  installed: {{ env "CODEFRESH_EXTENSION_INSTALLED" | default "true" }}
   values:
   - resources:
 {{ if eq (env "CODEFRESH_INGRESS_CLASS" | default "nginx") "alb" }}
@@ -60,30 +60,14 @@ releases:
           http:
             paths:
 {{ if eq (env "CODEFRESH_INGRESS_CLASS" | default "nginx") "nginx" }}
-            - path: /api/
-              backend:
-                serviceName: cf-cfapi
-                servicePort: 80
-            - path: /nomios/
-              backend:
-                serviceName: cf-nomios
-                servicePort: 80
             - path: /
               backend:
-                serviceName: cf-cfui
+                serviceName: cf-ingress-controller
                 servicePort: 80
 {{ else if eq (env "CODEFRESH_INGRESS_CLASS" | default "nginx") "alb" }}
-            - path: /api/*
-              backend:
-                serviceName: cf-cfapi
-                servicePort: 80
-            - path: /nomios/*
-              backend:
-                serviceName: cf-nomios
-                servicePort: 80
             - path: /*
               backend:
-                serviceName: cf-cfui
+                serviceName: cf-ingress-controller
                 servicePort: 80
 {{ end }}
 

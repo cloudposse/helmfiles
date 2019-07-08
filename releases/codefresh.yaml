@@ -61,31 +61,8 @@ releases:
       redisPassword: {{ env "REDIS_AUTH_TOKEN" }}
 {{- end }}
 
-{{ if eq (env "CODEFRESH_INGRESS_CLASS" | default "nginx") "nginx" }}
     tls:
       selfSigned: true
-{{ end }}
-
-    ## Custom annotations for Codefresh ingress resource that override defaults
-    annotations:
-{{ if eq (env "CODEFRESH_USE_EXTERNAL_INGRESS" | default "false") "true" }}
-      kubernetes.io/ingress.class: none
-{{ else }}
-      kubernetes.io/ingress.class: {{ env "CODEFRESH_INGRESS_CLASS" | default "nginx" }}
-      external-dns: enabled
-      external-dns.alpha.kubernetes.io/hostname: {{ env "CODEFRESH_HOST" }}
-{{ end }}
-
-{{ if eq (env "CODEFRESH_INGRESS_CLASS" | default "nginx") "nginx" }}
-      kubernetes.io/tls-acme: "true"
-      external-dns.alpha.kubernetes.io/target: '{{ env "NGINX_INGRESS_HOSTNAME" }}'
-      nginx.ingress.kubernetes.io/ssl-redirect: 'true'
-      nginx.org/redirect-to-https: 'true'
-{{ else if eq (env "CODEFRESH_INGRESS_CLASS" | default "nginx") "alb" }}
-      alb.ingress.kubernetes.io/scheme: internet-facing
-      alb.ingress.kubernetes.io/listen-ports: '[{"HTTP":80},{"HTTPS":443}]'
-      alb.ingress.kubernetes.io/certificate-arn: {{ env "CODEFRESH_INGRESS_ACM_ARN" }}
-{{ end }}
 
     ### Firebase secret
     firebaseSecret: {{ env "CODEFRESH_FIREBASE_SECRET" }}
@@ -94,9 +71,10 @@ releases:
     rbacEnable: {{ env "RBAC_ENABLED" | default "false" }}
 
     ingress:
-      enabled: false
       ### Codefresh App domain name
       domain: {{ env "CODEFRESH_HOST" }}
+      ## Set NodePort if you do not want to expose it outside
+      controllerServiceType: {{ env "CODEFRESH_INTERNAL_INGRESS_SERVICE_TYPE" | default "LoadBalancer" }}
       ### Set RBAC_ENABLED to true if kubernetes cluster is RBAC enabled
       rbacEnable: {{ env "RBAC_ENABLED" | default "false" }}
 
@@ -114,15 +92,11 @@ releases:
         apiHost: api.github.com
         loginHost: github.com
         protocol: https
-{{- if eq (env "CODEFRESH_INGRESS_CLASS" | default "nginx") "alb" }}
-      serviceType: NodePort
-{{- end }}
+      serviceType: {{ env "CODEFRESH_API_SERVICE_TYPE" | default "NodePort" }}
 
-{{- if eq (env "CODEFRESH_INGRESS_CLASS" | default "nginx") "alb" }}
     nomios:
       service:
-        type: NodePort
-{{- end }}
+        type: {{ env "CODEFRESH_NOMIOS_SERVICE_TYPE" | default "NodePort" }}
 
     context-manager:
       replicaCount: {{ env "CODEFRESH_CONTEXT_MANAGER_REPLICA_COUNT" | default "1" }}
@@ -242,9 +216,7 @@ releases:
 
     cfui:
       replicaCount: {{ env "CODEFRESH_UI_REPLICA_COUNT" | default "1" }}
-{{- if eq (env "CODEFRESH_INGRESS_CLASS" | default "nginx") "alb" }}
-      serviceType: NodePort
-{{- end }}
+      serviceType: {{ env "CODEFRESH_UI_SERVICE_TYPE" | default "NodePort" }}
       dockerconfigjson:
         auths:
           gcr.io:
