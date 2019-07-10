@@ -29,7 +29,8 @@ releases:
   wait: true
   installed: {{ env "CODEFRESH_SERVICE_ACCOUNT_INSTALLED" | default "true" }}
   values:
-  - clusterrole:
+  - fullnameOverride: "codefresh-service-account"
+    clusterrole:
       rules:
         - apiGroups: ["batch"]
           resources: ["jobs", "cronjobs"]
@@ -49,7 +50,7 @@ releases:
         - apiGroups: [""]
           resources: ["namespaces"]
 {{ if eq (env "CODEFRESH_SERVICE_ACCOUNT_UNLIMITED_STAGING_ENABLED" | default "false") "true" }}
-          verbs: ["get", "list", "update", "patch", "delete"]
+          verbs: ["create", "get", "list", "update", "patch", "delete"]
 {{ else }}
           verbs: ["get", "list", "update", "patch"]
 {{ end }}
