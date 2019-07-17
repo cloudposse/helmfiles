@@ -2,14 +2,14 @@ repositories:
   # kubecost has their own helm repo
   - name: "kubecost"
     url: "https://kubecost.github.io/cost-analyzer/"
-# Kubernetes incubator repo of helm charts
+  # Kubernetes incubator repo of helm charts
   - name: "kubernetes-incubator"
     url: "https://kubernetes-charts-incubator.storage.googleapis.com"
 
 releases:
   #######################################################################################
   ## kubecost                                                                          ##
-  ## Kubecost is a cost analyzer for kubernetes cloud resrouces                        ##
+  ## Kubecost is a cost analyzer for kubernetes cloud resources                        ##
   #######################################################################################
 
   #
@@ -27,7 +27,7 @@ releases:
       vendor: "kubecost"
       default: "false"
     chart: "kubecost/cost-analyzer"
-    version: "v1.26.0"
+    version: "v1.32.0"
     wait: true
     installed: {{ env "KUBECOST_INSTALLED" | default "true" }}
     values:
@@ -60,9 +60,9 @@ releases:
             datasources:
               enabled: true
       {{- end }}
-# References:
-#   - https://github.com/helm/charts/tree/master/incubator/raw
-#
+  # References:
+  #   - https://github.com/helm/charts/tree/master/incubator/raw
+  #
   - name: 'cost-analyzer-model'
     chart: "kubernetes-incubator/raw"
     namespace: monitoring
@@ -71,21 +71,21 @@ releases:
     force: true
     installed: {{ env "PROMETHEUS_OPERATOR_INSTALLED" | default "true" }}
     values:
-    - resources:
-      - apiVersion: monitoring.coreos.com/v1
-        kind: ServiceMonitor
-        metadata:
-          name: cost-analyzer-model
-          labels:
-            release: prometheus-operator
-        spec:
-          selector:
-            matchLabels:
-              chart: cost-analyzer-1.26.0
-          endpoints:
-          - honorLabels: true
-            port: cost-analyzer-model
-            interval: 1m
-            scrapeTimeout: 10s
-            metrics_path: /metrics
-            scheme: http
+      - resources:
+          - apiVersion: monitoring.coreos.com/v1
+            kind: ServiceMonitor
+            metadata:
+              name: cost-analyzer-model
+              labels:
+                release: prometheus-operator
+            spec:
+              selector:
+                matchLabels:
+                  chart: cost-analyzer-1.32.0
+              endpoints:
+                - honorLabels: true
+                  port: cost-analyzer-model
+                  interval: 1m
+                  scrapeTimeout: 10s
+                  metrics_path: /metrics
+                  scheme: http
