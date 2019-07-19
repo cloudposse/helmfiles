@@ -126,12 +126,12 @@ releases:
   installed: {{ env "KIAM_INSTALLED" | default "true" }}
   hooks:
     # This hoook adds the annotation that allows pods in the kube-system namespace to assume any annotated role
-    - events: ["prepare"]
+    - events: ["presync"]
       command: "/bin/sh"
       args: ["-c", "kubectl annotate --overwrite namespace kube-system 'iam.amazonaws.com/permitted=.*'"]
     # This hook adds the annotation that instructs stakater/reloader to watch the DaemonSet's secrets and configmaps
     # and reload the DeamonSet when they change.
-    - events: ["cleanup"]
+    - events: ["postsync"]
       command: "/bin/sh"
       args: ["-c", "kubectl annotate --overwrite --namespace={{ .Namespace }} DaemonSet --selector=app=kiam reloader.stakater.com/auto=true"]
   values:
