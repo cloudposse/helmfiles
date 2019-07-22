@@ -133,7 +133,7 @@ releases:
     # and reload the DeamonSet when they change.
     - events: ["postsync"]
       command: "/bin/sh"
-      args: ["-c", "kubectl annotate --overwrite --namespace={{ .Namespace }} DaemonSet --selector=app=kiam reloader.stakater.com/auto=true"]
+      args: ["-c", "kubectl annotate --overwrite --namespace={{`{{ .Release.Namespace }}`}} DaemonSet --selector=app=kiam reloader.stakater.com/auto=true"]
   values:
     - rbac:
         ### Optional: RBAC_ENABLED;
