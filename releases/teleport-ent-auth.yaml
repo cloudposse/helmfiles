@@ -40,9 +40,11 @@ releases:
   ## Configuration to be copied into Teleport container
   - ./values/teleport-ent/teleport-ent-proxy.yaml.gotmpl
   - ./values/teleport-ent/teleport-ent-auth.yaml.gotmpl
+# If using persistent storage (DynamoDB), then you only need to load roles once and never again.
 {{- if eq (env "TELEPORT_LOAD_ROLES" | default "false") "true" }}
   - ./values/teleport-ent/teleport-ent-roles.yaml.gotmpl
 {{- end }}
+# If using persistent storage (DynamoDB), then you only need to load SAML connector once and never again.
 {{- if env "TELEPORT_SAML_ENTITY_DESCRIPTOR" }}
   - ./values/teleport-ent/teleport-ent-saml-connector.yaml.gotmpl
 {{- end }}
@@ -63,7 +65,12 @@ releases:
       # If diagnostics are not enabled, heath and readiness checks will not be performed
       enabled: true
       port: 3000
-      debugging: false
+      debugging: {{ env "TELEPORT_DEBUGGING_ENBALED" | default "false" }}
+# The bootstrap script is annoying, so let us not run it unless we need it
+{{- if not (or (eq (env "TELEPORT_LOAD_ROLES" | default "false") "true") (env "TELEPORT_SAML_ENTITY_DESCRIPTOR")) }}
+    bootstrap:
+      enabled: false
+{{- end }}
     resources:
       limits:
         cpu: 100m
