@@ -106,7 +106,7 @@ releases:
       # If diagnostics are not enabled, heath and readiness checks will not be performed
       enabled: true
       port: 3000
-      debugging: false
+      debugging: {{ env "TELEPORT_DEBUGGING_ENBALED" | default "false" }}
 
     ## Pod Security Context
     securityContext:
