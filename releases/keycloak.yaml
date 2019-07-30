@@ -25,8 +25,8 @@ releases:
     vendor: "keycloak"
     default: "false"
   chart: "codecentric/keycloak"
-  version: "4.10.2"
-  wait: false
+  version: "5.1.4" # Keycloak app version 6.0.1
+  wait: true
   installed: {{ env "KEYCLOAK_INSTALLED" | default "true" }}
   values:
   - init:
@@ -36,18 +36,33 @@ releases:
       enabled: {{ env "KEYCLOAK_TEST_ENABLED" | default "false" }}
     keycloak:
       extraEnv: |
+        - name: PROXY_ADDRESS_FORWARDING
+          value: '{{- env "KEYCLOAK_PROXY_ADDRESS_FORWARDING" | default "true" }}'
       {{- if env "KEYCLOAK_LOGLEVEL" }}
         - name: KEYCLOAK_LOGLEVEL
           value: '{{- env "KEYCLOAK_LOGLEVEL" }}'
         - name: WILDFLY_LOGLEVEL
           value: '{{- env "KEYCLOAK_LOGLEVEL" }}'
       {{- end }}
+#        - name: JDBC_PARAMS
+#          value: '?clientCertificateKeyStoreUrl=file:///opt/pki/rds-ca.jks&clientCertificateKeyStorePassword=mypassword'
+#      extraVolumeMounts: |
+#        - name: rds-ca
+#          mountPath: /opt/pki/
+#          readOnly: true
+#      extraVolumes: |
+#        - name: rds-ca
+#          secret:
+#            name: rds-ca
       image:
           pullPolicy: "IfNotPresent"
-      replicas: {{ env "KEYCLOAK_REPLICAS" | default 1 }}
+      # The configuration is different if you only run 1 replica. You cannot install 1 replica and then scale up.
+      replicas: {{ env "KEYCLOAK_REPLICAS" | default 2 }}
+      serviceAccount:
+        create: true
       # Keycloack admin username and password, separate from database user/password
       username: '{{ env "KEYCLOAK_USERNAME" | default "keycloak" }}'
-      password: '{{ env "KEYCLOAK_PASSWORD" | default "keycloak" }}'
+      password: '{{ env "KEYCLOAK_PASSWORD" | default "keycloak-password-CHANGEME" }}'
       ingress:
         enabled: '{{ env "KEYCLOAK_INGRESS_ENABLED" | default "true" }}'
         annotations:
@@ -65,12 +80,12 @@ releases:
         - secretName: keycloak-http-tls
           hosts:  [{{ env "KEYCLOAK_INGRESS_HOSTS" }}]
       livenessProbe:
-        initialDelaySeconds: 30
+        initialDelaySeconds: 240
         periodSeconds: 30
         timeoutSeconds: 5
-        failureThreshold: 20
+        # failureThreshold: 3 # not supported by chart
       readinessProbe:
-        initialDelaySeconds: 30
+        initialDelaySeconds: 120
         periodSeconds: 60
         timeoutSeconds: 5
       resources:
