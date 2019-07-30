@@ -62,7 +62,7 @@ releases:
         create: true
       # Keycloack admin username and password, separate from database user/password
       username: '{{ env "KEYCLOAK_USERNAME" | default "keycloak" }}'
-      password: '{{ env "KEYCLOAK_PASSWORD" | default "keycloak-password" }}'
+      password: '{{ env "KEYCLOAK_PASSWORD" | default "keycloak-password-CHANGEME" }}'
       ingress:
         enabled: '{{ env "KEYCLOAK_INGRESS_ENABLED" | default "true" }}'
         annotations:
