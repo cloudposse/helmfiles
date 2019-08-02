@@ -1,0 +1,259 @@
+repositories:
+# No official chart, this user's chart seems to be the best there is
+- name: "gabibbo97"
+  url: "https://gabibbo97.github.io/charts/"
+  # Stable repo of official helm charts
+- name: "stable"
+  url: "https://kubernetes-charts.storage.googleapis.com"
+- name: "forecastle"
+  # Cannot use release tags, see https://github.com/aslafy-z/helm-git/issues/9
+  url: "git+https://github.com/stakater/Forecastle@deployments/kubernetes/chart?ref=8f36b82beaf2a1a42b364a3857bc83638c51e30b"
+- name: "kubernetes-incubator"
+  url: "https://kubernetes-charts-incubator.storage.googleapis.com"
+
+releases:
+
+#######################################################################################
+## keycloak-gatekeeper (formerly keycloak-proxy)                                     ##
+## keycloak-gatekeeper is an open source identity-aware proxy                        ##
+#######################################################################################
+
+#
+# References:
+#   - https://github.com/gabibbo97/charts/tree/master/charts/keycloak-gatekeeper
+#   - https://hub.helm.sh/charts/gabibbo97/keycloak-gatekeeper
+#   - https://www.keycloak.org/
+#
+- name: "key-gate-ingress"
+  namespace: "gatekeeper"
+  labels:
+    chart: "keycloak-gatekeeper"
+    repo: "gabibbo97"
+    component: "iap"
+    namespace: "gatekeeper"
+    vendor: "keycloak"
+    default: "false"
+  chart: "gabibbo97/keycloak-gatekeeper"
+  version: "1.2.1"
+  wait: false
+  installed: {{ env "KEY_GATE_INGRESS_INSTALLED" | default "true" }}
+  values:
+  - nameOverride: "key-gate-ingress"
+    fullNameOverride: "key-gate-ingress"
+    image:
+      tag: 6.0.1
+      pullPolicy: "IfNotPresent"
+    debug: {{ env "KEY_GATE_INGRESS_DEBUG" | default "false" }}
+    replicas: {{ env "KEY_GATE_INGRESS_REPLICAS" | default 1 }}
+    logging: false
+    sessionCookies: false
+    droolsPolicyEnabled: false
+    defaultDeny: false
+    ingress:
+      enabled: true
+      annotations:
+        kubernetes.io/ingress.class: nginx
+        nginx.ingress.kubernetes.io/proxy-buffer-size: "16k"
+        kubernetes.io/tls-acme: "{{  env "KEY_GATE_INGRESS_TLS_ENABLED" | default "true" }}"
+        external-dns.alpha.kubernetes.io/target: '{{ requiredEnv "KEY_GATE_INGRESS_INGRESS_HOST" }}'
+        external-dns.alpha.kubernetes.io/ttl: "60"
+      hosts: ['{{- requiredEnv "KEY_GATE_INGRESS_HOST" }}']
+      {{- if (env "KEY_GATE_INGRESS_TLS_ENABLED" | default "true") }}
+      tls:
+        - secretName: "key-gate-ingress-tls"
+          hosts: ['{{- requiredEnv "KEY_GATE_INGRESS_HOST" }}']
+      {{- end }}
+    discoveryURL: '{{- coalesce (env "KEYCLOAK_GATEKEEPER_DISCOVERY_URL") (env "KOPS_OIDC_ISSUER_URL") }}'
+    upstreamURL: 'https://{{- env "KEY_GATE_INGRESS_BACKEND_HOST" | default "key-gate-ingress-backend-ctl.gatekeeper.svc" }}'
+    skipUpstreamTlsVerify: {{ env "KEY_GATE_INGRESS_SKIP_UPSTREAM_TLS_VERIFY" | default "true" }}
+    ClientID: '{{- coalesce (env "KEY_GATE_INGRESS_CLIENT_ID") (env "KOPS_OIDC_CLIENT_ID") "kubernetes" }}'
+    ClientSecret: '{{- requiredEnv "KEY_GATE_INGRESS_CLIENT_SECRET" }}'
+    # If encryption key is not provided, one will be generated, but it will change on each install
+    # Should be 16 or 32 ASCII characters for for AES-128/AES-256
+    encryptionKey: {{ env "KEY_GATE_INGRESS_ENCRYPTION_KEY" | quote }}
+    scopes:
+      - roles
+#    rules:
+#      - "{{ env "KEY_GATE_INGRESS_RULES" | default "uri=/*|white-listed=true" }}"
+##      - "{{ env "KEY_GATE_INGRESS_RULES" | default "uri=/*|roles=kube-admin,user,qa|require-any-role=true" }}"
+    rules:
+    {{- range $i, $rule := ( (env "KEY_GATE_INGRESS_RULES" | default "uri=/*|white-listed=true") | splitList ";" ) }}
+      - "{{ $rule }}"
+    {{- end }}
+
+    extraArgs:
+      - preserve-host=true
+      # - redirection-url=https://gatekeeper.qa.spoton.sh/
+    ### Optional: RBAC_ENABLED;
+    rbac:
+      create: {{ env "RBAC_ENABLED" | default "false" }}
+    serviceAccount:
+      create: {{ env "RBAC_ENABLED" | default "false" }}
+      name: "key-gate-ingress"
+    livenessProbe:
+      initialDelaySeconds: 10
+      periodSeconds: 30
+      timeoutSeconds: 1
+      failureThreshold: 5
+    readinessProbe:
+      initialDelaySeconds: 10
+      periodSeconds: 30
+      timeoutSeconds: 1
+    resources:
+      limits:
+        cpu: "100m"
+        memory: "128Mi"
+      requests:
+        cpu: "10m"
+        memory: "10Mi"
+
+- name: "key-gate-ingress-backend"
+  namespace: "gatekeeper"
+  labels:
+    chart: "nginx-ingress"
+    repo: "stable"
+    component: "iap"
+    namespace: "gatekeeper"
+    vendor: "kubernetes"
+    default: "false"
+  chart: "stable/nginx-ingress"
+  version: "1.11.5"
+  wait: true
+  installed: {{ env "KEY_GATE_INGRESS_BACKEND_INSTALLED" | default "true" }}
+  values:
+    - fullnameOverride: key-gate-ingress-backend
+      nameOverride: key-gate-ingress-backend
+      controller:
+        name: ctl
+        image:
+          repository: "quay.io/kubernetes-ingress-controller/nginx-ingress-controller"
+          ### Optional: KEY_GATE_INGRESS_BACKEND_IMAGE_TAG; e.g. 0.17.1
+          tag: '{{ env "KEY_GATE_INGRESS_BACKEND_IMAGE_TAG" | default "0.25.0" }}'
+          pullPolicy: "IfNotPresent"
+        ### Optional: KEY_GATE_INGRESS_BACKEND_REPLICA_COUNT; Used only if `kind=Deployment` e.g. 4
+        replicaCount: {{ env "KEY_GATE_INGRESS_BACKEND_REPLICA_COUNT" | default "1" }}
+        resources:
+          limits:
+            cpu: '{{ env "KEY_GATE_INGRESS_BACKEND_LIMIT_CPU" | default "200m" }}'
+            memory: '{{ env "KEY_GATE_INGRESS_BACKEND_LIMIT_MEMORY" | default "256Mi" }}'
+          requests:
+            cpu: '{{ env "KEY_GATE_INGRESS_BACKEND_REQUEST_CPU" | default "50m" }}'
+            memory: '{{ env "KEY_GATE_INGRESS_BACKEND_REQUEST_MEMORY" | default "128Mi" }}'
+        ## Optional: KEY_GATE_INGRESS_BACKEND_KIND; Valid values: DaemonSet or Deployment
+        kind: '{{ env "KEY_GATE_INGRESS_BACKEND_KIND" | default "Deployment" }}'
+        defaultBackendService: "kube-system/ingress-backend-default"
+        ingressClass: '{{ env "KEY_GATE_INGRESS_BACKEND_CLASS" | default "gatekeeper" }}'
+        config:
+          # Setting custom-http-errors to unused codes 418 and 599 effectively disables
+          # nginx from intercepting any error codes, and instead they will all be passed
+          # through to the back end.
+          custom-http-errors: '418,599'
+        service:
+          annotations:
+            service.beta.kubernetes.io/aws-load-balancer-internal: "true"
+        stats:
+          enabled: {{ env "KEY_GATE_INGRESS_BACKEND_METRICS_ENABLED" | default "false" }}
+        metrics:
+          enabled: {{ env "KEY_GATE_INGRESS_BACKEND_METRICS_ENABLED" | default "false" }}
+      ### Regexp used to map
+      ### 8080:default/example-tcp-svc:9000,8081:staging/example-tcp-svc:9000
+      ### to
+      ### 8080: default/example-tcp-svc:9000
+      ### 8081: staging/example-tcp-svc:9000
+      ### Optional: KEY_GATE_INGRESS_BACKEND_TCP; e.g. 8080:default/example-tcp-svc:9000,8081:staging/example-tcp-svc:9000
+      tcp:
+      {{- range env "KEY_GATE_INGRESS_BACKEND_TCP" | splitList "," }}
+        {{ regexReplaceAll "(\\d*:)(.*)" . "$1 $2" }}
+      {{- end }}
+      ### Regexp used to map
+      ### 8080:default/example-udp-svc:9000,8081:staging/example-udp-svc:9000
+      ### to
+      ### 8080: default/example-udp-svc:9000
+      ### 8081: staging/example-udp-svc:9000
+      ### Optional: KEY_GATE_INGRESS_BACKEND_UDP; e.g. 8080:default/example-udp-svc:9000,8081:staging/example-udp-svc:9000
+      udp:
+      {{- range env "KEY_GATE_INGRESS_BACKEND_UDP" | splitList "," }}
+        {{ regexReplaceAll "(\\d*:)(.*)" . "$1 $2" }}
+      {{- end }}
+
+      defaultBackend:
+        enabled: false
+      rbac:
+        ### Optional: RBAC_ENABLED;
+        create: {{ env "RBAC_ENABLED" | default "false" }}
+      serviceAccount:
+        ### Optional: RBAC_ENABLED;
+        create: {{ env "RBAC_ENABLED" | default "false" }}
+        ### Optional: KEY_GATE_INGRESS_BACKEND_SERVICE_ACCOUNT_NAME;
+        name: '{{ env "KEY_GATE_INGRESS_BACKEND_SERVICE_ACCOUNT_NAME" | default "" }}'
+- name: "key-gate-ingress-forecastle"
+  namespace: "gatekeeper"
+  labels:
+    chart: "forecastle"
+    repo: "github"
+    component: "iap"
+    namespace: "gatekeeper"
+    vendor: "stakater"
+    default: "false"
+  chart: "forecastle/forecastle"
+  version: "v1.0.25"
+  wait: false
+  installed: {{ env "KEY_GATE_INGRESS_FORECASTLE_INSTALLED" | default "true" }}
+  values:
+    - nameOverride: key-gate-ingress-forecastle
+      fullNameOverride: key-gate-ingress-forecastle
+      forecastle:
+        image:
+          pullPolicy: "IfNotPresent"
+        namespace: "gatekeeper"
+        deployment:
+          annotations: ""
+        config:
+          instanceName: "gatekeeper"
+          namespaceSelector:
+            any: true
+            matchNames: []
+          title: {{ env "KEY_GATE_INGRESS_FORECASTLE_TITLE" | default "Portal - QA" }}
+        service:
+          annotations: ""
+          expose: "true"
+
+- name: 'key-gate-ingress-forecastle-ingress'
+  chart: "kubernetes-incubator/raw"
+  namespace: "gatekeeper"
+  labels:
+    component: "iap"
+    namespace: "gatekeeper"
+    default: "false"
+  version: "0.1.0"
+  wait: true
+  force: true
+  recreatePods: true
+  installed: {{ env "KEY_GATE_INGRESS_FORECASTLE_INSTALLED" | default "true" }}
+  values:
+  - resources:
+    - apiVersion: extensions/v1beta1
+      kind: Ingress
+      metadata:
+        annotations:
+          forecastle.stakater.com/appName: Gatekeeper-QA
+          forecastle.stakater.com/expose: "true"
+          forecastle.stakater.com/instance: default
+          forecastle.stakater.com/group: kube-system
+          kubernetes.io/ingress.class: gatekeeper
+          kubernetes.io/tls-acme: "false"
+        name: gatekeeper
+      spec:
+        tls:
+        - hosts:
+          - 'gatekeeper.qa.spoton.sh'
+          secretName: 'key-gate-ingress-tls'
+        rules:
+        - host: 'gatekeeper.qa.spoton.sh'
+          http:
+            paths:
+              - path: /
+                backend:
+                  serviceName: 'key-gate-ingress-forecastle'
+                  servicePort: http
+

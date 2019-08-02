@@ -58,7 +58,7 @@ releases:
         create: {{ env "RBAC_ENABLED" | default "false" }}
       ingressShim:
         ### Optional: CERT_MANAGER_INGRESS_SHIM_DEFAULT_ISSUER_NAME;
-        defaultIssuerName: '{{ env "CERT_MANAGER_INGRESS_SHIM_DEFAULT_ISSUER_NAME" | default "letsencrypt-prod" }}'
+        defaultIssuerName: '{{ env "CERT_MANAGER_INGRESS_SHIM_DEFAULT_ISSUER_NAME" | default "letsencrypt-staging" }}'
         ### Optional: CERT_MANAGER_INGRESS_SHIM_DEFAULT_ISSUER_KIND;
         defaultIssuerKind: '{{ env "CERT_MANAGER_INGRESS_SHIM_DEFAULT_ISSUER_KIND" | default "ClusterIssuer" }}'
         # defaultIssuerName: ""
