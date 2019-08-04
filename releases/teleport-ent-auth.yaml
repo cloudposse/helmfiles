@@ -74,7 +74,7 @@ releases:
     resources:
       limits:
         cpu: {{ coalesce (env "TELEPORT_AUTH_CPU_LIMT") (env "TELEPORT_CPU_LIMT") "100m" }}
-        memory: {{ coalesce (env "TELEPORT_AUTH_MEMORY_LIMT") (env "TELEPORT_MEMORY_LIMT") "64Mi" }}
+        memory: {{ coalesce (env "TELEPORT_AUTH_MEMORY_LIMT") (env "TELEPORT_MEMORY_LIMT") "92Mi" }}
       requests:
-        cpu: 100m
+        cpu: 10m
         memory: 64Mi

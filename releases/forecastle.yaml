@@ -15,7 +15,7 @@ releases:
 
   #
   # References:
-  #   - https://github.com/stakater/Forecastle/tree/v1.0.22/deployments/kubernetes/chart/forecastle
+  #   - https://github.com/stakater/Forecastle/tree/v1.0.25/deployments/kubernetes/chart/forecastle
   #   - https://github.com/stakater/Forecastle
   #
   - name: "forecastle"
@@ -31,6 +31,8 @@ releases:
     version: "v1.0.25"
     wait: false
     installed: {{ env "FORECASTLE_INSTALLED" | default "true" }}
+    force: true
+    recreatePods: true
     values:
       - forecastle:
           image:
@@ -39,7 +41,8 @@ releases:
           deployment:
             annotations: ""
           config:
-            instanceName: default
+            # If only running one instance of Forecastle, it is best to leave the instance name blank
+            instanceName: {{ env "FORECASTLE_INSTANCE_NAME" }}
             namespaceSelector:
               {{- if env "FORECASTLE_NAMESPACES" }}
               matchNames: [{{- env "FORECASTLE_NAMESPACES" | default "kube-system,monitoring" }}]
