@@ -16,6 +16,23 @@ repositories:
 
 releases:
 
+################################################################################
+## oidc-ingress                                                               ##
+## oidc-ingress is a package of resources that implement an ingress protected ##
+## by an OIDC authorization server that authenticates users and distributes   ##
+## authorizations in the form of OIDC claims (by default, "roles").           ##
+################################################################################
+
+#############################################################################
+## Security consideration
+##
+## Ensure your use of oidc-ingress and the configuration of your clients and
+## authorization server guard against the attacks described in RFC 6749.
+##  https://tools.ietf.org/html/rfc6749#section-10.6
+##
+##############################################################################
+
+
 #######################################################################################
 ## keycloak-gatekeeper (formerly keycloak-proxy)                                     ##
 ## keycloak-gatekeeper is an open source identity-aware proxy                        ##
