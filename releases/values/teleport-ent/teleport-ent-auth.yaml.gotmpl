@@ -111,10 +111,18 @@ config:
       # We recommend to use tools like `pwgen` to generate sufficiently random
       # tokens of 32+ byte length.
       tokens:
-        - node:{{ env "TELEPORT_NODE_TOKEN" | default "node-not-completely-secure-but-not-a-huge-risk" }}
-        - proxy:{{ env "TELEPORT_PROXY_TOKEN" | default "proxy-not-completely-secure-but-not-a-huge-risk" }}
-        - auth:{{ env "TELEPORT_AUTH_TOKEN" | default "auth-not-completely-secure-but-not-a-huge-risk" }}
-        - trusted_cluster:{{ env "TELEPORT_CLUSTER_TOKEN" | default "cluster-not-completely-secure-but-not-a-huge-risk" }}
+{{- if env "TELEPORT_NODE_TOKEN" }}
+        - 'node:{{ env "TELEPORT_NODE_TOKEN" }}'
+{{- end }}
+{{- if env "TELEPORT_PROXY_TOKEN" }}
+        - 'proxy:{{ env "TELEPORT_PROXY_TOKEN" }}'
+{{- end }}
+{{- if env "TELEPORT_AUTH_TOKEN" }}
+        - 'auth:{{ env "TELEPORT_AUTH_TOKEN" }}'
+{{- end }}
+{{- if env "TELEPORT_CLUSTER_TOKEN" }}
+        - 'trusted_cluster:{{ env "TELEPORT_CLUSTER_TOKEN" }}'
+{{- end }}
 
       # Optional "cluster name" is needed when configuring trust between multiple
       # auth servers. A cluster name is used as part of a signature in certificates

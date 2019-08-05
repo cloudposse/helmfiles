@@ -116,11 +116,11 @@ releases:
 
     resources:
       limits:
-        cpu: 100m
-        memory: 64Mi
+        cpu: {{ coalesce (env "TELEPORT_PROXY_CPU_LIMT") (env "TELEPORT_CPU_LIMT") "50m" }}
+        memory: {{ coalesce (env "TELEPORT_PROXY_MEMORY_LIMT") (env "TELEPORT_MEMORY_LIMT") "64Mi" }}
       requests:
-        cpu: 100m
-        memory: 64Mi
+        cpu: 10m
+        memory: 32Mi
 
     nodeSelector: {}
 

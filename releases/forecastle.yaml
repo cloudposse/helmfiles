@@ -3,7 +3,8 @@ repositories:
   - name: "forecastle"
     # Cannot use release tags, see https://github.com/aslafy-z/helm-git/issues/9
     # url: "git+https://github.com/stakater/Forecastle@deployments/kubernetes/chart?ref=v1.0.22"
-    url: "git+https://github.com/stakater/Forecastle@deployments/kubernetes/chart?ref=8d6e5cd2dba3ad6c265ae94138c40276425b7634"
+    # v1.0.22: url: "git+https://github.com/stakater/Forecastle@deployments/kubernetes/chart?ref=8d6e5cd2dba3ad6c265ae94138c40276425b7634"
+    url: "git+https://github.com/stakater/Forecastle@deployments/kubernetes/chart?ref=8f36b82beaf2a1a42b364a3857bc83638c51e30b"
 
 releases:
 
@@ -14,7 +15,7 @@ releases:
 
   #
   # References:
-  #   - https://github.com/stakater/Forecastle/tree/v1.0.22/deployments/kubernetes/chart/forecastle
+  #   - https://github.com/stakater/Forecastle/tree/v1.0.25/deployments/kubernetes/chart/forecastle
   #   - https://github.com/stakater/Forecastle
   #
   - name: "forecastle"
@@ -27,9 +28,11 @@ releases:
       vendor: "stakater"
       default: "false"
     chart: "forecastle/forecastle"
-    version: "v1.0.22"
+    version: "v1.0.25"
     wait: false
     installed: {{ env "FORECASTLE_INSTALLED" | default "true" }}
+    force: true
+    recreatePods: true
     values:
       - forecastle:
           image:
@@ -38,7 +41,15 @@ releases:
           deployment:
             annotations: ""
           config:
-            namespaces: [{{- env "FORECASTLE_NAMESPACES" | default "kube-system,monitoring" }}]
+            # If only running one instance of Forecastle, it is best to leave the instance name blank
+            instanceName: {{ env "FORECASTLE_INSTANCE_NAME" }}
+            namespaceSelector:
+              {{- if env "FORECASTLE_NAMESPACES" }}
+              matchNames: [{{- env "FORECASTLE_NAMESPACES" | default "kube-system,monitoring" }}]
+              {{- else }}
+              any: true
+              matchNames: []
+              {{- end }}
             title: {{ env "FORECASTLE_TITLE" | default "Portal" }}
           service:
             annotations: ""

@@ -48,7 +48,7 @@ releases:
 {{- if env "TELEPORT_SAML_ENTITY_DESCRIPTOR" }}
   - ./values/teleport-ent/teleport-ent-saml-connector.yaml.gotmpl
 {{- end }}
-    ## Remaining configuration
+  ## Remaining configuration
   - nameOverride: "teleport-auth"
     image:
       repository: quay.io/gravitational/teleport-ent
@@ -73,8 +73,8 @@ releases:
 {{- end }}
     resources:
       limits:
-        cpu: 100m
-        memory: 64Mi
+        cpu: {{ coalesce (env "TELEPORT_AUTH_CPU_LIMT") (env "TELEPORT_CPU_LIMT") "100m" }}
+        memory: {{ coalesce (env "TELEPORT_AUTH_MEMORY_LIMT") (env "TELEPORT_MEMORY_LIMT") "92Mi" }}
       requests:
-        cpu: 100m
+        cpu: 10m
         memory: 64Mi
