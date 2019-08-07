@@ -53,6 +53,39 @@ bootstrap:
               verbs: [delete]
             - resources: [trusted_cluster]
               verbs: [create, update]
+    power-user.yaml: |
+      kind: "role"
+      version: "v3"
+      metadata:
+        name: "power-user"
+      spec:
+        options:
+          # max_session_ttl defines the TTL (time to live) of SSH certificates
+          # issued to the users with this role.
+          max_session_ttl: "{{ env "TELEPORT_SESSION_TTL" | default "4h" }}"
+          port_forwarding: false
+        allow:
+          # Deny SSH access
+          logins: []
+          node_labels: {}
+          ## Enable Kubernetes integration
+          kubernetes_groups: ["oidc:power-user","oidc:observer"]
+          rules:
+            - resources: ["*"]
+              verbs: ["*"]
+        deny:
+          logins: ['*']
+          node_labels:
+            "*": "*"
+          rules:
+            - resources: [role]
+              verbs: [create, update]
+            - resources: [auth_connector]
+              verbs: [create, update]
+            - resources: [session]
+              verbs: [delete]
+            - resources: [trusted_cluster]
+              verbs: [create, update]
     view.yaml: |
       kind: "role"
       version: "v3"
@@ -73,3 +106,27 @@ bootstrap:
           rules:
             - resources: [session]
               verbs: [list, read]
+    observer.yaml: |
+      kind: "role"
+      version: "v3"
+      metadata:
+        name: "observer"
+      spec:
+        options:
+          # max_session_ttl defines the TTL (time to live) of SSH certificates
+          # issued to the users with this role.
+          max_session_ttl: "{{ env "TELEPORT_SESSION_TTL" | default "4h" }}"
+          port_forwarding: false
+        allow:
+          # Deny SSH access
+          logins: []
+          node_labels: {}
+          ## Enable Kubernetes integration
+          kubernetes_groups: ["oidc:observer"]
+        deny:
+          logins: ['*']
+          node_labels:
+            "*": "*"
+          rules:
+            - resources: ["*"]
+              verbs: ["*"]

@@ -28,12 +28,12 @@ releases:
 #
 {{ range $index, $service := .Environment.Values.services }}
 - name: "key-gate-{{- $service.name }}"
-  namespace: "kube-system"
+  namespace: '{{- env "KEYCLOAK_GATEKEEPER_NAMESPACE" | default "kube-system" }}'
   labels:
     chart: "keycloak-gatekeeper"
     repo: "gabibbo97"
     component: "iap"
-    namespace: "kube-system"
+    namespace: '{{- env "KEYCLOAK_GATEKEEPER_NAMESPACE" | default "kube-system" }}'
     vendor: "keycloak"
     default: "false"
   chart: "gabibbo97/keycloak-gatekeeper"
@@ -44,7 +44,7 @@ releases:
   - nameOverride: "key-gate-{{- $service.name }}"
     fullNameOverride: "key-gate-{{- $service.name }}"
     image:
-      tag: 5.0.0
+      tag: 6.0.1
       pullPolicy: "IfNotPresent"
     debug: {{ index $service "debug" | default "false" }}
     replicas: {{ index $service "replicas" | default 1 }}
@@ -71,6 +71,9 @@ releases:
         {{- end }}
         {{- if index $service "forecastleInstanceName"  }}
         forecastle.stakater.com/instance: "{{ $service.forecastleInstanceName }}"
+        {{- end }}
+        {{- if index $service "forecastleGroupName"  }}
+        forecastle.stakater.com/group: "{{ $service.forecastleGroupName }}"
         {{- end }}
         {{- if index $service "ingressAnnotations" }}
 {{- with $service.ingressAnnotations }}

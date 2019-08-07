@@ -26,12 +26,79 @@ releases:
       - apiVersion: rbac.authorization.k8s.io/v1
         kind: ClusterRoleBinding
         metadata:
-          name: {{ env "OIDC_ROLE_ROLE_NAME" | default "oidc-role" }}
+          name: {{ env "OIDC_ROLE_ROOT_CRB_NAME" | default "oidc-root" }}
         roleRef:
           apiGroup: rbac.authorization.k8s.io
           kind: ClusterRole
-          name: {{ env "OIDC_ROLE_CLUSTER_ROLE" | default "cluster-admin" }}
+          name: {{ env "OIDC_ROLE_ROOT_CLUSTER_ROLE" | default "cluster-admin" }}
         subjects:
         - apiGroup: rbac.authorization.k8s.io
           kind: Group
-          name: {{ env "OIDC_ROLE_CLIENT_ROLE" | default "oidc:kube-admin" }}
+          name: {{ env "OIDC_ROLE_ROOT_CLIENT_ROLE" | default "oidc:kube-admin" }}
+        - apiGroup: rbac.authorization.k8s.io
+          kind: User
+          name: {{ env "OIDC_ROLE_ROOT_CLIENT_ROLE" | default "oidc:kube-admin" }}
+      - apiVersion: rbac.authorization.k8s.io/v1
+        kind: ClusterRoleBinding
+        metadata:
+          name: {{ env "OIDC_ROLE_POWER_USER_CRB_NAME" | default "oidc-power-user" }}
+        roleRef:
+          apiGroup: rbac.authorization.k8s.io
+          kind: ClusterRole
+          name: {{ env "OIDC_ROLE_POWER_USER_CLUSTER_ROLE" | default "edit" }}
+        subjects:
+        - apiGroup: rbac.authorization.k8s.io
+          kind: Group
+          name: {{ env "OIDC_ROLE_POWER_USER_CLIENT_ROLE" | default "oidc:power-user" }}
+        - apiGroup: rbac.authorization.k8s.io
+          kind: User
+          name: {{ env "OIDC_ROLE_POWER_USER_CLIENT_ROLE" | default "oidc:power-user" }}
+      - apiVersion: rbac.authorization.k8s.io/v1
+        kind: ClusterRoleBinding
+        metadata:
+          name: {{ env "OIDC_ROLE_OBSERVER_CRB_NAME" | default "oidc-observer" }}
+        roleRef:
+          apiGroup: rbac.authorization.k8s.io
+          kind: ClusterRole
+          name: {{ env "OIDC_ROLE_OBSERVER_CLUSTER_ROLE" | default "oidc-observer" }}
+        subjects:
+        - apiGroup: rbac.authorization.k8s.io
+          kind: Group
+          name: {{ env "OIDC_ROLE_OBSERVER_CLIENT_ROLE" | default "oidc:observer" }}
+        - apiGroup: rbac.authorization.k8s.io
+          kind: User
+          name: {{ env "OIDC_ROLE_OBSERVER_CLIENT_ROLE" | default "oidc:observer" }}
+      - apiVersion: rbac.authorization.k8s.io/v1
+        kind: ClusterRole
+        metadata:
+          name: {{ env "OIDC_ROLE_OBSERVER_CLUSTER_ROLE" | default "oidc-observer" }}
+        aggregationRule:
+          clusterRoleSelectors:
+            - matchLabels:
+                rbac.authorization.k8s.io/aggregate-to-view: "true"
+            - matchLabels:
+                rbac.authorization.k8s.io/aggregate-to-observer: "true"
+      - apiVersion: rbac.authorization.k8s.io/v1
+        kind: ClusterRole
+        metadata:
+          name: {{ env "OIDC_ROLE_OBSERVER_CLUSTER_ROLE" | default "oidc-observer" }}-extra
+          labels:
+            rbac.authorization.k8s.io/aggregate-to-observer: "true"
+        rules:
+        - apiGroups:
+            - ""
+          resources:
+            - secrets
+          verbs:
+            - list
+        - apiGroups:
+            - monitoring.coreos.com
+          resources:
+            - alertmanagers
+            - prometheuses
+            - servicemonitors
+            - prometheusrules
+          verbs:
+            - list
+            - get
+
