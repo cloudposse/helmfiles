@@ -75,8 +75,11 @@ releases:
           {{- if eq (env "KEYCLOAK_FORECASTLE_EXPOSE" | default "true") "true" }}
           forecastle.stakater.com/expose: "true"
           forecastle.stakater.com/appName: "Keycloak"
-          {{- if env "FORECASTLE_INSTANCE_NAME" }}
-          forecastle.stakater.com/instance: "{{ env "FORECASTLE_INSTANCE_NAME" }}"
+          {{- if coalesce (env "KEYCLOAK_FORECASTLE_INSTANCE_NAME") (env "FORECASTLE_INSTANCE_NAME") }}
+          forecastle.stakater.com/instance: '{{ coalesce (env "KEYCLOAK_FORECASTLE_INSTANCE_NAME") (env "FORECASTLE_INSTANCE_NAME") }}'
+          {{- end }}
+          {{- if env "KEYCLOAK_FORECASTLE_GROUP" }}
+          forecastle.stakater.com/group: "{{ env "KEYCLOAK_FORECASTLE_GROUP" | default "portal" }}"
           {{- end }}
           {{- end }}
         hosts: [{{ env "KEYCLOAK_INGRESS_HOSTS" }}]
