@@ -27,21 +27,23 @@ releases:
       vendor: "kubecost"
       default: "false"
     chart: "kubecost/cost-analyzer"
-    version: "v1.32.0"
+    version: "v1.37.0"
     wait: true
     installed: {{ env "KUBECOST_INSTALLED" | default "true" }}
     values:
       - serviceMonitor:
           enabled: true
+      - prometheusRule:
+          enabled: true
       {{- if eq (env "PROMETHEUS_OPERATOR_INSTALLED" | default "true") "true" }}
       - global:
           prometheus:
             enabled: false # If false, Prometheus will not be installed
-            fqdn: http://prometheus-operator-prometheus.monitoring.svc.cluster.local:9090
+            fqdn: '{{- env "PROMETHEUS_PROMETHEUS_SCHEME" | default "http" }}://{{- env "PROMETHEUS_PROMETHEUS_DOMAIN" | default "prometheus-operator-prometheus.monitoring.svc.cluster.local" }}:{{- env "PROMETHEUS_PROMETHEUS_PORT" | default "9090" }}'
           grafana:
             enabled: false # If false, Grafana will not be installed
-            domainName: {{ env "PROMETHEUS_GRAFANA_ROOT_DOMAIN" | default "prometheus-operator-grafana.monitoring.svc.cluster.local" }}
-            scheme: {{ env "PROMETHEUS_GRAFANA_ROOT_SCHEME" | default "http" }}
+            domainName: {{ env "PROMETHEUS_GRAFANA_DOMAIN" | default "prometheus-operator-grafana.monitoring.svc.cluster.local" }}
+            scheme: {{ env "PROMETHEUS_GRAFANA_SCHEME" | default "http" }}
             proxy: false
         grafana:
           sidecar:

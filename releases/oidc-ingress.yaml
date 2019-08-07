@@ -273,7 +273,7 @@ releases:
           {{- if env "FORECASTLE_INSTANCE_NAME" }}
           forecastle.stakater.com/instance: "{{ env "FORECASTLE_INSTANCE_NAME" }}"
           {{- end }}
-          forecastle.stakater.com/group: kube-system
+          forecastle.stakater.com/group: "{{ env "OIDC_INGRESS_FORECASTLE_GROUP" | default "portal" }}"
           kubernetes.io/ingress.class: '{{ env "OIDC_INGRESS_NGINX_CLASS" | default "oidc-ingress" }}'
           kubernetes.io/tls-acme: "false"
         name: oidc-ingress-portal
