@@ -28,12 +28,12 @@ releases:
 #
 {{ range $index, $service := .Environment.Values.services }}
 - name: "key-gate-{{- $service.name }}"
-  namespace: '{{- env "KEYCLOAK_GATEKEEPER_NAMESPACE" | default "kube-system" }}'
+  namespace: '{{- coalesce (index $service "namespace") (env "KEYCLOAK_GATEKEEPER_NAMESPACE") "kube-system" }}'
   labels:
     chart: "keycloak-gatekeeper"
     repo: "gabibbo97"
     component: "iap"
-    namespace: '{{- env "KEYCLOAK_GATEKEEPER_NAMESPACE" | default "kube-system" }}'
+    namespace: '{{- coalesce (index $service "namespace") (env "KEYCLOAK_GATEKEEPER_NAMESPACE") "kube-system" }}'
     vendor: "keycloak"
     default: "false"
   chart: "gabibbo97/keycloak-gatekeeper"
