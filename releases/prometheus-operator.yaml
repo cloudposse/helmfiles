@@ -36,7 +36,8 @@ releases:
       vendor: "coreos"
       default: "true"
     chart: "stable/prometheus-operator"
-    version: "5.5.0"
+    # https://github.com/helm/charts/tree/50fa3099e2f460f3aba04870b845b1b076a5ed8a/stable/prometheus-operator
+    version: "6.2.1"
     wait: true
     installed: {{ env "PROMETHEUS_OPERATOR_INSTALLED" | default "true" }}
     hooks:
@@ -104,7 +105,7 @@ releases:
             {{- end }}
           {{- end }}
           replicas: 1
-          retention: 45d
+          retention: {{ env "PROMETHEUS_OPERATOR_PROMETHEUS_RETENTION_PERIOD" | default "45d" }}
           logLevel: "warn"
           scrapeInterval: ""
           evaluationInterval: ""
@@ -115,6 +116,17 @@ releases:
           ruleSelectorNilUsesHelmValues: false
           ## serviceMonitorSelectorNilUsesHelmValues works just like ruleSelectorNilUsesHelmValues
           serviceMonitorSelectorNilUsesHelmValues: false
+          {{- if env "PROMETHEUS_OPERATOR_PROMETHEUS_STORAGE_SIZE" }}
+          storageSpec:
+            volumeClaimTemplate:
+              spec:
+                {{- if env "PROMETHEUS_OPERATOR_PROMETHEUS_STORAGE_CLASS" }}
+                storageClassName: {{ env "PROMETHEUS_OPERATOR_PROMETHEUS_STORAGE_CLASS" }}
+                {{- end }}
+                resources:
+                  requests:
+                    storage: {{ env "PROMETHEUS_OPERATOR_PROMETHEUS_STORAGE_SIZE" }}
+          {{- end }}
           externalUrl: "{{- env "PROMETHEUS_PROMETHEUS_EXTERNAL_URL" | default (print "https://api." (env "KOPS_CLUSTER_NAME") "/api/v1/namespaces/monitoring/services/prometheus-operator-prometheus:web/proxy/") }}"
           resources:
             limits:
@@ -176,7 +188,7 @@ releases:
               memory: '{{ env "PROMETHEUS_ALERTMANAGER_REQUEST_MEMORY" | default "24Mi" }}'
       grafana:
         enabled: {{ env "GRAFANA_INSTALLED" | default "true" }}
-        adminPassword: {{ env "GRAFANA_ADMIN_PASSWORD" | default "prom-operator" }}
+        adminPassword: {{ env "GRAFANA_ADMIN_PASSWORD" | default "prom-operator-CHANGEME" }}
         defaultDashboardsEnabled: true
         sidecar:
           dashboards:
@@ -191,6 +203,38 @@ releases:
           auth.anonymous:
             enabled: true
             org_role: Admin
+          {{- end }}
+          {{- if eq (env "PROMETHEUS_KEYCLOAK_GATEKEEPER_ENABLED" | default "false") "true" }}
+          auth:
+            oauth_auto_login: true
+            disable_signout_menu: true
+          users:
+            auto_assign_org: true
+            auto_assign_org_id: 1
+            auto_assign_org_role: '{{ env "PROMETHEUS_KEYCLOAK_GATEKEEPER_AUTO_ROLE" | default "Admin" }}'
+          auth.generic_oauth:
+            enabled: true
+            allow_sign_up:  true
+            scopes:  openid profile email
+            client_id:  '{{- coalesce (env "KEYCLOAK_GATEKEEPER_CLIENT_ID") (env "KOPS_OIDC_CLIENT_ID") "kubernetes" }}'
+            client_secret:  '{{- requiredEnv "KEYCLOAK_GATEKEEPER_CLIENT_SECRET" }}'
+            auth_url:  '{{- coalesce (env "KEYCLOAK_GATEKEEPER_DISCOVERY_URL") (env "KOPS_OIDC_ISSUER_URL") }}/protocol/openid-connect/auth'
+            token_url:  '{{- coalesce (env "KEYCLOAK_GATEKEEPER_DISCOVERY_URL") (env "KOPS_OIDC_ISSUER_URL") }}/protocol/openid-connect/token'
+            api_url:  '{{- coalesce (env "KEYCLOAK_GATEKEEPER_DISCOVERY_URL") (env "KOPS_OIDC_ISSUER_URL") }}/protocol/openid-connect/userinfo'
+          {{- end }}
+          {{- if env "GRAFANA_DB_HOST" }}
+          # We are only supporting MySQL at this time
+          database:
+            type: mysql
+            host: '{{- env "GRAFANA_DB_HOST" }}:{{- env "GRAFANA_DB_PORT" | default "3306" }}'
+            name: {{ env "GRAFANA_DB_NAME" | default "grafana" }}
+            user: {{ env "GRAFANA_DB_USER" | default "grafana" }}
+            password: '"""{{ env "GRAFANA_DB_PASSWORD" }}"""'
+            ssl_mode: skip-verify
+            # Should not need this, but Grafana requires some certificate be
+            # present, even with ssl_mode: skip-verify
+            ca_cert_path: /etc/ssl/certs/Amazon_Root_CA_4.pem
+            log_queries: {{ env "GRAFANA_LOG_QUERIES" | default "false" }}
           {{- end }}
       kubeStateMetrics:
         enabled: true

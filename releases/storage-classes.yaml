@@ -1,0 +1,60 @@
+repositories:
+# Kubernetes incubator repo of helm charts
+- name: "kubernetes-incubator"
+  url: "https://kubernetes-charts-incubator.storage.googleapis.com"
+
+releases:
+# Define some StorageClasses for use in PersistentVolumeClamis
+#
+# References:
+#   - https://v1-12.docs.kubernetes.io/docs/concepts/storage/storage-classes/
+#   - https://github.com/helm/charts/tree/master/incubator/raw
+#
+- name: 'storage-classes'
+  chart: "kubernetes-incubator/raw"
+  namespace: kube-system
+  version: "0.1.0"
+  wait: true
+  force: true
+  recreatePods: false
+  installed: {{ env "STORAGE_CLASSES_INSTALLED" | default "true" }}
+  values:
+    - resources:
+      # Provision Storage Classes which wait for consumers
+      - kind: StorageClass
+        apiVersion: storage.k8s.io/v1
+        metadata:
+          name: gp2-wait
+        parameters:
+          type: gp2
+        provisioner: kubernetes.io/aws-ebs
+        reclaimPolicy: Delete
+        volumeBindingMode: WaitForFirstConsumer
+      - kind: StorageClass
+        apiVersion: storage.k8s.io/v1
+        metadata:
+          name: io1-wait
+        parameters:
+          type: io1
+          iopsPerGB: '{{- env "STORAGE_CLASSES_IOPS_PER_GB" | default "25" }}'
+        provisioner: kubernetes.io/aws-ebs
+        reclaimPolicy: Delete
+        volumeBindingMode: WaitForFirstConsumer
+      - kind: StorageClass
+        apiVersion: storage.k8s.io/v1
+        metadata:
+          name: st1-wait
+        parameters:
+          type: st1
+        provisioner: kubernetes.io/aws-ebs
+        reclaimPolicy: Delete
+        volumeBindingMode: WaitForFirstConsumer
+      - kind: StorageClass
+        apiVersion: storage.k8s.io/v1
+        metadata:
+          name: sc1-wait
+        parameters:
+          type: sc1
+        provisioner: kubernetes.io/aws-ebs
+        reclaimPolicy: Delete
+        volumeBindingMode: WaitForFirstConsumer
