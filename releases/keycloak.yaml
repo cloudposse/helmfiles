@@ -69,7 +69,7 @@ releases:
           kubernetes.io/ingress.class: nginx
           kubernetes.io/tls-acme: "true"
           ingress.kubernetes.io/affinity: cookie
-          nginx.ingress.kubernetes.io/app-root: /auth/admin
+          nginx.ingress.kubernetes.io/app-root: /auth/admin/
           external-dns.alpha.kubernetes.io/target: '{{ requiredEnv "NGINX_INGRESS_HOSTNAME" }}'
           external-dns.alpha.kubernetes.io/ttl: "60"
           {{- if eq (env "KEYCLOAK_FORECASTLE_EXPOSE" | default "true") "true" }}
