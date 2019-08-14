@@ -1,0 +1,71 @@
+repositories:
+  # Kubernetes incubator repo of helm charts
+  - name: "kubernetes-incubator"
+    url: "https://kubernetes-charts-incubator.storage.googleapis.com"
+
+######
+# You need to create a grafana-dashboards-definitions.yaml file with an array of
+# dashboard definitions.
+# See values/grafana-dashboards-definitions.yaml for an example
+#
+environments:
+  default:
+    values:
+      - {{ env "GRAFANA_DASHBOARDS_DEFINITIONS" | default "grafana-dashboards-definitions.yaml" }}
+
+releases:
+  #
+  # Create ConfigMaps with dashboard definitions for Grafana
+  #
+  # References:
+  #   - https://github.com/helm/charts/tree/master/stable/grafana#sidecar-for-dashboards
+  #   - https://github.com/helm/charts/tree/master/incubator/raw
+  #
+  - name: 'grafana-dashboards'
+    chart: "kubernetes-incubator/raw"
+    namespace: '{{- env "GRAFANA_DASHBOARDS_NAMESPACE" | default "monitoring" }}'
+    version: "0.2.3"
+    wait: true
+    force: true
+    recreatePods: false
+    installed: {{ env "GRAFANA_DASHBOARDS_INSTALLED" | default "true" }}
+    values:
+    - resources:
+      # Provision one configmap per dashboard, do not subject
+      # JSON to template parsing
+      {{- range $name, $definition := .Environment.Values.dashboards }}
+      {{- if index $definition "json" }}
+      - kind: ConfigMap
+        apiVersion: v1
+        metadata:
+          name: {{ $name }}
+          labels:
+            grafana_dashboard: "true"
+        data:
+          {{ $name }}.json: |-
+{{ $definition.json | indent 14 }}
+      {{- end }}
+      {{- end }}
+    - templates:
+      # Provision one configmap per dashboard, using file URIs
+      {{- range $name, $definition := .Environment.Values.dashboards }}
+      {{- if index $definition "path" }}
+      - |
+        kind: ConfigMap
+        apiVersion: v1
+        metadata:
+          name: {{ $name }}
+          labels:
+            grafana_dashboard: "true"
+        data:
+          {{ $name }}.json: |-
+        {{ print "{{ (index .Values `" $name "`).json | indent 4 }}" }}
+      {{- end }}
+      {{- end }}
+    set:
+    {{- range $name, $definition := .Environment.Values.dashboards }}
+    {{- if index $definition "path" }}
+    - name: "{{- $name }}.json"
+      file: "{{- $definition.path }}"
+    {{- end }}
+    {{- end }}

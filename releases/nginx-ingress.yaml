@@ -61,6 +61,10 @@ releases:
             external-dns.alpha.kubernetes.io/hostname: '{{ env "NGINX_INGRESS_HOSTNAME" }}'
             ### Optional: NGINX_INGRESS_TTL; e.g. 60
             external-dns.alpha.kubernetes.io/ttl: '{{ env "NGINX_INGRESS_TTL" | default "60" }}'
+        updateStrategy:
+          rollingUpdate:
+            maxUnavailable: 1
+          type: RollingUpdate
         stats:
           enabled: {{ env "NGINX_INGRESS_METRICS_ENABLED" | default "false" }}
         metrics:

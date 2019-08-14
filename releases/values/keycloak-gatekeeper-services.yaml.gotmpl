@@ -1,0 +1,24 @@
+######
+# Example keycloak-gatekeeper-services.yaml with comments. Most elements can be omitted.
+# services:
+#    - name: dashboard  # the service name
+#      portalName: "Kubernetes Dashboard"  # The name as it should appear in the Forecastle portal (omit to hide)
+#      host: dashboard.{{- requiredEnv "KOPS_CLUSTER_NAME" }} # The DNS name of the public endpoint
+#      useTLS: false  # True to generate a TLS certificate and use an HTTPS endpoint
+#      upstream: https://kubernetes-dashboard.kube-system.svc.cluster.local  # The service URL
+#      skipUpstreamTlsVerify: true # True to skip the validity check of the TLS certificate of the upstream URL
+#      rules: # Array of access control rules
+#        - "uri=/*|roles=kube-admin"
+#      replicas: 1 # number of replicas
+#    - name: forecastle
+#      debug: true
+#      host: forecastle.{{- requiredEnv "KOPS_CLUSTER_NAME" }}
+#      upstream: http://forecastle.kube-system.svc.cluster.local
+#      rules:
+#        - "uri=/*|roles=kube-admin,user|require-any-role=true"
+#      extraArgs:
+#        - enable-token-header=false
+#        - enable-authorization-header=false
+#        - enable-authorization-cookies=false
+
+######

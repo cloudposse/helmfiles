@@ -1,0 +1,60 @@
+repositories:
+  # Stable repo of official helm charts
+  - name: "stable"
+    url: "https://kubernetes-charts.storage.googleapis.com"
+
+releases:
+
+  #############################################################################
+  ## prometheus-cloudwatch-exporter                                          ##
+  ## Metrics exporter for Amazon AWS CloudWatch                              ##
+  #############################################################################
+
+  # References
+  #  - https://github.com/helm/charts/tree/master/stable/prometheus-cloudwatch-exporter
+  #  - https://github.com/helm/charts/blob/master/stable/prometheus-cloudwatch-exporter/values.yaml
+  #  - https://github.com/prometheus/cloudwatch_exporter
+
+  - name: "prometheus-cloudwatch-exporter"
+    namespace: {{ env "PROMETHEUS_CLOUDWATCH_EXPORTER_IAM_NAMESPACE" | default "cloudwatch" }}
+    labels:
+      chart: "prometheus-cloudwatch-exporter"
+      repo: "stable"
+      component: "monitoring"
+      namespace: {{ env "PROMETHEUS_CLOUDWATCH_EXPORTER_IAM_NAMESPACE" | default "cloudwatch" }}
+      vendor: "kubernetes"
+      default: "false"
+    chart: "stable/prometheus-cloudwatch-exporter"
+    version: "0.4.9"
+    wait: true
+    installed: {{ env "PROMETHEUS_CLOUDWATCH_EXPORTER_INSTALLED" | default "true" }}
+    {{- if env "PROMETHEUS_CLOUDWATCH_EXPORTER_CONFIG_FILE" }}
+    set:
+    - name: config
+      file: {{ env "PROMETHEUS_CLOUDWATCH_EXPORTER_CONFIG_FILE" }}
+    {{- end }}
+    values:
+      - image:
+          repository: '{{ env "PROMETHEUS_CLOUDWATCH_EXPORTER_IMAGE_REPO" | default "prom/cloudwatch-exporter" }}'
+          tag: '{{ env "PROMETHEUS_CLOUDWATCH_EXPORTER_IMAGE_TAG" | default "cloudwatch_exporter-0.5.0" }}'
+          pullPolicy: '{{ env "PROMETHEUS_CLOUDWATCH_EXPORTER_IMAGE_PULL_POLICY" | default "IfNotPresent" }}'
+        # Leave role empty if you are not using IAM based access control
+        aws:
+          role: '{{ env "PROMETHEUS_CLOUDWATCH_EXPORTER_IAM_ROLE" | default "" }}'
+        rbac:
+          create: {{ env "RBAC_ENABLED" | default "true" }}
+        serviceAccount:
+          create: true
+          name: prometheus-cloudwatch-exporter
+        # Prometheus Operator Service Monitor
+        serviceMonitor:
+          enabled: true
+          namespace: '{{ env "PROMETHEUS_CLOUDWATCH_EXPORTER_SERVICE_MONITOR_NAMESPACE" | default "monitoring" }}'
+        resources:
+          limits:
+            cpu: '{{ env "PROMETHEUS_CLOUDWATCH_EXPORTER_LIMIT_CPU" | default "200m" }}'
+            memory: '{{ env "PROMETHEUS_CLOUDWATCH_EXPORTER_LIMIT_MEMORY" | default "256Mi" }}'
+          requests:
+            cpu: '{{ env "PROMETHEUS_CLOUDWATCH_EXPORTER_REQUEST_CPU" | default "50m" }}'
+            memory: '{{ env "PROMETHEUS_CLOUDWATCH_EXPORTER_REQUEST_MEMORY" | default "128Mi" }}'
+

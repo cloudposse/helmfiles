@@ -5,7 +5,8 @@ repositories:
 
 ######
 # You need to create a keycloak-gatekeeper-services.yaml file with an array of services,
-# with values that do not use go templating
+# with values that do not use go templating, or you can use go templating
+# by adding `.gotmpl` to the end of the file name
 # See values/keycloak-gatekeeper-services.yaml for an example
 #
 environments:

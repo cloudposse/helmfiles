@@ -1,0 +1,28 @@
+#  # Example dashboard definitions
+#
+#  dashboards:
+#    # name of ConfigMap for dashboard
+#    control-plane:
+#      # path can be a URL or a file path.
+#      # Sadly you cannot use URLs directly from the Grafana library due to the
+#      # templating they use.
+#      path: https://raw.githubusercontent.com/cloudposse/grafana-dashboards/3.0/kube-prometheus/pods-dashboard.json
+#    # name of ConfigMap for dashboard
+#    pods:
+#      # This is not a valid dashboard, just a snippet to show where
+#      # the JSON goes.
+#      json: |-
+#        {
+#          "__inputs": [
+#          {
+#            "description": "",
+#            "label": "prometheus",
+#            "name": "DS_PROMETHEUS",
+#            "pluginId": "prometheus",
+#            "pluginName": "Prometheus",
+#            "type": "datasource"
+#          }
+#          ],
+#          ...
+#          "version": 1
+#        }
