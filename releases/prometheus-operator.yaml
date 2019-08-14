@@ -195,6 +195,8 @@ releases:
             enabled: true
             searchNamespace: ALL
             defaultFolderName: "AutoLoaded"
+        plugins:
+          - grafana-piechart-panel
         grafana.ini:
           server:
             # root_url: "https://api.{{- env "KOPS_CLUSTER_NAME" }}/api/v1/namespaces/kube-system/services/prometheus-operator-grafana:service/proxy/"
