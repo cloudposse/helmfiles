@@ -1,3 +1,5 @@
+{{ define "__cluster" }}{{ title (reReplaceAll `https?://[^.]+\.([^.]+)\.([^.]+)\..*$` "$2" .ExternalURL) }}{{ end }}
+{{ define "__cluster_in_region" }}{{ template "__cluster" . }} in {{ reReplaceAll `https?://[^.]+\.([^.]+)\.([^.]+)\..*$` "$1" .ExternalURL }}{{ end }}
 {{ define "__alertmanager" }}AlertManager{{ end }}
 {{ define "__alertmanagerURL" }}{{ .ExternalURL }}/#/alerts?receiver={{ .Receiver }}{{ end }}
 
@@ -15,12 +17,27 @@
 {{ end }}
 
 
-{{ define "slack.default.title" }}{{ template "__subject" . }}{{ end }}
-{{ define "slack.default.username" }}{{ template "__alertmanager" . }}{{ end }}
+{{ define "slack.default.icon_emoji" }}
+    {{- if eq .Status "firing" -}}
+        {{- $severity := (index .Alerts 0).Labels.severity -}}
+        {{- if or (eq $severity "critical") (eq $severity "page") -}}
+        :fire:
+        {{- else -}}
+        :rain_cloud:
+        {{- end }}
+    {{- else -}}
+        {{- if or (eq $severity "critical") (eq $severity "page") -}}
+        :droplet:
+        {{- else -}}
+        :rainbow:
+        {{- end -}}
+    {{- end -}}
+{{ end }}
+{{ define "slack.default.title" }}{{ template "slack.default.icon_emoji" . }}{{ template "__subject" . }}{{ end }}
+{{ define "slack.default.username" }}{{ template "__alertmanager" . }} - {{ template "__cluster" . }}{{ end }}
 {{ define "slack.default.fallback" }}{{ template "slack.default.title" . }} | {{ template "slack.default.titlelink" . }}{{ end }}
-{{ define "slack.default.pretext" }}{{ end }}
+{{ define "slack.default.pretext" }}{{ template "__cluster_in_region" . }}{{ end }}
 {{ define "slack.default.titlelink" }}{{ template "__alertmanagerURL" . }}{{ end }}
-{{ define "slack.default.iconemoji" }}{{ end }}
 {{ define "slack.default.iconurl" }}{{ end }}
 {{ define "slack.default.text" }}
 *{{ (index .Alerts 0).Labels.severity | title }}:* {{ .CommonAnnotations.description }}
@@ -50,7 +67,7 @@
 
 
 {{ define "pagerduty.default.description" }}{{ template "__subject" . }}{{ end }}
-{{ define "pagerduty.default.client" }}{{ template "__alertmanager" . }}{{ end }}
+{{ define "pagerduty.default.client" }}{{ template "__alertmanager" . }} for {{ template "__cluster" . }}{{ end }}
 {{ define "pagerduty.default.clientURL" }}{{ template "__alertmanagerURL" . }}{{ end }}
 
 {{ define "pagerduty.default.firing" }}
