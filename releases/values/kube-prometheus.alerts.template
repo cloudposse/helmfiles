@@ -2,10 +2,46 @@
 {{ define "__cluster_in_region" }}{{ template "__cluster" . }} in {{ reReplaceAll `https?://[^.]+\.([^.]+)\.([^.]+)\..*$` "$1" .ExternalURL }}{{ end }}
 {{ define "__alertmanager" }}AlertManager{{ end }}
 {{ define "__alertmanagerURL" }}{{ .ExternalURL }}/#/alerts?receiver={{ .Receiver }}{{ end }}
+{{ define "__status" }}{{ if eq .Status "firing" -}} Firing {{- else -}} Resolved {{- end }}{{ end }}
+{{ define "__subjectFiring" }}[{{ .Status | toUpper }}{{ if eq .Status "firing" }}:{{ .Alerts.Firing | len }}{{ end }}] {{ if eq (len .Alerts) 1 }}{{ (index .Alerts 0).Annotations.summary }}{{ else }}{{ .CommonAnnotations.summary }}{{ end }}{{ end }}
 
-{{ define "__subject" }}[{{ .Status | toUpper }}{{ if eq .Status "firing" }}:{{ .Alerts.Firing | len }}{{ end }}] {{ if eq (len .Alerts) 1 }}{{ (index .Alerts 0).Annotations.summary }}{{ else }}{{ .CommonAnnotations.summary }}{{ end }}{{ end }}
-{{ define "__description" }}{{ end }}
+{{ define "__headline" -}}
+  {{- if .Alerts.Firing -}}
+*{{ (index .Alerts.Firing 0).Labels.severity | title }}:* {{ .CommonLabels.alertname }}
+  {{- else -}}
+*{{ (index .Alerts.Resolved 0).Labels.severity | title }}:* {{ .CommonLabels.alertname }}
+  {{- end -}}
+{{- end -}}
 
+{{ define "__subject" }}
+  {{- if eq (len .Alerts) 1 }}[{{template "__status" . }}]: {{ .CommonLabels.alertname }} ({{ .CommonLabels.severity }})
+  {{- else -}}
+    {{- if gt (len .Alerts.Firing) 0}}[Firing:{{ len .Alerts.Firing }}]{{- end -}}
+    {{- if and (gt (len .Alerts.Firing) 0) (gt (len .Alerts.Resolved) 0)}}, {{ end -}}
+    {{- if gt (len .Alerts.Resolved) 0 -}}[Resolved:{{ len .Alerts.Resolved }}]{{- end -}}
+    : {{ .CommonLabels.alertname }} ({{ .CommonLabels.severity }})
+  {{- end -}}
+{{- end }}
+
+{{ define "__alert_description" }}
+  {{- if .Annotations.message -}}
+	{{- .Annotations.message -}}
+    {{- if .Annotations.description }}
+
+    {{ end -}}
+  {{- end -}}
+  {{- if .Annotations.description -}}
+	{{- .Annotations.description -}}
+  {{- end -}}
+{{- end -}}
+
+{{ define "__alert_other_annotations" }}
+  {{- range .Annotations.SortedPairs -}}
+    {{- if not (eq .Name "message" "description" "summary" "runbook_url") }}
+- {{ .Name }}: {{ .Value }}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
 
 {{ define "__text_alert_common" }}
 *{{ (index .Alerts 0).Labels.severity | title }}:* {{ .CommonAnnotations.description }}
@@ -17,53 +53,72 @@
 {{ end }}
 
 
-{{ define "slack.default.icon_emoji" }}
-    {{- if eq .Status "firing" -}}
-        {{- $severity := (index .Alerts 0).Labels.severity -}}
-        {{- if or (eq $severity "critical") (eq $severity "page") -}}
+{{ define "__iconemoji" }}
+    {{- if gt (len .Alerts.Firing) 0 -}}
+      {{- $severity := (index .Alerts.Firing 0).Labels.severity -}}
+      {{- if or (eq $severity "critical") (eq $severity "page") -}}
         :fire:
-        {{- else -}}
+      {{- else -}}
         :rain_cloud:
-        {{- end }}
-    {{- else -}}
-        {{- if or (eq $severity "critical") (eq $severity "page") -}}
+      {{- end }}
+    {{- end -}}
+    {{- if gt (len .Alerts.Resolved) 0 -}}
+      {{- $severity := (index .Alerts.Resolved 0).Labels.severity -}}
+      {{- if or (eq $severity "critical") (eq $severity "page") -}}
         :droplet:
-        {{- else -}}
+      {{- else -}}
         :rainbow:
-        {{- end -}}
+      {{- end -}}
     {{- end -}}
 {{ end }}
-{{ define "slack.default.title" }}{{ template "slack.default.icon_emoji" . }}{{ template "__subject" . }}{{ end }}
+
+{{- /* You might these helpful in developing your templates: */ -}}
+{{- /*   https://juliusv.com/promslack/                      */ -}}
+{{- /*   https://api.slack.com/docs/messages/builder         */ -}}
+{{- /*   https://prometheus.io/docs/alerting/notifications/  */ -}}
+{{ define "slack.default.iconemoji" }}{{ end }}
+{{ define "slack.default.title" }}{{ template "__iconemoji" . }} {{ template "__subject" . }}{{ end }}
 {{ define "slack.default.username" }}{{ template "__alertmanager" . }} - {{ template "__cluster" . }}{{ end }}
 {{ define "slack.default.fallback" }}{{ template "slack.default.title" . }} | {{ template "slack.default.titlelink" . }}{{ end }}
 {{ define "slack.default.pretext" }}{{ template "__cluster_in_region" . }}{{ end }}
 {{ define "slack.default.titlelink" }}{{ template "__alertmanagerURL" . }}{{ end }}
+{{ define "slack.default.footer" }}{{ end }}
 {{ define "slack.default.iconurl" }}{{ end }}
+
+{{ define "__slack_runbook" }}
+  {{- if .Annotations.runbook_url -}}
+:notebook: *<{{ .Annotations.runbook_url }}|Runbook>*
+  {{- end -}}
+{{ end }}
+
 {{ define "slack.default.text" }}
-*{{ (index .Alerts 0).Labels.severity | title }}:* {{ .CommonAnnotations.description }}
+  {{ /* template "__headline" . */ }}
+  {{- $root :=  . -}}
+  {{- if .CommonAnnotations.summary }}
+{{ .CommonAnnotations.summary }}
+  {{- end }}
 *Details:*{{ range .CommonLabels.SortedPairs }}
     • *{{ .Name }}:* `{{ .Value }}`{{ end }}
-{{ $root :=  . }}
+  {{- if gt (len .Alerts) 1 }}
 *Alerts:*
 --------
-{{ if eq .Status "firing" }}{{ range .Alerts.Firing }}
+  {{- end }}
+{{ range .Alerts }}
+{{ template "__status" . }}:
+{{ template "__alert_description" . }}
+{{ template "__slack_runbook" . }}
+
+{{ template "__alert_other_annotations" . }}
+  {{- if gt (len $root.Alerts) 1 }}
+
 *Additional Labels:* {{ range ( .Labels.Remove $root.CommonLabels.Names ).SortedPairs }}
     • *{{ .Name }}:* `{{ .Value }}`{{ else }}`None`{{ end }}
-*Additional Annotations:* {{ range ( .Annotations.Remove $root.CommonAnnotations.Names ).SortedPairs }}
-    • *{{ .Name }}:* `{{ .Value }}`{{ else }}`None`{{ end }}
+
 --------
-{{ end }}
-{{ else }}{{ range .Alerts.Resolved }}
-*Additional Labels:* {{ range ( .Labels.Remove $root.CommonLabels.Names ).SortedPairs }}
-    • *{{ .Name }}:* `{{ .Value }}`{{ else }}`None`{{ end }}
-*Additional Annotations:* {{ range ( .Annotations.Remove $root.CommonAnnotations.Names ).SortedPairs }}
-    • *{{ .Name }}:* `{{ .Value }}`{{ else }}`None`{{ end }}
---------
-{{ end }}
+  {{- end }}
 {{ end }}
 {{ end }}
 
-{{ define "slack.default.footer" }}{{ end }}
 
 
 {{ define "pagerduty.default.description" }}{{ template "__subject" . }}{{ end }}

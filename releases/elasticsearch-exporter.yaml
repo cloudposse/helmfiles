@@ -1,0 +1,38 @@
+repositories:
+  # Stable repo of official helm charts
+  - name: "stable"
+    url: "https://kubernetes-charts.storage.googleapis.com"
+
+releases:
+
+  #########################################################################################
+  ## elasticsearch-exporter - Prometheus exporter for various metrics about ElasticSearch #
+  #########################################################################################
+  #
+  - name: 'elasticsearch-exporter'
+    chart: "stable/elasticsearch-exporter"
+    namespace: monitoring
+    labels:
+      app: "elasticsearch-exporter"
+      component: "monitoring"
+      namespace: "monitoring"
+      default: "false"
+    version: "1.7.0"  # App version 1.0.2
+    wait: true
+    installed: {{ env "ELASTICSEARCH_EXPORTER_INSTALLED" | default "true" }}
+    values:
+      - replicaCount: 1  
+        es:
+          uri: {{ env "ELASTICSEARCH_EXPORTER_ELASTICSEARCH_URI" }}
+        serviceMonitor:
+          enabled: true
+        prometheusRule:
+          enabled: false
+        resources:
+          limits:
+            cpu: '{{ env "ELASTICSEARCH_EXPORTER_LIMIT_CPU" | default "20m" }}'
+            memory: '{{ env "ELASTICSEARCH_EXPORTER_LIMIT_MEMORY" | default "24Mi" }}'
+          requests:
+            cpu: '{{ env "ELASTICSEARCH_EXPORTER_REQUEST_CPU" | default "5m" }}'
+            memory: '{{ env "ELASTICSEARCH_EXPORTER_REQUEST_MEMORY" | default "12Mi" }}'
+  

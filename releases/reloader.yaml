@@ -40,3 +40,10 @@ releases:
         create: {{ env "RBAC_ENABLED" | default "false" }}
         ### Optional: RELOADER_SERVICE_ACCOUNT_NAME;
         name: '{{ env "RELOADER_SERVICE_ACCOUNT_NAME" | default "reloader" }}'
+      resources:
+        limits:
+          cpu: '{{ env "RELOADER_LIMIT_CPU" | default "10m" }}'
+          memory: '{{ env "RELOADER_LIMIT_MEMORY" | default "48Mi" }}'
+        requests:
+          cpu: '{{ env "RELOADER_REQUEST_CPU" | default "1m" }}'
+          memory: '{{ env "RELOADER_REQUEST_MEMORY" | default "32Mi" }}'

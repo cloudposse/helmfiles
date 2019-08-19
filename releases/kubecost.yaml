@@ -41,10 +41,13 @@ releases:
             enabled: false # If false, Prometheus will not be installed
             fqdn: '{{- env "PROMETHEUS_PROMETHEUS_SCHEME" | default "http" }}://{{- env "PROMETHEUS_PROMETHEUS_DOMAIN" | default "prometheus-operator-prometheus.monitoring.svc.cluster.local" }}:{{- env "PROMETHEUS_PROMETHEUS_PORT" | default "9090" }}'
           grafana:
+            {{ if eq (env "KUBECOST_GRAFANA_ENABLED" | default "false") "false" }}
             enabled: false # If false, Grafana will not be installed
-            domainName: {{ env "PROMETHEUS_GRAFANA_DOMAIN" | default "prometheus-operator-grafana.monitoring.svc.cluster.local" }}
-            scheme: {{ env "PROMETHEUS_GRAFANA_SCHEME" | default "http" }}
+            # This is the public facing domain name for Grafana.
+            domainName: {{ env "PROMETHEUS_GRAFANA_DOMAIN" }}
+            scheme: {{ env "PROMETHEUS_GRAFANA_SCHEME" | default "https" }}
             proxy: false
+            {{ end }}
         grafana:
           sidecar:
             dashboards:
