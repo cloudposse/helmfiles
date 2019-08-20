@@ -92,7 +92,6 @@
 {{ end }}
 
 {{ define "slack.default.text" }}
-  {{ /* template "__headline" . */ }}
   {{- $root :=  . -}}
   {{- if .CommonAnnotations.summary }}
 {{ .CommonAnnotations.summary }}
