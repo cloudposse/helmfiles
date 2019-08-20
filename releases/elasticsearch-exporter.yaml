@@ -9,6 +9,10 @@ releases:
   ## elasticsearch-exporter - Prometheus exporter for various metrics about ElasticSearch #
   #########################################################################################
   #
+  # References
+  #  - https://github.com/justwatchcom/elasticsearch_exporter
+  #  - https://github.com/helm/charts/tree/d9d925f8f40215ec14e011b7b3cb1805358dee94/stable/elasticsearch-exporter
+  #
   - name: 'elasticsearch-exporter'
     chart: "stable/elasticsearch-exporter"
     namespace: monitoring

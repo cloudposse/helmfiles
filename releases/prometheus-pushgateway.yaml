@@ -10,6 +10,11 @@ releases:
   ## to push stats to Prometheus rather than waiting to be scraped.      #
   ########################################################################
   #
+  # References:
+  #  - https://github.com/prometheus/pushgateway/tree/v0.9.1
+  #  - https://github.com/helm/charts/tree/master/stable/prometheus-pushgateway
+  #  - https://github.com/helm/charts/tree/24421f89b7d38c50ddddc06beacd4dd88333a820/stable/prometheus-pushgateway
+  #
   - name: 'prometheus-pushgateway'
     chart: "stable/prometheus-pushgateway"
     namespace: monitoring
