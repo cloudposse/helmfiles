@@ -1,0 +1,44 @@
+repositories:
+  # Stable repo of official helm charts
+  - name: "stable"
+    url: "https://kubernetes-charts.storage.googleapis.com"
+
+releases:
+  ########################################################################
+  ## prometheus-pushgateway                                              #
+  ## Service that allows applications (particularly ephemeral jobs)      #
+  ## to push stats to Prometheus rather than waiting to be scraped.      #
+  ########################################################################
+  #
+  # References:
+  #  - https://github.com/prometheus/pushgateway/tree/v0.9.1
+  #  - https://github.com/helm/charts/tree/master/stable/prometheus-pushgateway
+  #  - https://github.com/helm/charts/tree/24421f89b7d38c50ddddc06beacd4dd88333a820/stable/prometheus-pushgateway
+  #
+  - name: 'prometheus-pushgateway'
+    chart: "stable/prometheus-pushgateway"
+    namespace: monitoring
+    labels:
+      app: "prometheus-pushgateway"
+      component: "monitoring"
+      namespace: "monitoring"
+      default: "false"
+    version: "1.0.1"  # App version 0.9.1
+    wait: true
+    installed: {{ env "PROMETHEUS_PUSHGATEWAY_INSTALLED" | default "true" }}
+    values:
+      - replicaCount: 1  
+        es:
+          uri: {{ env "PROMETHEUS_PUSHGATEWAY_PROMETHEUS_URI" }}
+        serviceMonitor:
+          enabled: true
+        prometheusRule:
+          enabled: false
+        resources:
+          limits:
+            cpu: '{{ env "PROMETHEUS_PUSHGATEWAY_LIMIT_CPU" | default "20m" }}'
+            memory: '{{ env "PROMETHEUS_PUSHGATEWAY_LIMIT_MEMORY" | default "24Mi" }}'
+          requests:
+            cpu: '{{ env "PROMETHEUS_PUSHGATEWAY_REQUEST_CPU" | default "5m" }}'
+            memory: '{{ env "PROMETHEUS_PUSHGATEWAY_REQUEST_MEMORY" | default "12Mi" }}'
+  

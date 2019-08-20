@@ -26,6 +26,10 @@ releases:
 #   - https://github.com/gabibbo97/charts/tree/master/charts/keycloak-gatekeeper
 #   - https://hub.helm.sh/charts/gabibbo97/keycloak-gatekeeper
 #   - https://www.keycloak.org/
+#   The real list of configuration options:
+#   - https://github.com/keycloak/keycloak-gatekeeper/blob/82b697421e8dc2e32d70cf227620fa4cb6000ae8/doc.go#L155
+#   The default values
+#   - https://github.com/keycloak/keycloak-gatekeeper/blob/82b697421e8dc2e32d70cf227620fa4cb6000ae8/config.go#L36
 #
 {{ range $index, $service := .Environment.Values.services }}
 - name: "key-gate-{{- $service.name }}"
@@ -63,6 +67,11 @@ releases:
       annotations:
         kubernetes.io/ingress.class: nginx
         nginx.ingress.kubernetes.io/proxy-buffer-size: "16k"
+        {{- if index $service "proxyTimeout" }}
+        nginx.ingress.kubernetes.io/proxy-connect-timeout: "{{- $service.proxyTimeout -}}"
+        nginx.ingress.kubernetes.io/proxy-read-timeout: "{{- $service.proxyTimeout -}}"
+        nginx.ingress.kubernetes.io/proxy-send-timeout: "{{- $service.proxyTimeout -}}"
+        {{- end }}
         kubernetes.io/tls-acme: "{{ index $service "useTLS" | default false }}"
         external-dns.alpha.kubernetes.io/target: '{{ requiredEnv "NGINX_INGRESS_HOSTNAME" }}'
         external-dns.alpha.kubernetes.io/ttl: "60"
@@ -106,11 +115,21 @@ releases:
     scopes:
       - roles
     rules:
+      # See https://github.com/gabibbo97/charts/tree/master/charts/keycloak-gatekeeper#fine-grained-rules-for-authentication
       {{- range $i, $rule := $service.rules }}
       - "{{ $rule }}"
       {{- end }}
     {{- if index $service "extraArgs" }}
     extraArgs:
+      # proxyTimeout must be in seconds to work with nginx,
+      # but gatekeeper wants a golang Duration, so tack on "s"
+      {{- if index $service "proxyTimeout" }}
+      - upstream-timeout={{- $service.proxyTimeout -}}s
+      - server-read-timeout={{- $service.proxyTimeout -}}s
+      - server-write-timeout={{- $service.proxyTimeout -}}s
+      - upstream-expect-continue-timeout={{- $service.proxyTimeout -}}s
+      - upstream-response-header-timeout={{- $service.proxyTimeout -}}s
+      {{- end }}
       {{- range $i, $arg := $service.extraArgs }}
       - {{ $arg }}
       {{- end }}
@@ -136,5 +155,5 @@ releases:
         memory: "128Mi"
       requests:
         cpu: "10m"
-        memory: "10Mi"
+        memory: "15Mi"
 {{- end }}

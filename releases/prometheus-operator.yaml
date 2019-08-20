@@ -1,7 +1,11 @@
 #####
 # WARNING: This is a complete rewrite of this release as we switch
-# to the current helm stable chart at https://github.com/helm/charts/tree/master/stable/prometheus-operator
-# from the deprecated coreos-stable chart at https://github.com/coreos/prometheus-operator/tree/master/helm/prometheus-operator
+# to the
+#
+#        CURRENT helm stable chart at https://github.com/helm/charts/tree/master/stable/prometheus-operator
+#
+# from the DEPRECATED coreos-stable chart at
+# https://github.com/coreos/prometheus-operator/tree/master/helm/prometheus-operator
 #
 # OLD References:
 # OLD  - https://github.com/coreos/prometheus-operator/tree/master/helm/prometheus-operator
@@ -71,6 +75,10 @@ releases:
           pspEnabled: {{ coalesce (env "POD_SECURITY_POLICY_ENALBED") (env "RBAC_ENABLED") "true" }}
       defaultRules:
         create: true
+        rules:
+          # The default kubernetesResources rules trigger CPUThrottlingHigh alerts due to known bugs in
+          # the Linux kernel. You may want to replace them with rules better tuned to your situation
+          kubernetesResources: {{ env "PROMETHEUS_OPERATOR_RULES_KUBERNETES_RESOURCES_ENABLED" | default "true" }}
       additionalPrometheusRules: []
       prometheusOperator:
         enabled: {{ env "PROMETHEUS_OPERATOR_INSTALLED" | default "true" }}
@@ -159,22 +167,22 @@ releases:
           receivers:
             - name: 'null'
             - name: "general"
-{{ if not ( env "KUBE_PROMETHEUS_ALERT_MANAGER_SLACK_WEBHOOK_URL" | empty ) }}
+              {{- if not ( env "KUBE_PROMETHEUS_ALERT_MANAGER_SLACK_WEBHOOK_URL" | empty ) }}
               slack_configs:
                 ### Required: KUBE_PROMETHEUS_ALERT_MANAGER_SLACK_WEBHOOK_URL
                 - api_url: '{{ env "KUBE_PROMETHEUS_ALERT_MANAGER_SLACK_WEBHOOK_URL" }}'
                   ### Required: KUBE_PROMETHEUS_ALERT_MANAGER_SLACK_CHANNEL; e.g. #alerts-staging
                   channel: '{{ env "KUBE_PROMETHEUS_ALERT_MANAGER_SLACK_CHANNEL" }}'
                   send_resolved: true
-{{ end }}
-{{ if not ( env "KUBE_PROMETHEUS_ALERT_MANAGER_PAGERDUTY_INTEGRATION_KEY" | empty ) }}
+              {{- end }}
+              {{- if not ( env "KUBE_PROMETHEUS_ALERT_MANAGER_PAGERDUTY_INTEGRATION_KEY" | empty ) }}
               pagerduty_configs:
                 - routing_key: '{{ env "KUBE_PROMETHEUS_ALERT_MANAGER_PAGERDUTY_INTEGRATION_KEY" }}'
                   send_resolved: true
                   details:
                     firing: '{{"{{"}} template "pagerduty.default.firing" . {{"}}"}}'
                     resolved: '{{"{{"}} template "pagerduty.default.resolved" . {{"}}"}}'
-{{ end }}
+              {{- end }}
           templates:
             - ./*.tmpl
         alertmanagerSpec:
@@ -187,17 +195,36 @@ releases:
               cpu: '{{ env "PROMETHEUS_ALERTMANAGER_REQUEST_CPU" | default "10m" }}'
               memory: '{{ env "PROMETHEUS_ALERTMANAGER_REQUEST_MEMORY" | default "24Mi" }}'
       grafana:
+        # https://github.com/helm/charts/tree/dfa02f9b117a29de889f9c35e0b3abb6012a0877/stable/grafana#configuration
         enabled: {{ env "GRAFANA_INSTALLED" | default "true" }}
+        {{- if env "GRAFANA_IMAGE_TAG" }}
+        image:
+          tag: {{ env "GRAFANA_IMAGE_TAG" }}
+        {{- end }}
         adminPassword: {{ env "GRAFANA_ADMIN_PASSWORD" | default "prom-operator-CHANGEME" }}
-        defaultDashboardsEnabled: true
+        defaultDashboardsEnabled: {{ env "PROMETHEUS_GRAFANA_DEFAULT_DASHBOARDS_ENABLED" | default "true" }}
         sidecar:
           dashboards:
             enabled: true
             searchNamespace: ALL
             defaultFolderName: "AutoLoaded"
+        {{- if env "GRAFANA_IAM_ROLE" }}
+        podAnnotations:
+          iam.amazonaws.com/role: {{ env "GRAFANA_IAM_ROLE" }}
+        {{- end }}
         plugins:
           - grafana-piechart-panel
+        resources:
+          limits:
+            cpu: '{{ env "GRAFANA_LIMIT_CPU" | default "250m" }}'
+            memory: '{{ env "GRAFANA_LIMIT_MEMORY" | default "128Mi" }}'
+          requests:
+            cpu: '{{ env "GRAFANA_REQUEST_CPU" | default "25m" }}'
+            memory: '{{ env "GRAFANA_REQUEST_MEMORY" | default "72Mi" }}'
         grafana.ini:
+          dataproxy:
+            # default is 30 seconds
+            timeout: '{{ env "GRAFANA_PROXY_TIMEOUT" | default "90" }}'
           server:
             # root_url: "https://api.{{- env "KOPS_CLUSTER_NAME" }}/api/v1/namespaces/kube-system/services/prometheus-operator-grafana:service/proxy/"
             root_url: "{{- env "PROMETHEUS_GRAFANA_ROOT_URL" | default (print "https://api." (env "KOPS_CLUSTER_NAME") "/api/v1/namespaces/monitoring/services/prometheus-operator-grafana:service/proxy/") }}"
@@ -228,10 +255,10 @@ releases:
           # We are only supporting MySQL at this time
           database:
             type: mysql
-            host: '{{- env "GRAFANA_DB_HOST" }}:{{- env "GRAFANA_DB_PORT" | default "3306" }}'
-            name: {{ env "GRAFANA_DB_NAME" | default "grafana" }}
-            user: {{ env "GRAFANA_DB_USER" | default "grafana" }}
-            password: '"""{{ env "GRAFANA_DB_PASSWORD" }}"""'
+            host: '{{- env "GRAFANA_DB_HOST" -}} : {{- env "GRAFANA_DB_PORT" | default "3306" -}}'
+            name: '{{- env "GRAFANA_DB_NAME" | default "grafana" -}}'
+            user: '{{- env "GRAFANA_DB_USER" | default "grafana" -}}'
+            password: '"""{{- env "GRAFANA_DB_PASSWORD" -}}"""'
             ssl_mode: skip-verify
             # Should not need this, but Grafana requires some certificate be
             # present, even with ssl_mode: skip-verify
