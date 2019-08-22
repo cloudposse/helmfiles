@@ -30,15 +30,15 @@ releases:
     vendor: "kubernetes"
     default: "true"
   chart: "stable/nginx-ingress"
-  version: "0.25.1"
+  version: "1.17.1"
   wait: true
   installed: {{ env "NGINX_INGRESS_INSTALLED" | default "true" }}
   values:
     - controller:
         image:
           repository: "quay.io/kubernetes-ingress-controller/nginx-ingress-controller"
-          ### Optional: NGINX_INGRESS_IMAGE_TAG; e.g. 0.17.1
-          tag: '{{ env "NGINX_INGRESS_IMAGE_TAG" | default "0.17.1" }}'
+          ### Optional: NGINX_INGRESS_IMAGE_TAG; e.g. 0.25.1
+          tag: '{{ env "NGINX_INGRESS_IMAGE_TAG" | default "0.25.1" }}'
           pullPolicy: "IfNotPresent"
         ### Optional: NGINX_INGRESS_REPLICA_COUNT; Used only if `kind=Deployment` e.g. 4
         replicaCount: '{{ env "NGINX_INGRESS_REPLICA_COUNT" | default "4" }}'
@@ -65,10 +65,23 @@ releases:
           rollingUpdate:
             maxUnavailable: 1
           type: RollingUpdate
-        stats:
-          enabled: {{ env "NGINX_INGRESS_METRICS_ENABLED" | default "false" }}
         metrics:
           enabled: {{ env "NGINX_INGRESS_METRICS_ENABLED" | default "false" }}
+
+          serviceMonitor:
+            enabled: {{ env "NGINX_INGRESS_METRICS_ENABLED" | default "false" }}
+
+          prometheusRule:
+            enabled: {{ env "NGINX_INGRESS_METRICS_ENABLED" | default "false" }}
+            rules:
+              - alert: NginxIngressControllerError
+                annotations:
+                  description: Nginx ingress controller error
+                  summary: NginxIngressControllerError
+                expr: nginx_ingress_controller_requests > {{ env "NGINX_INGRESS_METRICS_CONTROLLER_ERROR_ALERT" | default "100000" }}
+                labels:
+                  severity: warning
+
       ### Regexp used to map
       ### 8080:default/example-tcp-svc:9000,8081:staging/example-tcp-svc:9000
       ### to
@@ -178,39 +191,7 @@ releases:
   wait: true
   installed: {{ env "NGINX_INGRESS_METRICS_INSTALLED" | default "true" }}
   values:
-  - prometheusRules:
-      nginx-ingress:
-        labels:
-          app: prometheus-operator
-          release: prometheus-operator
-        groups:
-        - name: nginx-ingress.rules
-          rules:
-          - alert: NginxIngressControllerError
-            annotations:
-              description: Nginx ingress controller error
-              summary: NginxIngressControllerError
-            expr: nginx_ingress_controller_requests > {{ env "NGINX_INGRESS_METRICS_CONTROLLER_ERROR_ALERT" | default "100000" }}
-            labels:
-              severity: warning
-
-    serviceMonitors:
-      nginx-ingress:
-        labels:
-          app: prometheus-operator
-          release: prometheus-operator
-        selector:
-          matchLabels:
-            app: nginx-ingress
-            component: controller
-        namespaceSelector:
-          matchNames:
-          - kube-system
-        endpoints:
-          - port: "metrics"
-            interval: 15s
-
-    configMaps:
+  - configMaps:
       dashboards:
         enabled: true
         labels:
