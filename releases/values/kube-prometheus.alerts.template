@@ -19,7 +19,8 @@
     {{- if gt (len .Alerts.Firing) 0}}[Firing:{{ len .Alerts.Firing }}]{{- end -}}
     {{- if and (gt (len .Alerts.Firing) 0) (gt (len .Alerts.Resolved) 0)}}, {{ end -}}
     {{- if gt (len .Alerts.Resolved) 0 -}}[Resolved:{{ len .Alerts.Resolved }}]{{- end -}}
-    : {{ .CommonLabels.alertname }} ({{ .CommonLabels.severity }})
+    : {{ .CommonLabels.alertname }} (
+    {{- if .CommonLabels.severity -}}{{- .CommonLabels.severity -}}{{- else -}}{{- "multiple severities" -}}{{- end -}})
   {{- end -}}
 {{- end }}
 
@@ -96,8 +97,6 @@
   {{- if .CommonAnnotations.summary }}
 {{ .CommonAnnotations.summary }}
   {{- end }}
-*Details:*{{ range .CommonLabels.SortedPairs }}
-    • *{{ .Name }}:* `{{ .Value }}`{{ end }}
   {{- if gt (len .Alerts) 1 }}
 *Alerts:*
 --------
@@ -115,7 +114,9 @@
 
 --------
   {{- end }}
-{{ end }}
+{{ end -}}
+*Details:*{{ range .CommonLabels.SortedPairs }}
+    • *{{ .Name }}:* `{{ .Value }}`{{ end }}
 {{ end }}
 
 
