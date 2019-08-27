@@ -56,11 +56,16 @@ releases:
         config:
           custom-http-errors: '{{ join "," $client_errors }},{{ join "," $server_errors }}'
         service:
+          externalTrafficPolicy: '{{ env "NGINX_INGRESS_EXTERNAL_TRAFFIC_POLICY" | default "Cluster" }}'
           annotations:
             ### Required: NGINX_INGRESS_HOSTNAME; e.g. ingress.us-west-2.cloudposse.org
             external-dns.alpha.kubernetes.io/hostname: '{{ env "NGINX_INGRESS_HOSTNAME" }}'
             ### Optional: NGINX_INGRESS_TTL; e.g. 60
             external-dns.alpha.kubernetes.io/ttl: '{{ env "NGINX_INGRESS_TTL" | default "60" }}'
+            ### Network Load Balancer to be able to get Client IP
+            {{- if eq ( env "NGINX_INGRESS_NLB_ENABLED" | default "false" ) "true" }}
+            service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
+            {{- end }}
         updateStrategy:
           rollingUpdate:
             maxUnavailable: 1
