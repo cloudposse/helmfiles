@@ -29,7 +29,7 @@ releases:
     chart: "stable/phpmyadmin"
     version: "3.0.1"
     wait: true
-    installed: '{{ env "PHPMYADMIN_INSTALLED" | default "true" }}'
+    installed: {{ env "PHPMYADMIN_INSTALLED" | default "true" }}
     values:
       - image:
           repository: '{{ env "PHPMYADMIN_IMAGE_REPOSITORY" | default "bitnami/phpmyadmin" }}'
@@ -44,7 +44,7 @@ releases:
         db:
           port: '{{ env "PHPMYADMIN_DB_PORT" | default "3306" }}'
           host: '{{ env "PHPMYADMIN_DB_HOST" | default "localhost" }}'
-          bundleTestDB: '{{ env "PHPMYADMIN_BUNDLE_TEST_DB" | default "false" }}'
+          bundleTestDB: {{ env "PHPMYADMIN_BUNDLE_TEST_DB" | default "false" }}
         resources:
           limits:
             cpu: "200m"
@@ -53,7 +53,7 @@ releases:
             cpu: "100m"
             memory: "128Mi"
         ingress:
-          enabled: '{{ env "PHPMYADMIN_INGRESS_ENABLED" | default "false" }}'
+          enabled: {{ env "PHPMYADMIN_INGRESS_ENABLED" | default "false" }}
           annotations:
             ingress.kubernetes.io/rewrite-target: /
             nginx.ingress.kubernetes.io/rewrite-target: /
