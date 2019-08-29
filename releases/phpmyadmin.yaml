@@ -53,7 +53,7 @@ releases:
             cpu: "100m"
             memory: "128Mi"
         ingress:
-          enabled: '{{ env "PHPMYADMIN_INGRESS_ENABLED" | default "true" }}'
+          enabled: '{{ env "PHPMYADMIN_INGRESS_ENABLED" | default "false" }}'
           annotations:
             ingress.kubernetes.io/rewrite-target: /
             nginx.ingress.kubernetes.io/rewrite-target: /
