@@ -38,6 +38,9 @@ releases:
         service:
           type: ClusterIP
           port: '{{ env "PHPMYADMIN_SERVICE_PORT" | default "80" }}'
+          labels:
+            # Show service URL in `kubectl cluster-info`
+            kubernetes.io/cluster-service: "true"
         db:
           port: '{{ env "PHPMYADMIN_DB_PORT" | default "3306" }}'
           host: '{{ env "PHPMYADMIN_DB_HOST" | default "localhost" }}'
