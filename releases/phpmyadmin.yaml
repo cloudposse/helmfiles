@@ -45,6 +45,7 @@ releases:
           port: '{{ env "PHPMYADMIN_DB_PORT" | default "3306" }}'
           host: '{{ env "PHPMYADMIN_DB_HOST" | default "localhost" }}'
           bundleTestDB: {{ env "PHPMYADMIN_BUNDLE_TEST_DB" | default "false" }}
+        probesEnabled: {{ env "PHPMYADMIN_PROBES_ENABLED" | default "true" }}
         resources:
           limits:
             cpu: "200m"
