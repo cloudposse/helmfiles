@@ -48,11 +48,11 @@ releases:
         probesEnabled: {{ env "PHPMYADMIN_PROBES_ENABLED" | default "true" }}
         resources:
           limits:
-            cpu: "200m"
-            memory: "256Mi"
+            cpu: '{{ env "PHPMYADMIN_LIMIT_CPU" | default "500m" }}'
+            memory: '{{ env "PHPMYADMIN_LIMIT_MEMORY" | default "512Mi" }}'
           requests:
-            cpu: "100m"
-            memory: "128Mi"
+            cpu: '{{ env "PHPMYADMIN_REQUEST_CPU" | default "200m" }}'
+            memory: '{{ env "PHPMYADMIN_REQUEST_MEMORY" | default "256Mi" }}'
         ingress:
           enabled: {{ env "PHPMYADMIN_INGRESS_ENABLED" | default "false" }}
           annotations:
