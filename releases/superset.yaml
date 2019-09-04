@@ -3,11 +3,6 @@ repositories:
   - name: "cloudposse-incubator-dev"
     url: "https://dev.charts.cloudposse.com/superset/incubator/"
 
-#
-# Kubernetes cluster
-#
-context: '{{ requiredEnv "KUBE_CONTEXT" }}'
-
 releases:
 
   ##########################################################################################
