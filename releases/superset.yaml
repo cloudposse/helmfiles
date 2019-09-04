@@ -119,7 +119,7 @@ releases:
           ## If true, superset server will create/use a Persistent Volume Claim
           ## If false, use emptyDir
           ##
-          enabled: false
+          enabled: true
 
           ## superset data Persistent Volume access modes
           ## Must match those of existing PV or dynamic provisioner
@@ -144,7 +144,7 @@ releases:
           ## Superset data Persistent Volume existing claim name
           ## Requires server.persistence.enabled: true
           ## If defined, PVC must be created manually before volume will be bound
-          existingClaim: ""
+          existingClaim: '{{ env "SUPERSET_EXISTING_CLAIM" }}'
 
         ## Expose the superset service to be accessed from outside the cluster (LoadBalancer service).
         ## or access it from within the cluster (ClusterIP service). Set the service type and the port to serve it.
