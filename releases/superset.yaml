@@ -1,7 +1,7 @@
 repositories:
   # Cloud Posse incubator repo of helm charts
   - name: "cloudposse-incubator-dev"
-    url: "https://dev.charts.cloudposse.com/superset/incubator/"
+    url: "https://charts.dev.cloudposse.com/superset/incubator/"
 
 releases:
 
