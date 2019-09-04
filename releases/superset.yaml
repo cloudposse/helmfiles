@@ -1,7 +1,7 @@
-#repositories:
-#  # Official helm charts
-#  - name: "stable"
-#    url: "https://kubernetes-charts.storage.googleapis.com/"
+repositories:
+  # Cloud Posse incubator repo of helm charts
+  - name: "cloudposse-incubator-dev"
+    url: "https://dev.charts.cloudposse.com/superset/incubator/"
 
 #
 # Kubernetes cluster
@@ -24,8 +24,7 @@ releases:
     labels:
       chart: "superset"
       namespace: "superset"
-    chart: "/localhost/Development/CloudPosse/charts/incubator/superset/"
-    #    chart: "stable/superset"
+    chart: "cloudposse-incubator-dev/superset"
     version: "1.1.8"
     wait: true
     installed: {{ env "SUPERSET_INSTALLED" | default "true" }}
