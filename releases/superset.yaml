@@ -1,0 +1,238 @@
+repositories:
+  # Cloud Posse incubator repo of helm charts
+  - name: "cloudposse-incubator"
+    url: "https://charts.cloudposse.com/incubator/"
+
+releases:
+
+  ##########################################################################################
+  ## Superset                                                                              ##
+  ## Apache Superset is a modern, enterprise-ready business intelligence web application  ##
+  ##########################################################################################
+
+  #
+  # References:
+  #   - https://github.com/helm/charts/blob/master/stable/airflow
+  #
+  - name: "superset"
+    namespace: "superset"
+    labels:
+      chart: "superset"
+      namespace: "superset"
+    chart: "cloudposse-incubator/superset"
+    version: "1.1.8"
+    wait: true
+    installed: {{ env "SUPERSET_INSTALLED" | default "true" }}
+
+    values:
+      - superset:
+        # Default values for superset.
+        # This is a YAML-formatted file.
+        # Declare variables to be passed into your templates.
+        replicaCount: 1
+
+        ## Set default image, imageTag, and imagePullPolicy.
+        image:
+          repository: "amancevice/superset"
+          tag: "0.28.1"
+          pullPolicy: "IfNotPresent"
+          pullSecrets: []
+
+        initFile: |-
+          /usr/local/bin/superset-init --username admin --firstname admin --lastname user --email admin@fab.org --password admin
+          superset runserver
+
+        configFile: |-
+          import os
+
+          ROW_LIMIT = os.environ.get('SUPERSET_ROW_LIMIT', 5000)
+          SUPERSET_WEBSERVER_PORT = os.environ.get('SUPERSET_WEBSERVER_PORT', 8080)
+
+          sql_alchemy_connection_string = '{user}:{password}@{host}/{database}'.format(
+              user=os.environ['SUPERSET_POSTGRESQL_USER'],
+              password=os.environ['SUPERSET_POSTGRESQL_PASSWORD'],
+              host=os.environ['SUPERSET_POSTGRESQL_HOST'],
+              database=os.environ['SUPERSET_POSTGRESQL_DATABASE'],
+          )
+
+          SECRET_KEY = os.environ['SUPERSET_SECRET_KEY']
+          SQLALCHEMY_DATABASE_URI = 'postgresql://' + sql_alchemy_connection_string
+
+          SESSION_COOKIE_NAME='session_superset'
+
+          WTF_CSRF_ENABLED = True
+          WTF_CSRF_EXEMPT_LIST = []
+          WTF_CSRF_TIME_LIMIT = 60 * 60 * 24 * 365
+          MAPBOX_API_KEY = ''
+
+          class CeleryConfig(object):
+              BROKER_URL = 'sqla+postgresql://' + sql_alchemy_connection_string
+              CELERY_IMPORTS = (
+                  'superset.sql_lab',
+              )
+              CELERY_RESULT_BACKEND = 'db+postgresql://' + sql_alchemy_connection_string
+              CELERYD_LOG_LEVEL = 'DEBUG'
+              CELERYD_PREFETCH_MULTIPLIER = 10
+              CELERY_ANNOTATIONS = {'tasks.add': {'rate_limit': '10/s'}}
+
+
+          CELERY_CONFIG = CeleryConfig
+
+          from werkzeug.contrib.cache import FileSystemCache
+          RESULTS_BACKEND = FileSystemCache(os.environ.get('SUPERSET_CACHE_DIR', '/var/lib/superset/cache'), default_timeout=60*24*7)
+
+        ## Extra confiuguration files and their content to be made available next to the config file
+        extraConfigFiles: {}
+          ## custom_sso_security_manager.py: |-
+          ##   from superset.security import SupersetSecurityManager
+        ##   ...
+
+        ## Extra environment variables that will be passed onto deployment pod
+        ##
+        extraEnv:
+          SUPERSET_ROW_LIMIT: {{ env "SUPERSET_ROW_LIMIT" | default "5000" }}
+          SUPERSET_WEBSERVER_PORT: {{ env "SUPERSET_WEBSERVER_PORT" | default "8088" }}
+          SUPERSET_POSTGRESQL_USER: {{ env "SUPERSET_POSTGRESQL_USER" | default "superset" }}
+          SUPERSET_POSTGRESQL_PASSWORD: {{ requiredEnv "SUPERSET_POSTGRESQL_PASSWORD" }}
+          SUPERSET_POSTGRESQL_HOST: {{ requiredEnv "SUPERSET_POSTGRESQL_HOST" }}
+          SUPERSET_POSTGRESQL_DATABASE: {{ requiredEnv "SUPERSET_POSTGRESQL_DATABASE" }}
+          SUPERSET_SECRET_KEY: {{ requiredEnv "SUPERSET_SECRET_KEY" }}
+          SUPERSET_CACHE_DIR: {{ env "SUPERSET_CACHE_DIR" | default "/var/lib/superset/cache" }}
+
+        ## The name of a secret in the same kubernetes namespace which contain values to be added to the environment
+        ## This can be useful for secret keys, etc
+        ##
+        extraEnvFromSecret: ""
+
+        ## Deployment level annotations
+        ## Useful for passing other third party annotations to interact with eg. kube2iam.
+        deploymentAnnotations: {}
+
+        persistence:
+
+          ## If true, superset server will create/use a Persistent Volume Claim
+          ## If false, use emptyDir
+          ##
+          enabled: true
+
+          ## superset data Persistent Volume access modes
+          ## Must match those of existing PV or dynamic provisioner
+          ## Ref: http://kubernetes.io/docs/user-guide/persistent-volumes/
+          ##
+          accessModes:
+            - ReadWriteOnce
+
+          ## superset data Persistent Volume size
+          ##
+          size: {{ env "SUPERSET_PERSISTENCE_STORAGE_SIZE" | default "8Gi" }}
+
+          ## superset server data Persistent Volume Storage Class
+          ## If defined, storageClassName: <storageClass>
+          ## If set to "-", storageClassName: "", which disables dynamic provisioning
+          ## If undefined (the default) or set to null, no storageClassName spec is
+          ##   set, choosing the default provisioner.  (gp2 on AWS, standard on
+          ##   GKE, AWS & OpenStack)
+          ##
+          storageClass: {{ env "SUPERSET_PERSISTENCE_STORAGE_CLASS" | default "efs" }}
+
+          ## Superset data Persistent Volume existing claim name
+          ## Requires server.persistence.enabled: true
+          ## If defined, PVC must be created manually before volume will be bound
+          existingClaim: ""
+
+        ## Expose the superset service to be accessed from outside the cluster (LoadBalancer service).
+        ## or access it from within the cluster (ClusterIP service). Set the service type and the port to serve it.
+        ## ref: http://kubernetes.io/docs/user-guide/services/
+        ##
+        service:
+          type: ClusterIP
+          port: 9000
+
+          ## service annotations
+          annotations: {}
+            # service.beta.kubernetes.io/aws-load-balancer-internal: "true"
+          # external-dns.alpha.kubernetes.io/hostname: "superset.domain.com"
+
+          ## loadbalancer source ranges. only used when service.type is "LoadBalancer"
+          loadBalancerSourceRanges: []
+          # - 172.31.0.0/16
+
+
+        ingress:
+          ## If true, superset Ingress will be created
+          ##
+          enabled: false
+
+          ## superset Ingress annotations
+          annotations: {}
+          # kubernetes.io/ingress.class: nginx
+          # kubernetes.io/tls-acme: 'true'
+
+          ## superset Ingress hostnames
+          ## Must be provided if Ingress is enabled
+          ##
+          hosts:
+            - superset.domain.com
+
+          ## superset Ingress path
+          ## Optional, allows specifying paths for more flexibility
+          ## E.g. Traefik ingress likes paths
+          ##
+          path: /
+
+          ## superset Ingress TLS configuration
+          ## Secrets must be manually created in the namespace
+          ##
+          tls: []
+          #   - secretName: superset-server-tls
+          #     hosts:
+          #       - superset.domain.com
+
+        ## Node labels for pod assignment
+        ## Ref: https://kubernetes.io/docs/user-guide/node-selection/
+        ##
+        nodeSelector: {}
+
+        ## Tolerations
+        ## ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#taints-and-tolerations-beta-feature
+        tolerations: []
+
+        ## Affinity and anti-affinity
+        ## ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#affinity-and-anti-affinity
+        affinity: {}
+
+        ## Configure resource requests and limits
+        ## ref: http://kubernetes.io/docs/user-guide/compute-resources/
+        ##
+        resources: {}
+        #  requests:
+        #    cpu: 50m
+        #    memory: 256Mi
+        #  limits:
+        #    cpu: 500m
+        #    memory: 750Mi
+
+        ## Configure liveness/readiness params
+        ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/
+        ##
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8088
+          initialDelaySeconds: 80
+          timeoutSeconds: 5
+          periodSeconds: 10
+          failureThreshold: 2
+
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8088
+          initialDelaySeconds: 60
+          timeoutSeconds: 5
+          periodSeconds: 10
+          failureThreshold: 2
+
+        worker:
+          enabled: true
+          concurrency: {{ env "SUPERSET_CELERY_WORKER_CONCURRENCY" | default "10" }}
