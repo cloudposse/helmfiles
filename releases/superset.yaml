@@ -1,7 +1,7 @@
 repositories:
   # Cloud Posse incubator repo of helm charts
-  - name: "cloudposse-incubator-dev"
-    url: "https://charts.dev.cloudposse.com/superset/incubator/"
+  - name: "cloudposse-incubator"
+    url: "https://charts.cloudposse.com/incubator/"
 
 releases:
 
@@ -79,7 +79,7 @@ releases:
           CELERY_CONFIG = CeleryConfig
 
           from werkzeug.contrib.cache import FileSystemCache
-          RESULTS_BACKEND = FileSystemCache(os.environ.get('SUPERSET_CACHE_DIR', '/tmp/sqllab_cache'), default_timeout=60*24*7)
+          RESULTS_BACKEND = FileSystemCache(os.environ.get('SUPERSET_CACHE_DIR', '/var/lib/superset/cache'), default_timeout=60*24*7)
 
         ## Extra confiuguration files and their content to be made available next to the config file
         extraConfigFiles: {}
@@ -97,7 +97,7 @@ releases:
           SUPERSET_POSTGRESQL_HOST: {{ requiredEnv "SUPERSET_POSTGRESQL_HOST" }}
           SUPERSET_POSTGRESQL_DATABASE: {{ requiredEnv "SUPERSET_POSTGRESQL_DATABASE" }}
           SUPERSET_SECRET_KEY: {{ requiredEnv "SUPERSET_SECRET_KEY" }}
-          SUPERSET_CACHE_DIR: {{ env "SUPERSET_CACHE_DIR" | default "/tmp/sqllab_cache" }}
+          SUPERSET_CACHE_DIR: {{ env "SUPERSET_CACHE_DIR" | default "/var/lib/superset/cache" }}
 
         ## The name of a secret in the same kubernetes namespace which contain values to be added to the environment
         ## This can be useful for secret keys, etc
@@ -124,7 +124,7 @@ releases:
 
           ## superset data Persistent Volume size
           ##
-          size: 8Gi
+          size: {{ env "SUPERSET_PERSISTENCE_STORAGE_SIZE" | default "8Gi" }}
 
           ## superset server data Persistent Volume Storage Class
           ## If defined, storageClassName: <storageClass>
@@ -133,12 +133,12 @@ releases:
           ##   set, choosing the default provisioner.  (gp2 on AWS, standard on
           ##   GKE, AWS & OpenStack)
           ##
-          # storageClass: "-"
+          storageClass: {{ env "SUPERSET_PERSISTENCE_STORAGE_CLASS" | default "efs" }}
 
           ## Superset data Persistent Volume existing claim name
           ## Requires server.persistence.enabled: true
           ## If defined, PVC must be created manually before volume will be bound
-          existingClaim: '{{ env "SUPERSET_EXISTING_CLAIM" }}'
+          existingClaim: ""
 
         ## Expose the superset service to be accessed from outside the cluster (LoadBalancer service).
         ## or access it from within the cluster (ClusterIP service). Set the service type and the port to serve it.
@@ -233,6 +233,6 @@ releases:
           periodSeconds: 10
           failureThreshold: 2
 
-        workers:
+        worker:
           enabled: true
-          count: 1
+          concurrency: {{ env "SUPERSET_CELERY_WORKER_CONCURRENCY" | default "10" }}
