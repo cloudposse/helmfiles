@@ -22,19 +22,24 @@ releases:
     repo: "stable"
     namespace: "kube-system"
     vendor: "kubernetes"
-    default: '{{ env "KOPS_CLUSTER_AUTOSCALER_ENABLED" | default "false" }}'
   chart: "stable/cluster-autoscaler"
-  version: "0.7.0"
+  version: "3.2.0"
   wait: true
   installed: {{ env "CLUSTER_AUTOSCALER_INSTALLED" | default "true" }}
   values:
     - image:
         ### Optional: CLUSTER_AUTOSCALER_IMAGE_TAG;
-        tag: '{{ env "CLUSTER_AUTOSCALER_IMAGE_TAG" | default "v1.2.2" }}'
+        tag: '{{ env "CLUSTER_AUTOSCALER_IMAGE_TAG" | default "v1.13.6" }}'
       autoDiscovery:
         ### Required: KOPS_CLUSTER_NAME; e.g. cluster.k8s.local
         clusterName: '{{ env "KOPS_CLUSTER_NAME" }}'
       cloudProvider: aws
+      awsRegion: '{{ coalesce (env "CLUSTER_AWS_REGION") (env "AWS_REGION") (env "AWS_DEFAULT_REGION") }}'
+      extraArgs:
+        # Only a few of the parameters described at https://github.com/kubernetes/autoscaler/blob/master/cluster-autoscaler/FAQ.md
+        # are supported by the chart. The rest need to be explicitly added.
+        expander: most-pods
+        balance-similar-node-groups: "true"
       rbac:
         ## If true, create & use RBAC resources
         ##
@@ -43,8 +48,19 @@ releases:
         ## If true, create & use Pod Security Policy resources
         ## https://kubernetes.io/docs/concepts/policy/pod-security-policy/
         ### Optional: CLUSTER_AUTOSCALER_RBAC_PSP_ENABLED;
-        pspEnabled: {{ env "CLUSTER_AUTOSCALER_RBAC_PSP_ENABLED" | default "false" }}
-        ## Ignored if rbac.create is true
+        ## Requires rbac.create true
+        pspEnabled: {{ coalesce (env "CLUSTER_AUTOSCALER_RBAC_PSP_ENABLED") ( env "RBAC_ENABLED" ) "false" }}
         ##
         ### Optional: CLUSTER_AUTOSCALER_RBAC_SERVICE_ACCOUNT_NAME;
         serviceAccountName: '{{ env "CLUSTER_AUTOSCALER_RBAC_SERVICE_ACCOUNT_NAME" | default "default" }}'
+      # Deply the autoscaler on a master node, so that it does not kill itself
+      tolerations:
+        - effect: NoSchedule
+          operator: "Exists"
+          key: node-role.kubernetes.io/master
+      nodeSelector:
+        kubernetes.io/role: master
+      {{- if coalesce (env "CLUSTER_AUTOSCALER_IAM_ROLE_NAME") (env "KUBERNETES_AUTOSCALER_IAM_ROLE_NAME") }}
+      podAnnotations:
+        iam.amazonaws.com/role: '{{ coalesce (env "CLUSTER_AUTOSCALER_IAM_ROLE_NAME") (env "KUBERNETES_AUTOSCALER_IAM_ROLE_NAME") }}'
+      {{- end }}

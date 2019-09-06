@@ -134,6 +134,7 @@ releases:
   values:
     - nameOverride: default
       ### Optional: NGINX_INGRESS_BACKEND_REPLICA_COUNT; e.g. 2
+      ### Setting this to 1 can interfere with cluster auto-scaling
       replicaCount: '{{ env "NGINX_INGRESS_BACKEND_REPLICA_COUNT" | default "2" }}'
       resources:
         limits:
