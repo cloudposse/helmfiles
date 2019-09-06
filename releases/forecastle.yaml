@@ -28,7 +28,7 @@ releases:
       vendor: "stakater"
       default: "false"
     chart: "forecastle/forecastle"
-    version: "v1.0.25"
+    version: "v1.0.27"
     wait: false
     installed: {{ env "FORECASTLE_INSTALLED" | default "true" }}
     force: true
