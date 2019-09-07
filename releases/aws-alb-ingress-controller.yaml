@@ -1,6 +1,6 @@
 repositories:
 # Incubator repo of official helm charts
-- name: "incubator"
+- name: "kubernetes-incubator"
   url: "http://storage.googleapis.com/kubernetes-charts-incubator"
 
 
@@ -23,7 +23,7 @@ releases:
     namespace: "kube-system"
     vendor: "kubernetes"
     default: "false"
-  chart: "incubator/aws-alb-ingress-controller"
+  chart: "kubernetes-incubator/aws-alb-ingress-controller"
   version: "0.1.4"
   wait: true
   installed: {{ env "AWS_ALB_INGRESS_CONTROLLER_INSTALLED" | default "true" }}

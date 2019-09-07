@@ -75,7 +75,7 @@ releases:
 
           serviceMonitor:
             enabled: {{ env "NGINX_INGRESS_METRICS_ENABLED" | default "false" }}
-
+          {{- if eq (env "NGINX_INGRESS_PROMETHEUS_RULE_ENABLED" | default "true") "true" }}
           prometheusRule:
             enabled: {{ env "NGINX_INGRESS_METRICS_ENABLED" | default "false" }}
             rules:
@@ -86,7 +86,7 @@ releases:
                 expr: nginx_ingress_controller_requests > {{ env "NGINX_INGRESS_METRICS_CONTROLLER_ERROR_ALERT" | default "100000" }}
                 labels:
                   severity: warning
-
+          {{- end }}
       ### Regexp used to map
       ### 8080:default/example-tcp-svc:9000,8081:staging/example-tcp-svc:9000
       ### to
@@ -128,7 +128,7 @@ releases:
     vendor: "kubernetes"
     default: "true"
   chart: "cloudposse-incubator/nginx-default-backend"
-  version: "0.3.0"
+  version: "0.4.0"
   wait: true
   installed: {{ env "NGINX_INGRESS_BACKEND_INSTALLED" | default "true" }}
   values:
@@ -137,8 +137,8 @@ releases:
       replicaCount: '{{ env "NGINX_INGRESS_BACKEND_REPLICA_COUNT" | default "2" }}'
       resources:
         limits:
-          cpu: '{{ env "NGINX_INGRESS_DEFAULT_BACKEND_LIMIT_CPU" | default "200m" }}'
-          memory: '{{ env "NGINX_INGRESS_DEFAULT_BACKEND_LIMIT_MEMORY" | default "256Mi" }}'
+          cpu: '{{ env "NGINX_INGRESS_DEFAULT_BACKEND_LIMIT_CPU" | default "50m" }}'
+          memory: '{{ env "NGINX_INGRESS_DEFAULT_BACKEND_LIMIT_MEMORY" | default "24Mi" }}'
         requests:
           cpu: '{{ env "NGINX_INGRESS_DEFAULT_BACKEND_REQUEST_CPU" | default "1m" }}'
           memory: '{{ env "NGINX_INGRESS_DEFAULT_BACKEND_REQUEST_MEMORY" | default "8Mi" }}'
@@ -172,7 +172,6 @@ releases:
 #   - https://grafana.com/grafana
 #   - https://github.com/helm/charts/tree/master/stable/grafana
 #
-{{ if eq ( env "NGINX_INGRESS_METRICS_ENABLED" | default "false" ) "true" }}
 - name: "ingress-monitoring"
   namespace: "monitoring"
   labels:
@@ -184,7 +183,8 @@ releases:
   chart: "cloudposse-incubator/monochart"
   version: "0.10.0"
   wait: true
-  installed: {{ env "NGINX_INGRESS_METRICS_INSTALLED" | default "true" }}
+  # Unfortunately, you cannot split a go template statement across multiple lines, so this has to be one big long line
+  installed: {{ and (eq ( env "NGINX_INGRESS_METRICS_ENABLED" | default "false" ) "true") (eq ( env "NGINX_INGRESS_GRAFANA_DASHBOARD_ENABLED" | default "true" ) "true" ) }}
   values:
   - configMaps:
       dashboards:
@@ -194,4 +194,3 @@ releases:
         files:
           nginx-ingress.json: |
 {{ exec "curl" (list "-fsSL" (print "https://raw.githubusercontent.com/cloudposse/grafana-dashboards/" (env "GRAFANA_DASHBOARDS_VERSION" | default "1.0") "/nginx-ingress/nginx.json")) | indent 12 }}
-{{ end }}
