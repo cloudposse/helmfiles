@@ -4,7 +4,8 @@ repositories:
     # Cannot use release tags, see https://github.com/aslafy-z/helm-git/issues/9
     # url: "git+https://github.com/stakater/Forecastle@deployments/kubernetes/chart?ref=v1.0.22"
     # v1.0.22: url: "git+https://github.com/stakater/Forecastle@deployments/kubernetes/chart?ref=8d6e5cd2dba3ad6c265ae94138c40276425b7634"
-    url: "git+https://github.com/stakater/Forecastle@deployments/kubernetes/chart?ref=8f36b82beaf2a1a42b364a3857bc83638c51e30b"
+    # v1.0.25 url: "git+https://github.com/stakater/Forecastle@deployments/kubernetes/chart?ref=8f36b82beaf2a1a42b364a3857bc83638c51e30b"
+    url: "git+https://github.com/stakater/Forecastle@deployments/kubernetes/chart?ref=ffb5179aa659e0e3cf0ca20e1c8bd94c5fd66a2e"
 
 releases:
 
@@ -19,7 +20,7 @@ releases:
   #   - https://github.com/stakater/Forecastle
   #
   - name: "forecastle"
-    namespace: "kube-system"
+    namespace: '{{ env "FORECASTLE_NAMESPACE" | default "kube-system" }}'
     labels:
       chart: "forecastle"
       repo: "github"
@@ -28,18 +29,26 @@ releases:
       vendor: "stakater"
       default: "false"
     chart: "forecastle/forecastle"
-    version: "v1.0.25"
+    version: "v1.0.27"
     wait: false
     installed: {{ env "FORECASTLE_INSTALLED" | default "true" }}
     force: true
     recreatePods: true
     values:
+      {{- if env "FORECASTLE_CUSTOM_APPS_YAML" }}
+      - {{ env "FORECASTLE_CUSTOM_APPS_YAML" }}
+      {{- end }}
       - forecastle:
           image:
             pullPolicy: "IfNotPresent"
-          namespace: "kube-system"
+          namespace: '{{ env "FORECASTLE_NAMESPACE" | default "kube-system" }}'
           deployment:
+            # Some annotation is required or else we get a bunch of
+            # annotations from the default values.yaml
             annotations: ""
+            replicas: '{{- env "FORECASTLE_REPLICAS" | default "2" -}}'
+            revisionHistoryLimit: '{{- env "FORECASTLE_REVISION_HISTORY_LIMIT" | default "10" -}}'
+
           config:
             # If only running one instance of Forecastle, it is best to leave the instance name blank
             instanceName: {{ env "FORECASTLE_INSTANCE_NAME" }}
@@ -51,6 +60,18 @@ releases:
               matchNames: []
               {{- end }}
             title: {{ env "FORECASTLE_TITLE" | default "Portal" }}
+            ## Add custom apps via FORECASTLE_CUSTOM_APPS_YAML file in this format:
+            # forecastle:
+            #    config:
+            #      customApps:
+            #        - name: Hello
+            #          url: http://helloicon
+            #          icon: http://hello
+            #          group: Test
+            #        - name: world
+            #          url: http://worldicon
+            #          icon: https://world
+            #          group: Test
           service:
             annotations: ""
             expose: "true"

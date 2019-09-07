@@ -79,6 +79,9 @@ releases:
         forecastle.stakater.com/expose: "true"
         forecastle.stakater.com/appName: "{{ $service.portalName }}"
         {{- end }}
+        {{- if index $service "portalIcon" }}
+        forecastle.stakater.com/icon: "{{ $service.portalIcon }}"
+        {{- end }}
         {{- if index $service "forecastleInstanceName"  }}
         forecastle.stakater.com/instance: "{{ $service.forecastleInstanceName }}"
         {{- end }}
