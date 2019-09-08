@@ -1,6 +1,6 @@
 repositories:
 # Incubator repo of official helm charts
-- name: "incubator"
+- name: "kubernetes-incubator"
   url: "https://kubernetes-charts-incubator.storage.googleapis.com/"
 
 releases:
@@ -13,7 +13,7 @@ releases:
     namespace: "codefresh"
     vendor: "kubernetes-incubator"
     default: "false"
-  chart: "incubator/raw"
+  chart: "kubernetes-incubator/raw"
   version: "0.1.0"
   wait: true
   installed: {{ env "CODEFRESH_RESTORE_ENABLED" | default "FALSE" }}
