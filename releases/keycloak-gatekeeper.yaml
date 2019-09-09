@@ -82,6 +82,9 @@ releases:
         {{- if index $service "portalIcon" }}
         forecastle.stakater.com/icon: "{{ $service.portalIcon }}"
         {{- end }}
+        {{- if index $service "portalURL" }}
+        forecastle.stakater.com/url: "{{ $service.portalURL }}"
+        {{- end }}
         {{- if index $service "forecastleInstanceName"  }}
         forecastle.stakater.com/instance: "{{ $service.forecastleInstanceName }}"
         {{- end }}
