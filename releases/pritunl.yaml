@@ -1,0 +1,119 @@
+repositories:
+# Stable repo of official helm charts
+- name: "stable"
+  url: "https://kubernetes-charts.storage.googleapis.com"
+# Cloud Posse incubator repo of helm charts
+- name: "cloudposse-incubator"
+  url: "https://charts.cloudposse.com/incubator/"
+
+releases:
+
+#
+# References:
+#   - https://github.com/helm/charts/blob/master/stable/openvpn/values.yaml
+#
+- name: "pritunl"
+  namespace: "vpn"
+  labels:
+    chart: "monochart"
+    repo: "cloudposse-incubator"
+    component: "vpn"
+    namespace: "vpn"
+    vendor: "cloudposse"
+    default: "false"
+  chart: "cloudposse-incubator/monochart"
+  version: "0.10.0"
+  wait: true
+  installed: {{ env "PRITUNL_INSTALLED" | default "true" }}
+  values:
+  - replicaCount: 1
+
+    image:
+      repository: cloudposse/pritunl
+      tag: 0.1.0
+      pullPolicy: Always
+
+    deployment:
+      enabled: true
+      ## Pods replace strategy
+      ## ref: https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#strategy
+      strategy:
+        type: RollingUpdate
+        rollingUpdate:
+          maxSurge: 1
+          maxUnavailable: 0
+      revisionHistoryLimit: 10
+      pod:
+        labels:
+          component: pritunl
+        securityContext:
+          privileged: true
+          capabilities:
+            add:
+            - NET_ADMIN
+
+    service:
+      enabled: true
+      type: ClusterIP
+      ports:
+        default:
+          internal: 80
+          external: 80
+        vpn:
+          internal: {{ env "PRITUNL_VPN_PORT" | default "16807" }}
+          external: {{ env "PRITUNL_VPN_PORT" | default "16807" }}
+
+    resources:
+      limits:
+        cpu: {{ env "PRITUNL_LIMITS_CPU" | default "1000m" }}
+        memory: {{ env "PRITUNL_LIMITS_MEMORY" | default "512Mi" }}
+      requests:
+        cpu: {{ env "PRITUNL_REQUESTS_CPU" | default "50m" }}
+        memory: {{ env "PRITUNL_REQUESTS_MEMORY" | default "32Mi" }}
+
+    secrets:
+      default:
+        enabled: true
+        env:
+          PRITUNL_CONFIG: /etc/pritunl/pritunl_override.conf
+          MONGODB_URI: mongodb://{{ env "PRITUNL_MONGODB_USERNAME" | default "pritunl"}}:{{ env "PRITUNL_MONGODB_PASSWORD" | default "pritunl"}}@pritunl-mongodb:27017/{{ env "PRITUNL_MONGODB_DATABASE" | default "pritunl"}}?ssl=false
+        mountPath: /etc/pritunl
+        files:
+          pritunl_override.conf: |-
+            app.ipv6 false
+            app.reverse_proxy true
+            app.redirect_server false
+            app.server_ssl false
+            app.server_port 80
+            host.public_address {{ env "PRITUNL_EXTERNAL_HOST" }}
+
+- name: pritunl-mongodb
+  version: "5.3.4"
+  chart: "stable/mongodb"
+  namespace: "vpn"
+  installed: {{ env "PRITUNL_DB_INSTALLED" | default "true" }}
+  # Labels to address this release
+  labels:
+    chart: "mongodb"
+    component: "database"
+    enabled: true
+  # Override values for this release
+  values:
+  - usePassword: true
+    mongodbRootPassword: {{ env "PRITUNL_MONGODB_ROOT_PASSWORD" | default "pritunl"}}
+    mongodbUsername: {{ env "PRITUNL_MONGODB_USERNAME" | default "pritunl"}}
+    mongodbPassword: {{ env "PRITUNL_MONGODB_PASSWORD" | default "pritunl"}}
+    mongodbDatabase: {{ env "PRITUNL_MONGODB_DATABASE" | default "pritunl"}}
+    resources:
+      limits:
+        cpu: {{ env "PRITUNL_MONGODB_LIMITS_CPU" | default "200m" }}
+        memory: {{ env "PRITUNL_MONGODB_LIMITS_MEMORY" | default "512Mi" }}
+      requests:
+        cpu: {{ env "PRITUNL_MONGODB_REQUESTS_CPU" | default "50m" }}
+        memory: {{ env "PRITUNL_MONGODB_REQUESTS_MEMORY" | default "64Mi" }}
+    persistence:
+      enabled: {{ env "PRITUNL_MONGODB_PERSISTENCE_ENABLED" | default "true" }}
+      storageClass: {{ env "PRITUNL_MONGODB_PERSISTENCE_STORAGE_CLASS" | default "default" }}
+      accessModes:
+        - ReadWriteOnce
+      size: {{ env "PRITUNL_MONGODB_PERSISTENCE_SIZE" | default "256Mi" }}
