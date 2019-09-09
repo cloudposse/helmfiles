@@ -1,7 +1,7 @@
 repositories:
 # Incubator repo of official helm charts
 - name: "kubernetes-incubator"
-  url: "http://storage.googleapis.com/kubernetes-charts-incubator"
+  url: "https://kubernetes-charts-incubator.storage.googleapis.com"
 
 
 releases:
