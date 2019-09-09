@@ -20,7 +20,7 @@ releases:
     component: "vpn"
     namespace: "vpn"
     vendor: "cloudposse"
-    default: "true"
+    default: "false"
   chart: "cloudposse-incubator/monochart"
   version: "0.10.0"
   wait: true
