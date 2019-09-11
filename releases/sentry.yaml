@@ -1,0 +1,288 @@
+repositories:
+  # Stable repo of official helm charts
+  - name: "stable"
+    url: "https://kubernetes-charts.storage.googleapis.com"
+
+releases:
+
+  #
+  # References:
+  #   - https://github.com/getsentry/sentry
+  #   - https://github.com/helm/charts/blob/master/stable/sentry/values.yaml
+  #
+
+  - name: "sentry"
+    namespace: "monitoring"
+    labels:
+      chart: "sentry"
+      repo: "stable"
+      component: "monitoring"
+      namespace: "monitoring"
+      vendor: "kubernetes-helm"
+    chart: "stable/sentry"
+    version: '{{ env "SENTRY_CHART_VERSION" | default "2.1.1" }}'
+    wait: true
+    installed: {{ env "SENTRY_INSTALLED" | default "true" }}
+    values:
+      - image:
+          repository: "sentry"
+          tag: '{{ env "SENTRY_IMAGE_TAG" | default "9.1.1" }}'
+          pullPolicy: "IfNotPresent"
+
+        web:
+          replicacount: 1
+          resources:
+            limits:
+              cpu: '{{ env "SENTRY_WEB_RESOURCES_LIMIT_CPU" | default "200m" }}'
+              memory: '{{ env "SENTRY_WEB_RESOURCES_LIMIT_MEMORY" | default "512Mi" }}'
+            requests:
+              cpu: '{{ env "SENTRY_WEB_RESOURCES_REQUEST_CPU" | default "100m" }}'
+              memory: '{{ env "SENTRY_WEB_RESOURCES_REQUEST_MEMORY" | default "128Mi" }}'
+          nodeSelector: {}
+          tolerations: []
+          affinity: {}
+          ## Use an alternate scheduler, e.g. "stork".
+          ## ref: https://kubernetes.io/docs/tasks/administer-cluster/configure-multiple-schedulers/
+          ##
+          # schedulerName:
+          # Optional extra labels for pod, i.e. redis-client: "true"
+          # podLabels: []
+
+        cron:
+          replicacount: 1
+          resources:
+            limits:
+              cpu: '{{ env "SENTRY_CRON_RESOURCES_LIMIT_CPU" | default "200m" }}'
+              memory: '{{ env "SENTRY_CRON_RESOURCES_LIMIT_MEMORY" | default "256Mi" }}'
+            requests:
+              cpu: '{{ env "SENTRY_CRON_RESOURCES_REQUEST_CPU" | default "100m" }}'
+              memory: '{{ env "SENTRY_CRON_RESOURCES_REQUEST_MEMORY" | default "128Mi" }}'
+          nodeSelector: {}
+          tolerations: []
+          affinity: {}
+          # schedulerName:
+          # Optional extra labels for pod, i.e. redis-client: "true"
+          # podLabels: []
+
+        worker:
+          replicacount: 2
+          resources:
+            limits:
+              cpu: '{{ env "SENTRY_WORKER_RESOURCES_LIMIT_CPU" | default "300m" }}'
+              memory: '{{ env "SENTRY_WORKER_RESOURCES_LIMIT_MEMORY" | default "512Mi" }}'
+            requests:
+              cpu: '{{ env "SENTRY_WORKER_RESOURCES_REQUEST_CPU" | default "100m" }}'
+              memory: '{{ env "SENTRY_WORKER_RESOURCES_REQUEST_MEMORY" | default "128Mi" }}'
+          nodeSelector: {}
+          tolerations: []
+          affinity: {}
+          # schedulerName:
+          # Optional extra labels for pod, i.e. redis-client: "true"
+          # podLabels: []
+          # concurrency:
+
+        # Admin user to create
+        user:
+          # Indicated to create the admin user or not,
+          # Default is true as the initial installation.
+          create: {{ env "SENTRY_CREATE_ADMIN_USER" | default "false" }}
+          email: '{{ env "SENTRY_ADMIN_USER_EMAIL" | default "" }}'
+
+        # BYO Email server
+        # https://docs.sentry.io/server/installation/docker/#outbound-email
+        email:
+          from_address: '{{ env "SENTRY_EMAIL_FROM_ADDRESS" | default "" }}'
+          host: '{{ env "SENTRY_EMAIL_HOST" | default "smtp" }}'
+          port: '{{ env "SENTRY_EMAIL_PORT" | default "25" }}'
+          use_tls: {{ env "SENTRY_EMAIL_USE_TLS" | default "false" }}
+          user: '{{ env "SENTRY_EMAIL_USER" | default "" }}'
+          password: '{{ env "SENTRY_EMAIL_PASSWORD" | default "" }}'
+          enable_replies: {{ env "SENTRY_EMAIL_ENABLE_REPLIES" | default "false" }}
+
+        service:
+          name: sentry
+          type: ClusterIP
+          externalPort: '{{ env "SENTRY_SERVICE_EXTERNAL_PORT" | default "9000" }}'
+          internalPort: '{{ env "SENTRY_SERVICE_INTERNAL_PORT" | default "9000" }}'
+          annotations: {}
+          labels:
+            # Show service URL in `kubectl cluster-info`
+            kubernetes.io/cluster-service: "true"
+
+          # type: LoadBalancer
+          # externalPort: 9000
+          # internalPort: 9000
+
+          ## External IP addresses of service
+          ## Default: nil
+          ##
+          # externalIPs:
+          # - 192.168.0.1
+
+          ## Load Balancer allow-list
+          # loadBalancerSourceRanges: []
+
+        # Configure the location of Sentry artifacts
+        filestore:
+          # Set to one of filesystem, gcs or s3 as supported by Sentry.
+          backend: filesystem
+
+          filesystem:
+            path: /var/lib/sentry/files
+
+            ## Enable persistence using Persistent Volume Claims
+            ## ref: http://kubernetes.io/docs/user-guide/persistent-volumes/
+            ##
+            persistence:
+              enabled: {{ env "SENTRY_FILESTORE_PERSISTENCE_ENABLED" | default "true" }}
+              ## database data Persistent Volume Storage Class
+              ## If defined, storageClassName: <storageClass>
+              ## If set to "-", storageClassName: "", which disables dynamic provisioning
+              ## If undefined (the default) or set to null, no storageClassName spec is
+              ##   set, choosing the default provisioner.  (gp2 on AWS, standard on
+              ##   GKE, AWS & OpenStack)
+              ##
+              # storageClass: "-"
+              accessMode: '{{ env "SENTRY_FILESTORE_PERSISTENCE_ACCESS_MODE" | default "ReadWriteOnce" }}'
+              size: '{{ env "SENTRY_FILESTORE_PERSISTENCE_SIZE" | default "10Gi" }}'
+
+              ## Whether to mount the persistent volume to the Sentry worker and
+              ## cron deployments. This setting needs to be enabled for some advanced
+              ## Sentry features, such as private source maps. If you disable this
+              ## setting, the Sentry workers will not have access to artifacts you upload
+              ## through the web deployment.
+              ## Please note that you may need to change your accessMode to ReadWriteMany
+              ## if you plan on having the web, worker and cron deployments run on
+              ## different nodes.
+              persistentWorkers: {{ env "SENTRY_FILESTORE_WORKERS_PERSISTENCE_ENABLED" | default "false" }}
+
+          ## Point this at a pre-configured secret containing a service account. The resulting
+          ## secret will be mounted at /var/run/secrets/google
+          #gcs:
+          #  credentialsFile: credentials.json
+          #  secretName:
+          #  bucketName:
+
+          ## Currently unconfigured and changing this has no impact on the template configuration.
+          #s3: {}
+          #  accessKey:
+          #  secretKey:
+          #  bucketName:
+
+        ## Configure ingress resource that allow you to access the
+        ## Sentry installation. Set up the URL
+        ## ref: http://kubernetes.io/docs/user-guide/ingress/
+        ##
+        ingress:
+          enabled: {{ env "SENTRY_INGRESS_ENABLED" | default "false" }}
+          hostname: '{{ env "SENTRY_HOSTNAME" | default "sentry.local" }}'
+          annotations:
+            kubernetes.io/ingress.class: "nginx"
+            kubernetes.io/tls-acme: "true"
+            external-dns.alpha.kubernetes.io/ttl: "60"
+            external-dns.alpha.kubernetes.io/target: '{{ env "SENTRY_INGRESS" | default "" }}'
+            external-dns.alpha.kubernetes.io/hostname: '{{ env "SENTRY_HOSTNAME" | default "sentry.local" }}'
+          tls:
+            - secretName: '{{ env "SENTRY_SECRET_NAME" | default "sentry-server-tls" }}'
+              hosts:
+                - '{{ env "SENTRY_HOSTNAME" }}'
+
+        postgresql:
+          enabled: {{ env "SENTRY_POSTGRES_ENABLED" | default "true" }}
+          postgresDatabase: '{{ env "SENTRY_POSTGRES_DATABASE" | default "sentry" }}'
+          postgresUser: '{{ env "SENTRY_POSTGRES_USER" | default "sentry" }}'
+          # Only used when internal PG is disabled
+          # postgresHost: '{{ env "SENTRY_POSTGRES_HOST" | default "postgres" }}'
+          # postgresPassword: '{{ env "SENTRY_POSTGRES_PASSWORD" | default "" }}'
+          # postgresPort: '{{ env "SENTRY_POSTGRES_PORT" | default "5432" }}'
+          imageTag: '{{ env "SENTRY_POSTGRES_IMAGE_TAG" | default "9.6" }}'
+          persistence:
+            enabled: {{ env "SENTRY_POSTGRES_PERSISTENCE_ENABLED" | default "true" }}
+
+        redis:
+          enabled: {{ env "SENTRY_REDIS_ENABLED" | default "true" }}
+          # Only used when internal redis is disabled
+          # host: '{{ env "SENTRY_REDIS_HOST" | default "redis" }}'
+          # Just omit the password field if your redis cluster doesn't use password
+          # password: '{{ env "SENTRY_REDIS_PASSWORD" | default "" }}'
+          # port: {{ env "SENTRY_REDIS_PORT" | default "6379" }}'
+          master:
+            persistence:
+              enabled: {{ env "SENTRY_REDIS_MASTER_PERSISTENCE_ENABLED" | default "true" }}
+              size: '{{ env "SENTRY_REDIS_MASTER_PERSISTENCE_SIZE" | default "20Gi" }}'
+
+        config:
+          configYml: ""
+          sentryConfPy: ""
+
+        ## Prometheus Exporter / Metrics
+        ##
+        metrics:
+          enabled: {{ env "SENTRY_METRICS_ENABLED" | default "false" }}
+
+          ## Configure extra options for liveness and readiness probes
+          ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/#configure-probes)
+          livenessProbe:
+            enabled: true
+            initialDelaySeconds: 30
+            periodSeconds: 5
+            timeoutSeconds: 2
+            failureThreshold: 3
+            successThreshold: 1
+          readinessProbe:
+            enabled: true
+            initialDelaySeconds: 30
+            periodSeconds: 5
+            timeoutSeconds: 2
+            failureThreshold: 3
+            successThreshold: 1
+
+          ## Metrics exporter resource requests and limits
+          ## ref: http://kubernetes.io/docs/user-guide/compute-resources/
+          resources:
+            limits:
+              cpu: '{{ env "SENTRY_METRICS_RESOURCES_LIMIT_CPU" | default "300m" }}'
+              memory: '{{ env "SENTRY_METRICS_RESOURCES_LIMIT_MEMORY" | default "256Mi" }}'
+            requests:
+              cpu: '{{ env "SENTRY_METRICS_RESOURCES_REQUEST_CPU" | default "100m" }}'
+              memory: '{{ env "SENTRY_METRICS_RESOURCES_REQUEST_MEMORY" | default "128Mi" }}'
+
+          nodeSelector: {}
+          tolerations: []
+          affinity: {}
+          # schedulerName:
+          # Optional extra labels for pod, i.e. redis-client: "true"
+          # podLabels: []
+          service:
+            type: ClusterIP
+            labels: {}
+
+          image:
+            repository: prom/statsd-exporter
+            tag: '{{ env "SENTRY_METRICS_IMAGE_TAG" | default "v0.10.5" }}'
+            pullPolicy: IfNotPresent
+
+          # Enable this if you're using https://github.com/coreos/prometheus-operator
+          serviceMonitor:
+            enabled: {{ env "SENTRY_METRICS_SERVICE_MONITOR_ENABLED" | default "false" }}
+            ## Specify a namespace if needed
+            # namespace: monitoring
+            # fallback to the prometheus default unless specified
+            # interval: 10s
+            ## Defaults to what's used if you follow CoreOS [Prometheus Install Instructions](https://github.com/helm/charts/tree/master/stable/prometheus-operator#tldr)
+            ## [Prometheus Selector Label](https://github.com/helm/charts/tree/master/stable/prometheus-operator#prometheus-operator-1)
+            ## [Kube Prometheus Selector Label](https://github.com/helm/charts/tree/master/stable/prometheus-operator#exporters)
+            selector:
+              prometheus: kube-prometheus
+
+        # Provide affinity for hooks if needed
+        hooks:
+          affinity: {}
+          dbInit:
+            resources:
+              # We setup 3000Mi for the memory limit because of a Sentry instance need at least 3Gb RAM to perform a migration process
+              # reference: https://github.com/helm/charts/issues/15296
+              limits:
+                memory: '{{ env "SENTRY_HOOKS_RESOURCES_LIMIT_MEMORY" | default "3200Mi" }}'
+              requests:
+                memory: '{{ env "SENTRY_HOOKS_RESOURCES_REQUEST_MEMORY" | default "512Mi" }}'
