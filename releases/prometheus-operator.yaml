@@ -75,11 +75,103 @@ releases:
           pspEnabled: {{ coalesce (env "POD_SECURITY_POLICY_ENALBED") (env "RBAC_ENABLED") "true" }}
       defaultRules:
         create: true
+      {{- if eq (env "PROMETHEUS_OPERATOR_RULES_KUBERNETES_RESOURCES_ALTERNATE_ENABLED" | default "false") "false" }}
         rules:
           # The default kubernetesResources rules trigger CPUThrottlingHigh alerts due to known bugs in
           # the Linux kernel. You may want to replace them with rules better tuned to your situation
           kubernetesResources: {{ env "PROMETHEUS_OPERATOR_RULES_KUBERNETES_RESOURCES_ENABLED" | default "true" }}
-      additionalPrometheusRules: []
+      additionalPrometheusRulesMap: {}
+      {{- else }}
+        rules:
+          kubernetesResources: false
+      additionalPrometheusRulesMap:
+        # These rules are copied from https://raw.githubusercontent.com/coreos/kube-prometheus/release-0.1/manifests/prometheus-rules.yaml
+        # Only CPUThrottlingHigh has been modified, to be replaced with a customizable version
+        # to reduce alerts caused by https://github.com/kubernetes/kubernetes/pull/63437
+        kubernetes-resources:
+          groups:
+          - name: kubernetes-resources
+            rules:
+            - alert: KubeCPUOvercommit
+              annotations:
+                message: Cluster has overcommitted CPU resource requests for Pods and cannot tolerate node failure.
+                runbook_url: https://github.com/kubernetes-monitoring/kubernetes-mixin/tree/master/runbook.md#alert-name-kubecpuovercommit
+              expr: |-
+                sum(namespace_name:kube_pod_container_resource_requests_cpu_cores:sum)
+                  /
+                sum(node:node_num_cpu:sum)
+                  >
+                (count(node:node_num_cpu:sum)-1) / count(node:node_num_cpu:sum)
+              for: 5m
+              labels:
+                severity: warning
+            - alert: KubeMemOvercommit
+              annotations:
+                message: Cluster has overcommitted memory resource requests for Pods and cannot tolerate node failure.
+                runbook_url: https://github.com/kubernetes-monitoring/kubernetes-mixin/tree/master/runbook.md#alert-name-kubememovercommit
+              expr: |-
+                sum(namespace_name:kube_pod_container_resource_requests_memory_bytes:sum)
+                  /
+                sum(node_memory_MemTotal_bytes)
+                  >
+                (count(node:node_num_cpu:sum)-1)
+                  /
+                count(node:node_num_cpu:sum)
+              for: 5m
+              labels:
+                severity: warning
+            - alert: KubeCPUOvercommit
+              annotations:
+                message: Cluster has overcommitted CPU resource requests for Namespaces.
+                runbook_url: https://github.com/kubernetes-monitoring/kubernetes-mixin/tree/master/runbook.md#alert-name-kubecpuovercommit
+              expr: |-
+                sum(kube_resourcequota{job="kube-state-metrics", type="hard", resource="cpu"})
+                  /
+                sum(node:node_num_cpu:sum)
+                  > 1.5
+              for: 5m
+              labels:
+                severity: warning
+            - alert: KubeMemOvercommit
+              annotations:
+                message: Cluster has overcommitted memory resource requests for Namespaces.
+                runbook_url: https://github.com/kubernetes-monitoring/kubernetes-mixin/tree/master/runbook.md#alert-name-kubememovercommit
+              expr: |-
+                sum(kube_resourcequota{job="kube-state-metrics", type="hard", resource="memory"})
+                  /
+                sum(node_memory_MemTotal_bytes{job="node-exporter"})
+                  > 1.5
+              for: 5m
+              labels:
+                severity: warning
+            - alert: KubeQuotaExceeded
+              annotations:
+                message: Namespace {{`{{ $labels.namespace }}`}} is using {{`{{ printf "%0.0f" $value }}`}}% of its {{`{{ $labels.resource }}`}} quota.
+                runbook_url: https://github.com/kubernetes-monitoring/kubernetes-mixin/tree/master/runbook.md#alert-name-kubequotaexceeded
+              expr: |-
+                100 * kube_resourcequota{job="kube-state-metrics", type="used"}
+                  / ignoring(instance, job, type)
+                (kube_resourcequota{job="kube-state-metrics", type="hard"} > 0)
+                  > 90
+              for: 15m
+              labels:
+                severity: warning
+            {{- if eq (env "PROMETHEUS_OPERATOR_RULES_CPU_THROTTLING_HIGH_ENABLED" | default "true") "true" }}
+            # Original rule is 25% for 15 minutes
+            - alert: CPUThrottlingHigh-{{- env "PROMETHEUS_OPERATOR_RULES_CPU_THROTTLING_HIGH_THRESHOLD_PERCENT" | default "50" -}}-{{- env "PROMETHEUS_OPERATOR_RULES_CPU_THROTTLING_HIGH_THRESHOLD_TIME" | default "25m" }}
+              annotations:
+                message: '{{`{{ printf "%0.0f" $value }}`}}% throttling of CPU in namespace {{`{{ $labels.namespace }}`}} for container {{`{{ $labels.container_name }}`}} in pod {{`{{ $labels.pod_name }}`}}.'
+                runbook_url: https://github.com/kubernetes-monitoring/kubernetes-mixin/tree/master/runbook.md#alert-name-cputhrottlinghigh
+              expr: |-
+                100 * sum(increase(container_cpu_cfs_throttled_periods_total{container_name!="", }[5m])) by (container_name, pod_name, namespace)
+                  /
+                sum(increase(container_cpu_cfs_periods_total{}[5m])) by (container_name, pod_name, namespace)
+                  > {{ env "PROMETHEUS_OPERATOR_RULES_CPU_THROTTLING_HIGH_THRESHOLD_PERCENT" | default "50" }}
+              for: {{ env "PROMETHEUS_OPERATOR_RULES_CPU_THROTTLING_HIGH_THRESHOLD_TIME" | default "25m" }}
+              labels:
+                severity: warning
+            {{- end }}
+      {{- end }}
       prometheusOperator:
         enabled: {{ env "PROMETHEUS_OPERATOR_INSTALLED" | default "true" }}
         ### Create CRDs separately
