@@ -12,12 +12,12 @@ releases:
   #
 
   - name: "sentry"
-    namespace: "monitoring"
+    namespace: "sentry"
     labels:
       chart: "sentry"
       repo: "stable"
       component: "monitoring"
-      namespace: "monitoring"
+      namespace: "sentry"
       vendor: "kubernetes-helm"
     chart: "stable/sentry"
     version: '{{ env "SENTRY_CHART_VERSION" | default "2.1.1" }}'
@@ -85,8 +85,8 @@ releases:
         user:
           # Indicated to create the admin user or not,
           # Default is true as the initial installation.
-          create: {{ env "SENTRY_CREATE_ADMIN_USER" | default "false" }}
-          email: '{{ env "SENTRY_ADMIN_USER_EMAIL" | default "" }}'
+          create: {{ env "SENTRY_CREATE_ADMIN_USER" | default "true" }}
+          email: '{{ env "SENTRY_ADMIN_USER_EMAIL" | default "andriy@cloudposse.com" }}'
 
         # BYO Email server
         # https://docs.sentry.io/server/installation/docker/#outbound-email
@@ -135,14 +135,12 @@ releases:
             ##
             persistence:
               enabled: {{ env "SENTRY_FILESTORE_PERSISTENCE_ENABLED" | default "true" }}
-              ## database data Persistent Volume Storage Class
               ## If defined, storageClassName: <storageClass>
               ## If set to "-", storageClassName: "", which disables dynamic provisioning
               ## If undefined (the default) or set to null, no storageClassName spec is
-              ##   set, choosing the default provisioner.  (gp2 on AWS, standard on
-              ##   GKE, AWS & OpenStack)
-              ##
-              # storageClass: "-"
+              ## set, choosing the default provisioner.  (gp2 on AWS, standard on
+              ## GKE, AWS & OpenStack)
+              storageClass: '{{ env "SENTRY_FILESTORE_PERSISTENCE_STORAGE_CLASS" | default "gp2" }}'
               accessMode: '{{ env "SENTRY_FILESTORE_PERSISTENCE_ACCESS_MODE" | default "ReadWriteOnce" }}'
               size: '{{ env "SENTRY_FILESTORE_PERSISTENCE_SIZE" | default "10Gi" }}'
 
@@ -211,8 +209,11 @@ releases:
               enabled: {{ env "SENTRY_REDIS_MASTER_PERSISTENCE_ENABLED" | default "true" }}
               size: '{{ env "SENTRY_REDIS_MASTER_PERSISTENCE_SIZE" | default "20Gi" }}'
 
+        # https://docs.sentry.io/server/config/
         config:
-          configYml: ""
+          configYml: |-
+            system.url-prefix: '{{ env "SENTRY_CONFIG_SYSTEM_URL_PREFIX" | default "localhost" }}'
+
           sentryConfPy: ""
 
         ## Prometheus Exporter / Metrics
@@ -285,4 +286,4 @@ releases:
               limits:
                 memory: '{{ env "SENTRY_HOOKS_RESOURCES_LIMIT_MEMORY" | default "3200Mi" }}'
               requests:
-                memory: '{{ env "SENTRY_HOOKS_RESOURCES_REQUEST_MEMORY" | default "512Mi" }}'
+                memory: '{{ env "SENTRY_HOOKS_RESOURCES_REQUEST_MEMORY" | default "1024Mi" }}'
