@@ -2,6 +2,9 @@ repositories:
   # Stable repo of official helm charts
   - name: "stable"
     url: "https://kubernetes-charts.storage.googleapis.com"
+  # Repo of new Kubernetes charts in development
+  - name: "kubernetes-incubator"
+    url: "https://kubernetes-charts-incubator.storage.googleapis.com"
 
 releases:
 
@@ -21,13 +24,18 @@ releases:
       vendor: "kubernetes-helm"
     chart: "stable/sentry"
     version: '{{ env "SENTRY_CHART_VERSION" | default "2.1.1" }}'
+    force: true
     wait: true
+    timeout: 600
     installed: {{ env "SENTRY_INSTALLED" | default "true" }}
     values:
       - image:
           repository: "sentry"
           tag: '{{ env "SENTRY_IMAGE_TAG" | default "9.1.1" }}'
           pullPolicy: "IfNotPresent"
+
+        # https://github.com/helm/charts/blob/master/stable/sentry/templates/secrets.yaml#L12
+        sentrySecret: '{{ env "SENTRY_SECRET" }}'
 
         web:
           replicacount: 1
@@ -82,11 +90,13 @@ releases:
           # concurrency:
 
         # Admin user to create
+        # https://github.com/helm/charts/blob/master/stable/sentry/templates/secrets.yaml
         user:
           # Indicated to create the admin user or not,
-          # Default is true as the initial installation.
+          # Default is true at the initial installation.
           create: {{ env "SENTRY_CREATE_ADMIN_USER" | default "true" }}
-          email: '{{ env "SENTRY_ADMIN_USER_EMAIL" | default "andriy@cloudposse.com" }}'
+          email: '{{ env "SENTRY_ADMIN_USER_EMAIL" }}'
+          password: '{{ env "SENTRY_ADMIN_USER_PASSWORD" }}'
 
         # BYO Email server
         # https://docs.sentry.io/server/installation/docker/#outbound-email
@@ -173,13 +183,13 @@ releases:
         ##
         ingress:
           enabled: {{ env "SENTRY_INGRESS_ENABLED" | default "false" }}
-          hostname: '{{ env "SENTRY_HOSTNAME" | default "sentry.local" }}'
+          hostname: '{{ env "SENTRY_HOSTNAME" }}'
           annotations:
             kubernetes.io/ingress.class: "nginx"
             kubernetes.io/tls-acme: "true"
             external-dns.alpha.kubernetes.io/ttl: "60"
-            external-dns.alpha.kubernetes.io/target: '{{ env "SENTRY_INGRESS" | default "" }}'
-            external-dns.alpha.kubernetes.io/hostname: '{{ env "SENTRY_HOSTNAME" | default "sentry.local" }}'
+            external-dns.alpha.kubernetes.io/target: '{{ env "SENTRY_INGRESS" }}'
+            external-dns.alpha.kubernetes.io/hostname: '{{ env "SENTRY_HOSTNAME" }}'
           tls:
             - secretName: '{{ env "SENTRY_SECRET_NAME" | default "sentry-server-tls" }}'
               hosts:
@@ -212,7 +222,7 @@ releases:
         # https://docs.sentry.io/server/config/
         config:
           configYml: |-
-            system.url-prefix: '{{ env "SENTRY_CONFIG_SYSTEM_URL_PREFIX" | default "localhost" }}'
+            system.url-prefix: 'https://{{ env "SENTRY_HOSTNAME" }}'
 
           sentryConfPy: ""
 
@@ -286,4 +296,48 @@ releases:
               limits:
                 memory: '{{ env "SENTRY_HOOKS_RESOURCES_LIMIT_MEMORY" | default "3200Mi" }}'
               requests:
-                memory: '{{ env "SENTRY_HOOKS_RESOURCES_REQUEST_MEMORY" | default "1024Mi" }}'
+                memory: '{{ env "SENTRY_HOOKS_RESOURCES_REQUEST_MEMORY" | default "3200Mi" }}'
+
+
+  # https://github.com/helm/charts/tree/master/incubator/raw
+  - name: 'sentry-api-ingress'
+    chart: "kubernetes-incubator/raw"
+    namespace: "sentry"
+    labels:
+      chart: "raw"
+      repo: "kubernetes-incubator"
+      component: "monitoring"
+      namespace: "sentry"
+      vendor: "kubernetes-helm"
+    version: "0.2.3"
+    wait: true
+    force: true
+    recreatePods: true
+    installed: {{ env "SENTRY_API_INGRESS_INSTALLED" | default "true" }}
+    values:
+      - resources:
+          - apiVersion: extensions/v1beta1
+            kind: Ingress
+            metadata:
+              name: sentry-api-ingress
+              annotations:
+                nginx.ingress.kubernetes.io/use-regex: "true"
+                kubernetes.io/ingress.class: "nginx"
+                kubernetes.io/tls-acme: "true"
+                external-dns.alpha.kubernetes.io/ttl: "60"
+                external-dns.alpha.kubernetes.io/target: '{{ env "SENTRY_INGRESS" }}'
+                external-dns.alpha.kubernetes.io/hostname: '{{ env "SENTRY_HOSTNAME" }}'
+            spec:
+              tls:
+                - secretName: '{{ env "SENTRY_SECRET_NAME" | default "sentry-server-tls" }}'
+                  hosts:
+                    - '{{ env "SENTRY_HOSTNAME" }}'
+              rules:
+                - host: '{{ env "SENTRY_HOSTNAME" }}'
+                  http:
+                    paths:
+                      # https://kubernetes.github.io/ingress-nginx/user-guide/ingress-path-matching/
+                      - path: /api/(\\d+)/store/
+                        backend:
+                          serviceName: sentry
+                          servicePort: {{ env "SENTRY_SERVICE_EXTERNAL_PORT" | default "9000" }}
