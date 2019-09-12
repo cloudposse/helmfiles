@@ -304,6 +304,9 @@ releases:
           forecastle.stakater.com/appName: "{{ env "OIDC_INGRESS_PORTAL_TITLE" | default "QA Portal" }}"
           forecastle.stakater.com/expose: "true"
           forecastle.stakater.com/url: 'https://{{- env "OIDC_INGRESS_PORTAL_HOST" -}}'
+          {{- if eq (env "OIDC_INGRESS_FORECASTLE_PORTAL_ICON_ENABLED" | default "true") "true" }}
+          forecastle.stakater.com/icon: '{{- env "OIDC_INGRESS_FORECASTLE_PORTAL_ICON" | default "https://cloudposse.com/wp-content/uploads/2019/09/portal.png" -}}'
+          {{- end }}
           {{- if env "FORECASTLE_INSTANCE_NAME" }}
           forecastle.stakater.com/instance: "{{ env "FORECASTLE_INSTANCE_NAME" }}"
           {{- end }}
