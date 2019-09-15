@@ -24,7 +24,7 @@ releases:
     vendor: "kubernetes"
     default: "false"
   chart: "stable/efs-provisioner"
-  version: "0.1.3"
+  version: "0.7.0"
   wait: true
   installed: {{ env "EFS_PROVISIONER_INSTALLED" | default "true" }}
   values:
@@ -32,15 +32,15 @@ releases:
         deployEnv: '{{ env "DEPLOY_ENV" | default "dev" }}'
       image:
         repository: '{{ env "EFS_PROVISIONER_IMAGE_REPOSITORY" | default "quay.io/external_storage/efs-provisioner" }}'
-        tag: '{{ env "EFS_PROVISIONER_IMAGE_TAG" | default "v0.1.2" }}'
+        tag: '{{ env "EFS_PROVISIONER_IMAGE_TAG" | default "v2.2.0-k8s1.12" }}'
         pullPolicy: "IfNotPresent"
       resources:
         limits:
-          cpu: '{{ env "EFS_LIMITS_CPU" | default "200m" }}'
-          memory: '{{ env "EFS_LIMITS_MEMORY" | default "128Mi" }}'
+          cpu: '{{ env "EFS_LIMITS_CPU" | default "10m" }}'
+          memory: '{{ env "EFS_LIMITS_MEMORY" | default "32Mi" }}'
         requests:
-          cpu: '{{ env "EFS_REQUESTS_CPU" | default "100m" }}'
-          memory: '{{ env "EFS_REQUESTS_MEMORY" | default "128Mi" }}'
+          cpu: '{{ env "EFS_REQUESTS_CPU" | default "1m" }}'
+          memory: '{{ env "EFS_REQUESTS_MEMORY" | default "16Mi" }}'
       rbac:
         ### Optional: RBAC_ENABLED;
         create: {{ env "RBAC_ENABLED" | default "false" }}
@@ -51,9 +51,9 @@ releases:
         # If not set and create is true, a name is generated using the fullname template
         name: '{{ env "EFS_SERVICE_ACCOUNT_NAME" | default "" }}'
       efsProvisioner:
-        efsFileSystemId: '{{ env "EFS_FILE_SYSTEM_ID" }}'
-        awsRegion: '{{ env "AWS_REGION" }}'
-        path: '{{ env "EFS_PV_PATH" }}'
+        efsFileSystemId: '{{ coalesce (env "EFS_FILE_SYSTEM_ID") (env "KOPS_EFS_FILE_SYSTEM_ID") }}'
+        awsRegion: '{{ coalesce (env "EFS_AWS_REGION") (env "AWS_REGION") }}'
+        path: '{{ env "EFS_PV_PATH" | default "efs_provisioner" }}'
         provisionerName: '{{ env "EFS_PROVISIONER_NAME" | default "aws-efs" }}'
         storageClass:
           name: '{{ env "EFS_STORAGE_CLASS_NAME" | default "efs" }}'
@@ -63,5 +63,6 @@ releases:
             gidMin: '{{ env "EFS_STORAGE_CLASS_GID_ALLOCATE_GIT_MIN" | default "40000" }}'
             gidMax: '{{ env "EFS_STORAGE_CLASS_GID_ALLOCATE_GIT_MAX" | default "50000" }}'
           reclaimPolicy: '{{ env "EFS_STORAGE_CLASS_RECLAIM_POLICY" | default "Delete" }}'
-      annotations:
-        iam.amazonaws.com/role: '{{ env "EFS_PROVISIONER_IAM_ROLE" }}'
+      podAnnotations:
+        iam.amazonaws.com/role: '{{ coalesce (env "EFS_PROVISIONER_IAM_ROLE") (env "KOPS_EFS_PROVISIONER_ROLE_NAME") }}'
+        "cluster-autoscaler.kubernetes.io/safe-to-evict": "true"

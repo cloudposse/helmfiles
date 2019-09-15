@@ -269,6 +269,9 @@ releases:
               {{- end }}
               {{- if not ( env "KUBE_PROMETHEUS_ALERT_MANAGER_PAGERDUTY_INTEGRATION_KEY" | empty ) }}
               pagerduty_configs:
+                # In PagerDuty, under "Service Details" for a service, on the Integrations tab,
+                # Select a new integration of type Events API v2 and use that key as the integration key.
+                # Do NOT select "Prometheus" as the integration type.
                 - routing_key: '{{ env "KUBE_PROMETHEUS_ALERT_MANAGER_PAGERDUTY_INTEGRATION_KEY" }}'
                   send_resolved: true
                   details:
