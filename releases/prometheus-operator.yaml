@@ -231,10 +231,10 @@ releases:
           resources:
             limits:
               cpu: '{{ env "PROMETHEUS_PROMETHEUS_LIMIT_CPU" | default "300m" }}'
-              memory: '{{ env "PROMETHEUS_PROMETHEUS_LIMIT_MEMORY" | default "1Gi" }}'
+              memory: '{{ env "PROMETHEUS_PROMETHEUS_LIMIT_MEMORY" | default "1526Mi" }}'
             requests:
-              cpu: '{{ env "PROMETHEUS_PROMETHEUS_REQUEST_CPU" | default "50m" }}'
-              memory: '{{ env "PROMETHEUS_PROMETHEUS_REQUEST_MEMORY" | default "512Mi" }}'
+              cpu: '{{ env "PROMETHEUS_PROMETHEUS_REQUEST_CPU" | default "75m" }}'
+              memory: '{{ env "PROMETHEUS_PROMETHEUS_REQUEST_MEMORY" | default "768Mi" }}'
       alertmanager:
         enabled: {{ env "ALERTMANAGER_INSTALLED" | default "true" }}
         ## Alertmanager configuration directives
