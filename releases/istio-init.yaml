@@ -1,6 +1,6 @@
 repositories:
   - name: istio.io
-    url: https://storage.googleapis.com/istio-release/releases/1.3.0/charts
+    url: https://storage.googleapis.com/istio-release/releases/{{ coalesce (env "ISTIO_INIT_IMAGE_TAG") (env "ISTIO_IMAGE_TAG") "1.3.0" }}/charts
 
 releases:
 
@@ -24,7 +24,7 @@ releases:
       vendor: "istio"
       default: "true"
     chart: "istio.io/istio-init"
-    version: "1.3.0"
+    version: "{{ coalesce (env "ISTIO_INIT_IMAGE_TAG") (env "ISTIO_IMAGE_TAG") "1.3.0" }}"
     wait: true
     installed: {{ env "ISTIO_INSTALLED" | default "true" }}
     values:
