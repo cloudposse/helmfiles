@@ -18,7 +18,7 @@ releases:
     chart: "incubator/raw"
     version: "0.1.0"
     wait: true
-{{- if ( env "ISTIO_INSTALLED" | default "true" | eq "true" ) and ( env "ISTIO_KIALI_ENABLED" | default "false" | eq  "true" ) }}
+{{- if and ( env "ISTIO_INSTALLED" | default "true" | eq "true" ) ( env "ISTIO_KIALI_ENABLED" | default "false" | eq  "true" ) }}
     installed: true
 {{- else }}
     installed: false
