@@ -73,6 +73,7 @@ releases:
       # @see https://github.com/istio/istio/blob/master/install/kubernetes/helm/istio/charts/kiali/values.yaml
       kiali:
         enabled: {{ env "ISTIO_KIALI_ENABLED" | default "false" }}
+        contextPath: /
         dashboard:
           auth:
             strategy: {{ env "ISTIO_KIALI_AUTH_STRATEGY" | default "login" }}
