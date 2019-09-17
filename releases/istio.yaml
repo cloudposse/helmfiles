@@ -74,6 +74,7 @@ releases:
       kiali:
         enabled: {{ env "ISTIO_KIALI_ENABLED" | default "false" }}
         contextPath: /
+        prometheusAddr: {{ env "ISTIO_PROMETHEUS" | default "prometheus-operator-prometheus.monitoring:9090" }}
         dashboard:
           auth:
             strategy: {{ env "ISTIO_KIALI_AUTH_STRATEGY" | default "login" }}
