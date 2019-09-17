@@ -1,46 +1,6 @@
 repositories:
   - name: istio.io
     url: https://storage.googleapis.com/istio-release/releases/{{ coalesce (env "ISTIO_INIT_IMAGE_TAG") (env "ISTIO_IMAGE_TAG") "1.3.0" }}/charts
-  # Incubator repo of official helm charts
-  - name: "incubator"
-    url: "https://kubernetes-charts-incubator.storage.googleapis.com/"
-
-releases:
-  - name: "istio-kiali-creds"
-    namespace: "istio-system"
-    labels:
-      chart: "raw"
-      repo: "incubator"
-      component: "istio"
-      namespace: "istio-system"
-      vendor: "raw"
-      default: "false"
-    chart: "incubator/raw"
-    version: "0.1.0"
-    wait: true
-{{- if and ( env "ISTIO_INSTALLED" | default "true" | eq "true" ) ( env "ISTIO_KIALI_ENABLED" | default "false" | eq  "true" ) }}
-    installed: true
-{{- else }}
-    installed: false
-{{- end }}
-    values:
-    - resources:
-      - apiVersion: v1
-        kind: Secret
-        metadata:
-          name: kiali
-          labels:
-            app: "kiali"
-            chart: "raw"
-            repo: "incubator"
-            component: "istio"
-            namespace: "istio-system"
-            vendor: "raw"
-            default: "false"
-        type: Opaque
-        data:
-          username: '{{ env "ISTIO_KIALI_ADMIN_USER" | default "admin" | b64enc }}'
-          passphrase: '{{ env "ISTIO_KIALI_ADMIN_PASSWORD" | default "admin" | b64enc }}'
 
   #######################################################################################
   ## istio                                                                             ##
@@ -113,6 +73,9 @@ releases:
       # @see https://github.com/istio/istio/blob/master/install/kubernetes/helm/istio/charts/kiali/values.yaml
       kiali:
         enabled: {{ env "ISTIO_KIALI_ENABLED" | default "false" }}
+        dashboard:
+          auth:
+            strategy: {{ env "ISTIO_KIALI_AUTH_STRATEGY" | default "login" }}
 
       # @see https://github.com/istio/istio/blob/master/install/kubernetes/helm/istio/charts/certmanager/values.yaml
       certmanager:
