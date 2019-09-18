@@ -57,7 +57,7 @@ releases:
               summary: Elasticsearch is running on fewer than {{ $nodecount }} nodes
               description: 'There are only {{`{{$value}}`}} Elasticsearch nodes running, but there should be {{ $nodecount }}.'
           {{- end }}
-          - alert: Elasticsearch_Heap_Too_High90
+          - alert: Elasticsearch_Heap_Too_High_90
             expr: elasticsearch_jvm_memory_used_bytes{area="heap"} / elasticsearch_jvm_memory_max_bytes{area="heap"}
               > 0.9
             for: 15m
@@ -66,7 +66,7 @@ releases:
             annotations:
               summary: 'Elasticsearch node {{`{{$labels.name}}`}} heap usage is high'
               description: 'Elasticsearch node {{`{{$labels.name}}`}} heap usage is over 90% for 15m'
-          - alert: Elasticsearch_Heap_Too_High80
+          - alert: Elasticsearch_Heap_Too_High_80
             expr: elasticsearch_jvm_memory_used_bytes{area="heap"} / elasticsearch_jvm_memory_max_bytes{area="heap"}
               > 0.8
             for: 15m
@@ -106,6 +106,22 @@ releases:
               runbook_url: https://docs.aws.amazon.com/elasticsearch-service/latest/developerguide/aes-handling-errors.html#aes-handling-errors-yellow-cluster-status
               description: >-
                 Elasticsearch cluster {{`{{ $labels.cluster }}`}}: not all replica shards are allocated to nodes.
+          - alert: Elasticsearch_Filesystem_Full
+            expr: elasticsearch_filesystem_data_available_bytes * 100 / elasticsearch_filesystem_data_size_bytes < 5
+            labels:
+              severity: critical
+            annotations:
+              summary:  "Elasticsearch cluster file system over 95% full"
+              description: >-
+                Elasticsearch node {{`{{ $labels.name }}`}} file system has only {{`{{printf "%.1f" $value}}`}}% free space.
+          - alert: Elasticsearch_Filesystem_Near_Full
+            expr: elasticsearch_filesystem_data_available_bytes * 100 / elasticsearch_filesystem_data_size_bytes < 10
+            labels:
+              severity: warning
+            annotations:
+              summary:  "Elasticsearch cluster file system over 90% full"
+              description: >-
+                Elasticsearch node {{`{{ $labels.name }}`}} file system has only {{`{{printf "%.1f" $value}}`}}% free space.
           - alert: Elasticsearch_Count_of_JVM_GC_Runs
             expr: rate(elasticsearch_jvm_gc_collection_seconds_count{}[5m])>5
             for: 60s
@@ -127,7 +143,6 @@ releases:
                 Elasticsearch node {{`{{ $labels.name }}`}} GC was running {{`{{ $value }}`}}% of real time over the past 60 seconds.
           - alert: Elasticsearch_json_parse_failures
             expr: increase(elasticsearch_cluster_health_json_parse_failures[10m])>0
-            for: 60s
             labels:
               severity: "warning"
             annotations:
@@ -144,11 +159,10 @@ releases:
               description: "Elasticsearch pending tasks count of {{`{{ $value }}`}} is > 0 for 5 min. Cluster works slowly."
           - alert: Elasticsearch_breakers_tripped
             expr: increase(elasticsearch_breakers_tripped{}[5m])>0
-            for: 60s
             labels:
               severity: "warning"
             annotations:
-              summary:  'Elasticsearch breaker{{`{{$labels.breaker}}`}} tripped'
+              summary:  'Elasticsearch breaker {{`{{$labels.breaker}}`}} tripped'
               runbook_url: https://www.elastic.co/guide/en/elasticsearch/reference/current/circuit-breaker.html
               description: >-
                 Elasticsearch node {{`{{ $labels.name }}`}}: breaker {{`{{$labels.breaker}}`}} tripped
