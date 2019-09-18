@@ -141,7 +141,7 @@ releases:
               summary:  "Elasticsearch GC running > 30% of real time"
               description: >-
                 Elasticsearch node {{`{{ $labels.name }}`}} GC was running {{`{{ $value }}`}}% of real time over the past 60 seconds.
-          - alert: Elasticsearch_json_parse_failures
+          - alert: Elasticsearch_JSON_Parse_Failures
             expr: increase(elasticsearch_cluster_health_json_parse_failures[10m])>0
             labels:
               severity: "warning"
@@ -149,7 +149,7 @@ releases:
               summary:  "Elasticsearch has json parse failures"
               description: >-
                 Elasticsearch has had {{`{{ $value }}`}} json parse failures over the past 10 minutes
-          - alert: Elasticsearch_pending_tasks
+          - alert: Elasticsearch_Pending_Tasks
             expr: elasticsearch_cluster_health_number_of_pending_tasks > 0
             for: 5m
             labels:
@@ -157,7 +157,7 @@ releases:
             annotations:
               summary: "Elasticsearch has had pending tasks for more than 5 minutes"
               description: "Elasticsearch pending tasks count of {{`{{ $value }}`}} is > 0 for 5 min. Cluster works slowly."
-          - alert: Elasticsearch_breakers_tripped
+          - alert: Elasticsearch_Breakers_Tripped
             expr: increase(elasticsearch_breakers_tripped{}[5m])>0
             labels:
               severity: "warning"
