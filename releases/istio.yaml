@@ -29,6 +29,7 @@ releases:
     - gateways:
         # @see https://github.com/istio/istio/blob/master/install/kubernetes/helm/istio/charts/gateways/values.yaml
         enabled: {{ env "ISTIO_GATEWAYS_ENABLED" | default "true" }}
+
       # @see https://github.com/istio/istio/blob/master/install/kubernetes/helm/istio/charts/sidecarInjectorWebhook/values.yaml
       sidecarInjectorWebhook:
         enabled: {{ env "ISTIO_SIDECAR_INJECTOR_WEBHOOK_ENABLED" | default "true" }}
@@ -74,7 +75,7 @@ releases:
       kiali:
         enabled: {{ env "ISTIO_KIALI_ENABLED" | default "false" }}
         contextPath: /
-        prometheusAddr: {{ env "ISTIO_PROMETHEUS" | default "prometheus-operator-prometheus.monitoring:9090" }}
+        prometheusAddr: {{ env "ISTIO_PROMETHEUS" | default "http://prometheus-operator-prometheus.monitoring:9090" }}
         dashboard:
           auth:
             strategy: {{ env "ISTIO_KIALI_AUTH_STRATEGY" | default "login" }}
@@ -550,3 +551,249 @@ releases:
         # This field is set to false by default, so 'helm template ...'
         # will ignore the helm test yaml files when generating the template
         enableHelmTest: {{ env "ISTIO_HELM_TEST_ENABLED" | default "false" }}
+
+  - name: "istio-prometheus"
+    namespace: "istio-system"
+    labels:
+      chart: "monochart"
+      repo: "cloudposse"
+      component: "prometheus"
+      namespace: "istio-system"
+      vendor: "cloudposse"
+      default: "false"
+    chart: "cloudposse-incubator/monochart"
+    version: "0.4.0"
+    wait: true
+    installed: {{ env "ISTIO_INSTALLED" | default "true" }}
+    values:
+      - serviceMonitors:
+          istio-mesh-monitor:
+            labels:
+              monitoring: istio-mesh
+            selector:
+              matchExpressions:
+                - {key: istio, operator: In, values: [mixer]}
+            namespaceSelector:
+              matchNames:
+                - istio-system
+            endpoints:
+              - port: prometheus
+                interval: 15s
+
+          istio-component-monitor:
+            labels:
+              monitoring: istio-components
+            selector:
+              matchExpressions:
+                - {key: istio, operator: In, values: [mixer,pilot,galley,citadel]}
+            namespaceSelector:
+              any: true
+            endpoints:
+              - port: http-monitoring
+                interval: 15s
+              - port: http-policy-monitoring
+                interval: 15s
+
+          envoy-stats-monitor:
+            labels:
+              monitoring: istio-proxies
+            selector:
+              matchExpressions:
+                - {key: istio-prometheus-ignore, operator: DoesNotExist}
+            namespaceSelector:
+              any: true
+            jobLabel: envoy-stats
+            endpoints:
+              - path: /stats/prometheus
+                targetPort: 15090
+                interval: 15s
+                relabelings:
+                  - sourceLabels: [__meta_kubernetes_pod_container_port_name]
+                    action: keep
+                    regex: '.*-envoy-prom'
+                  - action: labelmap
+                    regex: "__meta_kubernetes_pod_label_(.+)"
+                  - sourceLabels: [__meta_kubernetes_namespace]
+                    action: replace
+                    targetLabel: namespace
+                  - sourceLabels: [__meta_kubernetes_pod_name]
+                    action: replace
+                    targetLabel: pod_name
+
+          kubernetes-pods-monitor:
+            labels:
+              monitoring: kube-pods
+            selector:
+              matchExpressions:
+                - {key: istio-prometheus-ignore, operator: DoesNotExist}
+            namespaceSelector:
+              any: true
+            jobLabel: kubernetes-pods
+            endpoints:
+              - interval: 15s
+                relabelings:
+                  - sourceLabels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
+                    action: keep
+                    regex: 'true'
+                  - sourceLabels: [__meta_kubernetes_pod_annotation_sidecar_istio_io_status, __meta_kubernetes_pod_annotation_prometheus_io_scheme]
+                    action: keep
+                    regex: '((;.*)|(.*;http)|(.??))'
+                  - sourceLabels: [__meta_kubernetes_pod_annotation_istio_mtls]
+                    action: drop
+                    regex: 'true'
+                  - sourceLabels: [__meta_kubernetes_pod_annotation_prometheus_io_path]
+                    action: replace
+                    targetLabel: __metrics_path__
+                    regex: '(.+)'
+                  - sourceLabels: [__address__, __meta_kubernetes_pod_annotation_prometheus_io_port]
+                    action: replace
+                    regex: '([^:]+)(?::\d+)?;(\d+)'
+                    replacement: $1:$2
+                    targetLabel: __address__
+                  - action: labelmap
+                    regex: '__meta_kubernetes_pod_label_(.+)'
+                  - sourceLabels: [__meta_kubernetes_namespace]
+                    action: replace
+                    targetLabel: namespace
+                  - sourceLabels: [__meta_kubernetes_pod_name]
+                    action: replace
+                    targetLabel: pod_name
+
+          kubernetes-pods-secure-monitor:
+            labels:
+              monitoring: kube-services-secure
+            selector:
+              matchExpressions:
+                - {key: istio-prometheus-ignore, operator: DoesNotExist}
+            namespaceSelector:
+              any: true
+            jobLabel: kubernetes-pods-secure
+            endpoints:
+              - interval: 15s
+                scheme: https
+                tlsConfig:
+                  caFile: /etc/prometheus/secrets/istio.prometheus/root-cert.pem
+                  certFile: /etc/prometheus/secrets/istio.prometheus/cert-chain.pem
+                  keyFile: /etc/prometheus/secrets/istio.prometheus/key.pem
+                  insecureSkipVerify: true  # prometheus does not support secure naming.
+                relabelings:
+                  - sourceLabels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
+                    action: keep
+                    regex: 'true'
+                  # sidecar status annotation is added by sidecar injector and
+                  # istio_workload_mtls_ability can be specifically placed on a pod to indicate its ability to receive mtls traffic.
+                  - sourceLabels: [__meta_kubernetes_pod_annotation_sidecar_istio_io_status, __meta_kubernetes_pod_annotation_istio_mtls]
+                    action: keep
+                    regex: '(([^;]+);([^;]*))|(([^;]*);(true))'
+                  - sourceLabels: [__meta_kubernetes_pod_annotation_prometheus_io_scheme]
+                    action: drop
+                    regex: '(http)'
+                  - sourceLabels: [__meta_kubernetes_pod_annotation_prometheus_io_path]
+                    action: replace
+                    targetLabel: __metrics_path__
+                    regex: '(.+)'
+                  - sourceLabels: [__address__]  # Only keep address that is host:port
+                    action: keep    # otherwise an extra target with ':443' is added for https scheme
+                    regex: '([^:]+):(\d+)'
+                  - sourceLabels: [__address__, __meta_kubernetes_pod_annotation_prometheus_io_port]
+                    action: replace
+                    regex: '([^:]+)(?::\d+)?;(\d+)'
+                    replacement: $1:$2
+                    targetLabel: __address__
+                  - action: labelmap
+                    regex: '__meta_kubernetes_pod_label_(.+)'
+                  - sourceLabels: [__meta_kubernetes_namespace]
+                    action: replace
+                    targetLabel: namespace
+                  - sourceLabels: [__meta_kubernetes_pod_name]
+                    action: replace
+                    targetLabel: pod_name
+
+          kubernetes-services-monitor:
+            labels:
+              monitoring: kube-services
+            selector:
+              matchExpressions:
+                - {key: istio-prometheus-ignore, operator: DoesNotExist}
+            namespaceSelector:
+              any: true
+            jobLabel: kubernetes-services
+            endpoints:
+              - interval: 15s
+                relabelings:
+                  - sourceLabels: [__meta_kubernetes_service_annotation_prometheus_io_scrape]
+                    action: keep
+                    regex: 'true'
+                  - sourceLabels: [__meta_kubernetes_pod_annotation_sidecar_istio_io_status, __meta_kubernetes_service_annotation_prometheus_io_scheme]
+                    action: keep
+                    regex: '((;.*)|(.*;http)|(.??))'
+                  - sourceLabels: [__meta_kubernetes_pod_annotation_istio_mtls]
+                    action: drop
+                    regex: 'true'
+                  - sourceLabels: [__meta_kubernetes_service_annotation_prometheus_io_path]
+                    action: replace
+                    targetLabel: __metrics_path__
+                    regex: '(.+)'
+                  - sourceLabels: [__address__, __meta_kubernetes_service_annotation_prometheus_io_port]
+                    action: replace
+                    regex: '([^:]+)(?::\d+)?;(\d+)'
+                    replacement: $1:$2
+                    targetLabel: __address__
+                  - action: labelmap
+                    regex: '__meta_kubernetes_pod_label_(.+)'
+                  - sourceLabels: [__meta_kubernetes_namespace]
+                    action: replace
+                    targetLabel: namespace
+                  - sourceLabels: [__meta_kubernetes_pod_name]
+                    action: replace
+                    targetLabel: pod_name
+
+          kubernetes-services-secure-monitor:
+            labels:
+              monitoring: kube-services-secure
+            selector:
+              matchExpressions:
+                - {key: istio-prometheus-ignore, operator: DoesNotExist}
+            namespaceSelector:
+              any: true
+            jobLabel: kubernetes-services-secure
+            endpoints:
+              - interval: 15s
+                scheme: https
+                tlsConfig:
+                  caFile: /etc/prometheus/secrets/istio.prometheus/root-cert.pem
+                  certFile: /etc/prometheus/secrets/istio.prometheus/cert-chain.pem
+                  keyFile: /etc/prometheus/secrets/istio.prometheus/key.pem
+                  insecureSkipVerify: true  # prometheus does not support secure naming.
+                relabelings:
+                  - sourceLabels: [__meta_kubernetes_service_annotation_prometheus_io_scrape]
+                    action: keep
+                    regex: 'true'
+                  # sidecar status annotation is added by sidecar injector and
+                  # istio_workload_mtls_ability can be specifically placed on a pod to indicate its ability to receive mtls traffic.
+                  - sourceLabels: [__meta_kubernetes_pod_annotation_sidecar_istio_io_status, __meta_kubernetes_pod_annotation_istio_mtls]
+                    action: keep
+                    regex: '(([^;]+);([^;]*))|(([^;]*);(true))'
+                  - sourceLabels: [__meta_kubernetes_service_annotation_prometheus_io_scheme]
+                    action: drop
+                    regex: '(http)'
+                  - sourceLabels: [__meta_kubernetes_service_annotation_prometheus_io_path]
+                    action: replace
+                    targetLabel: __metrics_path__
+                    regex: '(.+)'
+                  - sourceLabels: [__address__]  # Only keep address that is host:port
+                    action: keep    # otherwise an extra target with ':443' is added for https scheme
+                    regex: '([^:]+):(\d+)'
+                  - sourceLabels: [__address__, __meta_kubernetes_service_annotation_prometheus_io_port]
+                    action: replace
+                    regex: '([^:]+)(?::\d+)?;(\d+)'
+                    replacement: $1:$2
+                    targetLabel: __address__
+                  - action: labelmap
+                    regex: '__meta_kubernetes_pod_label_(.+)'
+                  - sourceLabels: [__meta_kubernetes_namespace]
+                    action: replace
+                    targetLabel: namespace
+                  - sourceLabels: [__meta_kubernetes_pod_name]
+                    action: replace
+                    targetLabel: pod_name
