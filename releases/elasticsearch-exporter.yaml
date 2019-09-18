@@ -11,17 +11,17 @@ releases:
   #
   # References
   #  - https://github.com/justwatchcom/elasticsearch_exporter
-  #  - https://github.com/helm/charts/tree/d9d925f8f40215ec14e011b7b3cb1805358dee94/stable/elasticsearch-exporter
+  #  - https://github.com/helm/charts/tree/08fc376647d43169743dcf04f1e88a2aec9e5f3d/stable/elasticsearch-exporter
   #
   - name: 'elasticsearch-exporter'
     chart: "stable/elasticsearch-exporter"
-    namespace: monitoring
+    namespace: {{ env "ELASTICSEARCH_EXPORTER_NAMESPACE" | default "monitoring" }}
     labels:
       app: "elasticsearch-exporter"
       component: "monitoring"
       namespace: "monitoring"
       default: "false"
-    version: "1.7.0"  # App version 1.0.2
+    version: "1.10.1"  # App version 1.1.0
     wait: true
     installed: {{ env "ELASTICSEARCH_EXPORTER_INSTALLED" | default "true" }}
     values:
@@ -30,8 +30,6 @@ releases:
           uri: {{ env "ELASTICSEARCH_EXPORTER_ELASTICSEARCH_URI" }}
         serviceMonitor:
           enabled: true
-        prometheusRule:
-          enabled: false
         resources:
           limits:
             cpu: '{{ env "ELASTICSEARCH_EXPORTER_LIMIT_CPU" | default "20m" }}'
@@ -39,4 +37,120 @@ releases:
           requests:
             cpu: '{{ env "ELASTICSEARCH_EXPORTER_REQUEST_CPU" | default "5m" }}'
             memory: '{{ env "ELASTICSEARCH_EXPORTER_REQUEST_MEMORY" | default "12Mi" }}'
-  
+        prometheusRule:
+          # These rules are designed for elasticsearch-exporter running against AWS hosted Elasticsearch
+          enabled: {{ env "ELASTICSEARCH_EXPORTER_PROMETHEUS_RULES_INSTALLED" | default "true" }}
+          rules:
+          {{- $nodecount := int (env "ELASTICSEARCH_EXPORTER_EXPECTED_NODE_COUNT" | default "4") }}
+          - record: elasticsearch_filesystem_data_used_percent
+            expr: 100 * (elasticsearch_filesystem_data_size_bytes - elasticsearch_filesystem_data_free_bytes)
+              / elasticsearch_filesystem_data_size_bytes
+          - record: elasticsearch_filesystem_data_free_percent
+            expr: 100 - elasticsearch_filesystem_data_used_percent
+          {{- if gt $nodecount 1 }}
+          - alert: Elasticsearch_Too_Few_Nodes_Running
+            expr: elasticsearch_cluster_health_number_of_nodes < {{ $nodecount }}
+            for: 5m
+            labels:
+              severity: critical
+            annotations:
+              summary: Elasticsearch is running on fewer than {{ $nodecount }} nodes
+              description: 'There are only {{`{{$value}}`}} Elasticsearch nodes running, but there should be {{ $nodecount }}.'
+          {{- end }}
+          - alert: Elasticsearch_Heap_Too_High90
+            expr: elasticsearch_jvm_memory_used_bytes{area="heap"} / elasticsearch_jvm_memory_max_bytes{area="heap"}
+              > 0.9
+            for: 15m
+            labels:
+              severity: critical
+            annotations:
+              summary: 'Elasticsearch node {{`{{$labels.name}}`}} heap usage is high'
+              description: 'Elasticsearch node {{`{{$labels.name}}`}} heap usage is over 90% for 15m'
+          - alert: Elasticsearch_Heap_Too_High80
+            expr: elasticsearch_jvm_memory_used_bytes{area="heap"} / elasticsearch_jvm_memory_max_bytes{area="heap"}
+              > 0.8
+            for: 15m
+            labels:
+              severity: warning
+            annotations:
+              summary: 'Elasticsearch node {{`{{$labels.name}}`}} heap usage is high'
+              description: 'Elasticsearch node {{`{{$labels.name}}`}} heap usage is over 80% for 15m'
+          - alert: Elasticsearch_Health_Metrics_DOWN
+            expr: elasticsearch_cluster_health_up != 1
+            for: 120s
+            labels:
+              severity: critical
+            annotations:
+              summary: "Elasticsearch Exporter is not able to get metrics from Elasticsearch cluster"
+              description: >-
+                Elasticsearch cluster's health metrics are not being updated, so the status of the cluster is
+                unknown, possibly preventing other alerts from firing.
+          - alert: Elasticsearch_Cluster_Health_RED
+            expr: elasticsearch_cluster_health_status{color="red"}==1
+            for: 300s
+            labels:
+              severity: critical
+            annotations:
+              summary:  "Elasticsearch cluster status is Red for cluster {{`{{ $labels.cluster }}`}}"
+              runbook_url: https://docs.aws.amazon.com/elasticsearch-service/latest/developerguide/aes-handling-errors.html#aes-handling-errors-red-cluster-status
+              description: >-
+                Elasticsearch cluster {{`{{ $labels.cluster }}`}}: not all primary and replica shards are allocated to nodes.
+                Amazon ES stops taking automatic snapshots, even of healthy indices, while the red cluster status persists.
+          - alert: Elasticsearch_Cluster_Health_YELLOW
+            expr: elasticsearch_cluster_health_status{color="yellow"}==1
+            for: 300s
+            labels:
+              severity: warning
+            annotations:
+              summary:  "Elasticsearch cluster status is Yellow"
+              runbook_url: https://docs.aws.amazon.com/elasticsearch-service/latest/developerguide/aes-handling-errors.html#aes-handling-errors-yellow-cluster-status
+              description: >-
+                Elasticsearch cluster {{`{{ $labels.cluster }}`}}: not all replica shards are allocated to nodes.
+          - alert: Elasticsearch_Count_of_JVM_GC_Runs
+            expr: rate(elasticsearch_jvm_gc_collection_seconds_count{}[5m])>5
+            for: 60s
+            labels:
+              severity: "warning"
+            annotations:
+              summary:  "Elasticsearch: Count of JVM GC runs > 5 per sec"
+              description: >-
+                Elasticsearch node {{`{{ $labels.name }}`}}: Average of {{`{{ $value }}`}} JVM GC runs per
+                second over past 60 seconds.
+          - alert: Elasticsearch_GC_Run_Time
+            expr: rate(elasticsearch_jvm_gc_collection_seconds_sum[5m])>0.3
+            for: 60s
+            labels:
+              severity: "warning"
+            annotations:
+              summary:  "Elasticsearch GC running > 30% of real time"
+              description: >-
+                Elasticsearch node {{`{{ $labels.name }}`}} GC was running {{`{{ $value }}`}}% of real time over the past 60 seconds.
+          - alert: Elasticsearch_json_parse_failures
+            expr: increase(elasticsearch_cluster_health_json_parse_failures[10m])>0
+            for: 60s
+            labels:
+              severity: "warning"
+            annotations:
+              summary:  "Elasticsearch has json parse failures"
+              description: >-
+                Elasticsearch has had {{`{{ $value }}`}} json parse failures over the past 10 minutes
+          - alert: Elasticsearch_pending_tasks
+            expr: elasticsearch_cluster_health_number_of_pending_tasks > 0
+            for: 5m
+            labels:
+              severity: warning
+            annotations:
+              summary: "Elasticsearch has had pending tasks for more than 5 minutes"
+              description: "Elasticsearch pending tasks count of {{`{{ $value }}`}} is > 0 for 5 min. Cluster works slowly."
+          - alert: Elasticsearch_breakers_tripped
+            expr: increase(elasticsearch_breakers_tripped{}[5m])>0
+            for: 60s
+            labels:
+              severity: "warning"
+            annotations:
+              summary:  'Elasticsearch breaker{{`{{$labels.breaker}}`}} tripped'
+              runbook_url: https://www.elastic.co/guide/en/elasticsearch/reference/current/circuit-breaker.html
+              description: >-
+                Elasticsearch node {{`{{ $labels.name }}`}}: breaker {{`{{$labels.breaker}}`}} tripped
+                {{`{{$value}}`}} times in the past 5 minutes. This alert will automatically resolve in 5 minutes
+                unless the breaker trips again.

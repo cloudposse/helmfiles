@@ -4,7 +4,7 @@ repositories:
   url: "https://kubernetes-charts-incubator.storage.googleapis.com"
 
 releases:
-# Define some StorageClasses for use in PersistentVolumeClamis
+# Define some StorageClasses for use in PersistentVolumeClaims
 #
 # References:
 #   - https://v1-12.docs.kubernetes.io/docs/concepts/storage/storage-classes/
