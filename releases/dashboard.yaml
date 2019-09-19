@@ -16,7 +16,7 @@ releases:
 #   - https://github.com/kubernetes/charts/tree/master/stable/kubernetes-dashboard
 #
 - name: "kubernetes-dashboard"
-  namespace: "kube-system"
+  namespace: '{{- env "KUBERNETES_DASHBOARD_NAMESPACE" | default "kube-system" -}}'
   labels:
     chart: "kubernetes-dashboard"
     repo: "stable"

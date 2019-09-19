@@ -44,11 +44,12 @@ releases:
         email: '{{ env "EXTERNAL_DNS_CLOUDFLARE_EMAIL" }}'
 {{ end }}
 
-{{ if env "EXTERNAL_DNS_PROVIDER" | default "aws" | eq "aws" }}
       podAnnotations:
+        cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
+        {{- if env "EXTERNAL_DNS_PROVIDER" | default "aws" | eq "aws" }}
         ### Required: EXTERNAL_DNS_IAM_ROLE; e.g. cp-staging-external-dns
         iam.amazonaws.com/role: '{{ env "EXTERNAL_DNS_IAM_ROLE" }}'
-{{ end }}
+        {{- end }}
       resources:
         limits:
           cpu: '{{ env "EXTERNAL_DNS_LIMIT_CPU" | default "200m" }}'
