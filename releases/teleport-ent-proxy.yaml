@@ -28,8 +28,7 @@ releases:
     namespace: "teleport"
     vendor: "teleport"
     default: "false"
-  # chart: "cloudposse-incubator/teleport-ent-proxy"
-  chart: /Users/jgro/CP_dev/charts/incubator/teleport-ent-proxy
+  chart: "cloudposse-incubator/teleport-ent-proxy"
   version: "0.4.0"
   wait: true
   force: true

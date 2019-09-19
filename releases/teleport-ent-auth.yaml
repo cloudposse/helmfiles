@@ -30,8 +30,7 @@ releases:
     namespace: "teleport"
     vendor: "teleport"
     default: "false"
-  # chart: "cloudposse-incubator/teleport-ent-auth"
-  chart: /Users/jgro/CP_dev/charts/incubator/teleport-ent-auth
+  chart: "cloudposse-incubator/teleport-ent-auth"
   version: "0.2.0"
   wait: true
   # atomic is not widely supported yet, but when it is, we should use it
