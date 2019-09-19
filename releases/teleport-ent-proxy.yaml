@@ -28,8 +28,9 @@ releases:
     namespace: "teleport"
     vendor: "teleport"
     default: "false"
-  chart: "cloudposse-incubator/teleport-ent-proxy"
-  version: "0.3.0"
+  # chart: "cloudposse-incubator/teleport-ent-proxy"
+  chart: /Users/jgro/CP_dev/charts/incubator/teleport-ent-proxy
+  version: "0.4.0"
   wait: true
   force: true
   installed: {{ env "TELEPORT_PROXY_INSTALLED" | default "true" }}
@@ -42,12 +43,16 @@ releases:
     nameOverride: "teleport-proxy"
     image:
       repository: quay.io/gravitational/teleport-ent
-      tag: '{{ env "TELEPORT_VERSION" | default "3.2.2" }}'
+      tag: '{{ env "TELEPORT_VERSION" | default "4.0.9" }}'
       pullPolicy: "IfNotPresent"
       # command: ["/usr/bin/dumb-init"]
       # args:  ["teleport", "start", "--insecure-no-tls", "-c", "/etc/teleport/teleport.yaml"]
+    podAnnotations:
+      cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
 
     replicaCount: {{ env "TELEPORT_PROXY_REPLICA_COUNT" | default 2 }}
+    maxUnavailable: {{ env "TELEPORT_PROXY_MAX_UNAVAILABLE" | default "75%" }}
+
     # RBAC and serviceAccount are required for proxy for Kubernetes integration starting with Teleport 3.2.0
     rbac:
       create: true

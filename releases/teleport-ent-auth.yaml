@@ -30,8 +30,9 @@ releases:
     namespace: "teleport"
     vendor: "teleport"
     default: "false"
-  chart: "cloudposse-incubator/teleport-ent-auth"
-  version: "0.1.1"
+  # chart: "cloudposse-incubator/teleport-ent-auth"
+  chart: /Users/jgro/CP_dev/charts/incubator/teleport-ent-auth
+  version: "0.2.0"
   wait: true
   # atomic is not widely supported yet, but when it is, we should use it
   # atomic: true
@@ -52,11 +53,12 @@ releases:
   - nameOverride: "teleport-auth"
     image:
       repository: quay.io/gravitational/teleport-ent
-      tag: '{{ env "TELEPORT_VERSION" | default "3.2.2" }}'
+      tag: '{{ env "TELEPORT_VERSION" | default "4.0.9" }}'
       pullPolicy: "IfNotPresent"
       # command: ["/usr/bin/dumb-init"]
       # args:  ["teleport", "start", "--insecure-no-tls", "-c", "/etc/teleport/teleport.yaml"]
     replicaCount: {{ env "TELEPORT_AUTH_REPLICA_COUNT" | default 1 }}
+    maxUnavailable: {{ env "TELEPORT_MAX_UNAVAILABLE" | default 1 }}
     rbac:
       create: false
     serviceAccount:

@@ -207,6 +207,9 @@ releases:
           replicas: 1
           retention: {{ env "PROMETHEUS_OPERATOR_PROMETHEUS_RETENTION_PERIOD" | default "45d" }}
           logLevel: "warn"
+          podMetadata:
+            annotations:
+              "cluster-autoscaler.kubernetes.io/safe-to-evict": "true"
           scrapeInterval: ""
           evaluationInterval: ""
           ## If true, a nil or {} value for prometheus.prometheusSpec.ruleSelector will cause the
