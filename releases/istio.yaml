@@ -29,6 +29,13 @@ releases:
     - gateways:
         # @see https://github.com/istio/istio/blob/master/install/kubernetes/helm/istio/charts/gateways/values.yaml
         enabled: {{ env "ISTIO_GATEWAYS_ENABLED" | default "true" }}
+        istio-ingressgateway:
+          serviceAnnotations:
+            ### Required: ISTIO_GATEWAYS_INGRESS_HOSTNAME; e.g. istio.us-west-2.cloudposse.org
+            external-dns.alpha.kubernetes.io/hostname: '{{ requiredEnv "ISTIO_GATEWAYS_INGRESS_HOSTNAME" }}'
+            ### Optional: ISTIO_GATEWAYS_INGRESS_TTL; e.g. 60
+            external-dns.alpha.kubernetes.io/ttl: '{{ env "ISTIO_GATEWAYS_INGRESS_TTL" | default "60" }}'
+
 
       # @see https://github.com/istio/istio/blob/master/install/kubernetes/helm/istio/charts/sidecarInjectorWebhook/values.yaml
       sidecarInjectorWebhook:
@@ -36,7 +43,7 @@ releases:
 
       # @see https://github.com/istio/istio/blob/master/install/kubernetes/helm/istio/charts/galley/values.yaml
       galley:
-        enabled: {{ env "ISTIO_galley_ENABLED" | default "true" }}
+        enabled: {{ env "ISTIO_GALLEY_ENABLED" | default "true" }}
 
       # @see https://github.com/istio/istio/blob/master/install/kubernetes/helm/istio/charts/mixer/values.yaml
       mixer:
