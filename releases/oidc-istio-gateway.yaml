@@ -99,7 +99,7 @@ releases:
     # discoveryURL is the  OIDC provider's base URL, under which you can retrieve ".well-known/openid-configuration"
     discoveryURL: '{{- coalesce (env "OIDC_ISTIO_GATEWAY_OIDC_ISSUER_URL") (env "KEYCLOAK_GATEKEEPER_DISCOVERY_URL") (env "KOPS_OIDC_ISSUER_URL") }}'
     # OIDC_ISTIO_GATEWAY_NGINX_HOST is the hostname of the ingress BEHIND (protected by) oidc-istio-gateway
-    upstreamURL: '{{- env "OIDC_ISTIO_GATEWAY_UPSTREAM_SCHEME" | default "https" -}}://{{- env "OIDC_ISTIO_GATEWAY_NGINX_HOST" | default "oidc-istio-gateway-nginx-controller.oidc-istio-gateway.svc" }}'
+    upstreamURL: '{{- env "OIDC_ISTIO_GATEWAY_UPSTREAM_SCHEME" | default "https" -}}://{{- env "OIDC_ISTIO_GATEWAY_NGINX_HOST" | default "istio-ingressgateway.istio-system.svc" }}'
     skipUpstreamTlsVerify: {{ env "OIDC_ISTIO_GATEWAY_SKIP_UPSTREAM_TLS_VERIFY" | default "true" }}
     ClientID: '{{- coalesce (env "OIDC_ISTIO_GATEWAY_CLIENT_ID") (env "KOPS_OIDC_CLIENT_ID") "kubernetes" }}'
     ClientSecret: '{{- requiredEnv "OIDC_ISTIO_GATEWAY_CLIENT_SECRET" }}'
