@@ -192,12 +192,12 @@ releases:
         config:
           # Let the Forecastle instance name reflect the nginx ingress class
           # for simplicity and ease of understanding.
-          instanceName: '{{ env "OIDC_ISTIO_GATEWAY_NGINX_CLASS" | default "oidc-istio-gateway" }}'
+          instanceName: '{{ env "OIDC_ISTIO_GATEWAY_NGINX_CLASS" | default "istio-forecastle" }}'
           namespaceSelector:
             any: true
             # The chart sets namespaces to match unless explicitly cleared
             matchNames: []
-          title: {{ env "OIDC_ISTIO_GATEWAY_PORTAL_TITLE" | default "QA Portal" }}
+          title: {{ env "OIDC_ISTIO_GATEWAY_PORTAL_TITLE" | default "ISTIO Portal" }}
         service:
           # The chart sets lots of annotations by default unless explicitly cleared
           annotations: ""
@@ -227,7 +227,7 @@ releases:
       kind: Ingress
       metadata:
         annotations:
-          forecastle.stakater.com/appName: "{{ env "OIDC_ISTIO_GATEWAY_PORTAL_TITLE" | default "QA Portal" }}"
+          forecastle.stakater.com/appName: "{{ env "OIDC_ISTIO_GATEWAY_PORTAL_TITLE" | default "ISTIO Portal" }}"
           forecastle.stakater.com/expose: "true"
           forecastle.stakater.com/url: 'https://{{- env "OIDC_ISTIO_GATEWAY_PORTAL_HOST" -}}'
           {{- if eq (env "OIDC_ISTIO_GATEWAY_FORECASTLE_PORTAL_ICON_ENABLED" | default "true") "true" }}
