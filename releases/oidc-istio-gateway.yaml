@@ -1,0 +1,251 @@
+repositories:
+# Repo of official, stable helm charts
+- name: "stable"
+  url: "https://kubernetes-charts.storage.googleapis.com"
+# keycloak-gatekeeper
+# No official chart, this user's chart seems to be the best there is
+- name: "gabibbo97"
+  url: "https://gabibbo97.github.io/charts/"
+# Repo of new Kubernetes charts in development
+- name: "kubernetes-incubator"
+  url: "https://kubernetes-charts-incubator.storage.googleapis.com"
+- name: "forecastle"
+  # Cannot use release tags, see https://github.com/aslafy-z/helm-git/issues/9
+  # url: "git+https://github.com/stakater/Forecastle@deployments/kubernetes/chart?ref=v1.0.25"
+  # v1.0.25 url: "git+https://github.com/stakater/Forecastle@deployments/kubernetes/chart?ref=8f36b82beaf2a1a42b364a3857bc83638c51e30b"
+  # v1.0.27:
+  url: "git+https://github.com/stakater/Forecastle@deployments/kubernetes/chart?ref=ffb5179aa659e0e3cf0ca20e1c8bd94c5fd66a2e"
+
+releases:
+
+################################################################################
+## oidc-istio-gateway                                                               ##
+## oidc-istio-gateway is a package of resources that implement an ingress protected ##
+## by an OIDC authorization server that authenticates users and distributes   ##
+## authorizations in the form of OIDC claims (by default, "roles").           ##
+################################################################################
+
+#############################################################################
+## Security consideration
+##
+## Ensure your use of oidc-istio-gateway and the configuration of your clients and
+## authorization server guard against the attacks described in RFC 6749.
+##  https://tools.ietf.org/html/rfc6749#section-10.6
+##
+##############################################################################
+
+
+#######################################################################################
+## keycloak-gatekeeper (formerly keycloak-proxy)                                     ##
+## keycloak-gatekeeper is an open source identity-aware proxy                        ##
+#######################################################################################
+
+#
+# References:
+#   - https://github.com/gabibbo97/charts/tree/master/charts/keycloak-gatekeeper
+#   - https://hub.helm.sh/charts/gabibbo97/keycloak-gatekeeper
+#   - https://www.keycloak.org/
+#
+- name: "oidc-istio-gateway"
+  namespace: "istio-system"
+  labels:
+    chart: "keycloak-gatekeeper"
+    repo: "gabibbo97"
+    component: "oidc-istio-gateway"
+    namespace: "istio-system"
+    vendor: "keycloak"
+    default: "true"
+  chart: "gabibbo97/keycloak-gatekeeper"
+  version: "1.2.1"
+  wait: false
+  installed: {{ env "OIDC_ISTIO_GATEWAY_INSTALLED" | default "true" }}
+  values:
+  - nameOverride: "oidc-istio-gateway"
+    fullNameOverride: "oidc-istio-gateway"
+    image:
+      tag: 6.0.1
+      pullPolicy: "IfNotPresent"
+    debug: {{ env "OIDC_ISTIO_GATEWAY_DEBUG" | default "false" }}
+    replicas: {{ env "OIDC_ISTIO_GATEWAY_REPLICAS" | default 1 }}
+    logging: false
+    sessionCookies: false
+    droolsPolicyEnabled: false
+    # You must set OIDC_ISTIO_GATEWAY_DENY_ACCESS_BY_DEFAULT to "false" if you want
+    # to permit access to URLs not otherwise restricted.
+    defaultDeny: {{ env "OIDC_ISTIO_GATEWAY_DENY_ACCESS_BY_DEFAULT" | default "true" }}
+    ingress:
+      enabled: true
+      annotations:
+        kubernetes.io/ingress.class: nginx
+        nginx.ingress.kubernetes.io/proxy-buffer-size: "16k"
+        # Disable custom errors on the ingress in front of the OIDC ingress,
+        # because otherwise errors behind the OIDC ingress would not get through
+        nginx.ingress.kubernetes.io/custom-http-errors: "418,599"
+        {{- if env "OIDC_ISTIO_GATEWAY_PROXY_TIMEOUT" }}
+        nginx.ingress.kubernetes.io/proxy-connect-timeout: "{{- env "OIDC_ISTIO_GATEWAY_PROXY_TIMEOUT" -}}"
+        nginx.ingress.kubernetes.io/proxy-read-timeout: "{{- env "OIDC_ISTIO_GATEWAY_PROXY_TIMEOUT" -}}"
+        nginx.ingress.kubernetes.io/proxy-send-timeout: "{{- env "OIDC_ISTIO_GATEWAY_PROXY_TIMEOUT" -}}"
+        {{- end }}
+        kubernetes.io/tls-acme: "{{  env "OIDC_ISTIO_GATEWAY_TLS_ENABLED" | default "true" }}"
+        # OIDC_ISTIO_GATEWAY_INGRESS_HOST is the hostname of the ingress IN FRONT OF oidc-istio-gateway
+        external-dns.alpha.kubernetes.io/target: '{{ requiredEnv "OIDC_ISTIO_GATEWAY_INGRESS_HOST" }}'
+        external-dns.alpha.kubernetes.io/ttl: "60"
+      hosts: ['{{- requiredEnv "OIDC_ISTIO_GATEWAY_HOST" }}']
+      {{- if (env "OIDC_ISTIO_GATEWAY_TLS_ENABLED" | default "true") }}
+      tls:
+        - secretName: "oidc-istio-gateway-tls"
+          hosts: ['{{- requiredEnv "OIDC_ISTIO_GATEWAY_HOST" }}']
+      {{- end }}
+    # discoveryURL is the  OIDC provider's base URL, under which you can retrieve ".well-known/openid-configuration"
+    discoveryURL: '{{- coalesce (env "OIDC_ISTIO_GATEWAY_OIDC_ISSUER_URL") (env "KEYCLOAK_GATEKEEPER_DISCOVERY_URL") (env "KOPS_OIDC_ISSUER_URL") }}'
+    # OIDC_ISTIO_GATEWAY_NGINX_HOST is the hostname of the ingress BEHIND (protected by) oidc-istio-gateway
+    upstreamURL: '{{- env "OIDC_ISTIO_GATEWAY_UPSTREAM_SCHEME" | default "https" -}}://{{- env "OIDC_ISTIO_GATEWAY_NGINX_HOST" | default "oidc-istio-gateway-nginx-controller.oidc-istio-gateway.svc" }}'
+    skipUpstreamTlsVerify: {{ env "OIDC_ISTIO_GATEWAY_SKIP_UPSTREAM_TLS_VERIFY" | default "true" }}
+    ClientID: '{{- coalesce (env "OIDC_ISTIO_GATEWAY_CLIENT_ID") (env "KOPS_OIDC_CLIENT_ID") "kubernetes" }}'
+    ClientSecret: '{{- requiredEnv "OIDC_ISTIO_GATEWAY_CLIENT_SECRET" }}'
+    # If encryption key is not provided, one will be generated, but it will change on each install
+    # Should be 16 or 32 ASCII characters for for AES-128/AES-256
+    encryptionKey: {{ env "OIDC_ISTIO_GATEWAY_ENCRYPTION_KEY" | quote }}
+    scopes:
+      - roles
+    rules:
+    {{- range $i, $rule := ( (env "OIDC_ISTIO_GATEWAY_RULES" | default "uri=/*|roles=user") | splitList ";" ) }}
+      - "{{ $rule }}"
+    {{- end }}
+    extraArgs:
+      - preserve-host=true
+      - enable-token-header=false
+      - enable-authorization-header=false
+      - enable-authorization-cookies=false
+      {{- if env "OIDC_ISTIO_GATEWAY_PROXY_TIMEOUT" }}
+      - upstream-timeout={{- env "OIDC_ISTIO_GATEWAY_PROXY_TIMEOUT" -}}s
+      - server-read-timeout={{- env "OIDC_ISTIO_GATEWAY_PROXY_TIMEOUT" -}}s
+      - server-write-timeout={{- env "OIDC_ISTIO_GATEWAY_PROXY_TIMEOUT" -}}s
+      - upstream-expect-continue-timeout={{- env "OIDC_ISTIO_GATEWAY_PROXY_TIMEOUT" -}}s
+      - upstream-response-header-timeout={{- env "OIDC_ISTIO_GATEWAY_PROXY_TIMEOUT" -}}s
+      {{- end }}
+      {{- if eq (env "OIDC_ISTIO_GATEWAY_DEBUG_ENABLED" | default "false") "true" }}
+      - enable-logging=true
+      - verbose
+      {{- end }}
+    rbac:
+      create: {{ env "RBAC_ENABLED" | default "false" }}
+    serviceAccount:
+      create: {{ env "RBAC_ENABLED" | default "false" }}
+      name: "oidc-istio-gateway"
+    livenessProbe:
+      initialDelaySeconds: 10
+      periodSeconds: 30
+      timeoutSeconds: 1
+      failureThreshold: 5
+    readinessProbe:
+      initialDelaySeconds: 10
+      periodSeconds: 30
+      timeoutSeconds: 1
+    resources:
+      limits:
+        cpu: "100m"
+        memory: "128Mi"
+      requests:
+        cpu: "10m"
+        memory: "10Mi"
+
+##############################################################################
+## Forecastle ################################################################
+## Forecastle is a dynamic web portal for Kubernetes services.              ##
+## Used here to provide a page listing all the components deployed behind   ##
+## the OIDC ingress.                                                        ##
+##############################################################################
+#
+# References:
+#   - https://github.com/stakater/Forecastle/tree/v1.0.27/deployments/kubernetes/chart/forecastle
+# v1.0.27  url: "git+https://github.com/stakater/Forecastle@deployments/kubernetes/chart?ref=ffb5179aa659e0e3cf0ca20e1c8bd94c5fd66a2e"
+#   - https://github.com/stakater/Forecastle
+#
+- name: "oidc-istio-gateway-forecastle"
+  namespace: "istio-system"
+  labels:
+    chart: "forecastle"
+    repo: "github"
+    component: "iap"
+    namespace: "istio-system"
+    vendor: "stakater"
+    default: "false"
+  chart: "forecastle/forecastle"
+  version: "v1.0.27"
+  wait: false
+  installed: {{ env "OIDC_ISTIO_GATEWAY_FORECASTLE_INSTALLED" | default "true" }}
+  force: true
+  recreatePods: true
+  values:
+    - nameOverride: oidc-istio-gateway-forecastle
+      fullNameOverride: oidc-istio-gateway-forecastle
+      forecastle:
+        image:
+          pullPolicy: "IfNotPresent"
+        namespace: "istio-system"
+        deployment:
+          # The chart sets lots of annotations by default unless explicitly cleared
+          annotations: ""
+          replicas: '{{- env "OIDC_ISTIO_GATEWAY_FORECASTLE_REPLICAS" | default "2" -}}'
+          revisionHistoryLimit: '{{- env "OIDC_ISTIO_GATEWAY_FORECASTLE_REVISION_HISTORY_LIMIT" | default "10" -}}'
+        config:
+          # Let the Forecastle instance name reflect the nginx ingress class
+          # for simplicity and ease of understanding.
+          instanceName: '{{ env "OIDC_ISTIO_GATEWAY_NGINX_CLASS" | default "oidc-istio-gateway" }}'
+          namespaceSelector:
+            any: true
+            # The chart sets namespaces to match unless explicitly cleared
+            matchNames: []
+          title: {{ env "OIDC_ISTIO_GATEWAY_PORTAL_TITLE" | default "QA Portal" }}
+        service:
+          # The chart sets lots of annotations by default unless explicitly cleared
+          annotations: ""
+          expose: "true"
+
+
+###############################################################################
+## Ingress ####################################################################
+## Use Kubernetes raw chart to create an Ingress for the Forecastle service   #
+## https://github.com/helm/charts/tree/master/incubator/raw                   #
+###############################################################################
+- name: 'oidc-istio-gateway-forecastle-ingress'
+  chart: "kubernetes-incubator/raw"
+  namespace: "istio-system"
+  labels:
+    component: "iap"
+    namespace: "istio-system"
+    default: "false"
+  version: "0.1.0"
+  wait: true
+  force: true
+  recreatePods: true
+  installed: {{ env "OIDC_ISTIO_GATEWAY_FORECASTLE_INSTALLED" | default "true" }}
+  values:
+  - resources:
+    - apiVersion: extensions/v1beta1
+      kind: Ingress
+      metadata:
+        annotations:
+          forecastle.stakater.com/appName: "{{ env "OIDC_ISTIO_GATEWAY_PORTAL_TITLE" | default "QA Portal" }}"
+          forecastle.stakater.com/expose: "true"
+          forecastle.stakater.com/url: 'https://{{- env "OIDC_ISTIO_GATEWAY_PORTAL_HOST" -}}'
+          {{- if eq (env "OIDC_ISTIO_GATEWAY_FORECASTLE_PORTAL_ICON_ENABLED" | default "true") "true" }}
+          forecastle.stakater.com/icon: '{{- env "OIDC_ISTIO_GATEWAY_FORECASTLE_PORTAL_ICON" | default "https://cloudposse.com/wp-content/uploads/2019/09/portal.png" -}}'
+          {{- end }}
+          {{- if env "FORECASTLE_INSTANCE_NAME" }}
+          forecastle.stakater.com/instance: "{{ env "FORECASTLE_INSTANCE_NAME" }}"
+          {{- end }}
+          forecastle.stakater.com/group: "{{ env "OIDC_ISTIO_GATEWAY_FORECASTLE_GROUP" | default "portal" }}"
+          kubernetes.io/ingress.class: '{{ env "OIDC_ISTIO_GATEWAY_NGINX_CLASS" | default "oidc-istio-gateway" }}'
+          kubernetes.io/tls-acme: "false"
+        name: oidc-istio-gateway-portal
+      spec:
+        rules:
+        - host: '{{ env "OIDC_ISTIO_GATEWAY_PORTAL_HOST" }}'
+          http:
+            paths:
+              - path: /
+                backend:
+                  serviceName: 'oidc-istio-gateway-forecastle'
+                  servicePort: http
