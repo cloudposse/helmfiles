@@ -19,8 +19,8 @@ repositories:
 releases:
 
 ################################################################################
-## oidc-istio-gateway                                                               ##
-## oidc-istio-gateway is a package of resources that implement an ingress protected ##
+## istio-gatekeeper                                                               ##
+## istio-gatekeeper is a package of resources that implement an ingress protected ##
 ## by an OIDC authorization server that authenticates users and distributes   ##
 ## authorizations in the form of OIDC claims (by default, "roles").           ##
 ################################################################################
@@ -28,7 +28,7 @@ releases:
 #############################################################################
 ## Security consideration
 ##
-## Ensure your use of oidc-istio-gateway and the configuration of your clients and
+## Ensure your use of istio-gatekeeper and the configuration of your clients and
 ## authorization server guard against the attacks described in RFC 6749.
 ##  https://tools.ietf.org/html/rfc6749#section-10.6
 ##
@@ -46,12 +46,12 @@ releases:
 #   - https://hub.helm.sh/charts/gabibbo97/keycloak-gatekeeper
 #   - https://www.keycloak.org/
 #
-- name: "oidc-istio-gateway"
+- name: "istio-gatekeeper"
   namespace: "istio-system"
   labels:
     chart: "keycloak-gatekeeper"
     repo: "gabibbo97"
-    component: "oidc-istio-gateway"
+    component: "istio-gatekeeper"
     namespace: "istio-system"
     vendor: "keycloak"
     default: "true"
@@ -60,8 +60,8 @@ releases:
   wait: false
   installed: {{ env "OIDC_ISTIO_GATEWAY_INSTALLED" | default "true" }}
   values:
-  - nameOverride: "oidc-istio-gateway"
-    fullNameOverride: "oidc-istio-gateway"
+  - nameOverride: "istio-gatekeeper"
+    fullNameOverride: "istio-gatekeeper"
     image:
       tag: 6.0.1
       pullPolicy: "IfNotPresent"
@@ -87,18 +87,18 @@ releases:
         nginx.ingress.kubernetes.io/proxy-send-timeout: "{{- env "OIDC_ISTIO_GATEWAY_PROXY_TIMEOUT" -}}"
         {{- end }}
         kubernetes.io/tls-acme: "{{  env "OIDC_ISTIO_GATEWAY_TLS_ENABLED" | default "true" }}"
-        # OIDC_ISTIO_GATEWAY_INGRESS_HOST is the hostname of the ingress IN FRONT OF oidc-istio-gateway
+        # OIDC_ISTIO_GATEWAY_INGRESS_HOST is the hostname of the ingress IN FRONT OF istio-gatekeeper
         external-dns.alpha.kubernetes.io/target: '{{ requiredEnv "OIDC_ISTIO_GATEWAY_INGRESS_HOST" }}'
         external-dns.alpha.kubernetes.io/ttl: "60"
       hosts: ['{{- requiredEnv "OIDC_ISTIO_GATEWAY_HOST" }}']
       {{- if (env "OIDC_ISTIO_GATEWAY_TLS_ENABLED" | default "true") }}
       tls:
-        - secretName: "oidc-istio-gateway-tls"
+        - secretName: "istio-gatekeeper-tls"
           hosts: ['{{- requiredEnv "OIDC_ISTIO_GATEWAY_HOST" }}']
       {{- end }}
     # discoveryURL is the  OIDC provider's base URL, under which you can retrieve ".well-known/openid-configuration"
     discoveryURL: '{{- coalesce (env "OIDC_ISTIO_GATEWAY_OIDC_ISSUER_URL") (env "KEYCLOAK_GATEKEEPER_DISCOVERY_URL") (env "KOPS_OIDC_ISSUER_URL") }}'
-    # OIDC_ISTIO_GATEWAY_NGINX_HOST is the hostname of the ingress BEHIND (protected by) oidc-istio-gateway
+    # OIDC_ISTIO_GATEWAY_NGINX_HOST is the hostname of the ingress BEHIND (protected by) istio-gatekeeper
     upstreamURL: '{{- env "OIDC_ISTIO_GATEWAY_UPSTREAM_SCHEME" | default "https" -}}://{{- env "OIDC_ISTIO_GATEWAY_NGINX_HOST" | default "istio-ingressgateway.istio-system.svc" }}'
     skipUpstreamTlsVerify: {{ env "OIDC_ISTIO_GATEWAY_SKIP_UPSTREAM_TLS_VERIFY" | default "true" }}
     ClientID: '{{- coalesce (env "OIDC_ISTIO_GATEWAY_CLIENT_ID") (env "KOPS_OIDC_CLIENT_ID") "kubernetes" }}'
@@ -132,7 +132,7 @@ releases:
       create: {{ env "RBAC_ENABLED" | default "false" }}
     serviceAccount:
       create: {{ env "RBAC_ENABLED" | default "false" }}
-      name: "oidc-istio-gateway"
+      name: "istio-gatekeeper"
     livenessProbe:
       initialDelaySeconds: 10
       periodSeconds: 30
@@ -149,103 +149,3 @@ releases:
       requests:
         cpu: "10m"
         memory: "10Mi"
-
-##############################################################################
-## Forecastle ################################################################
-## Forecastle is a dynamic web portal for Kubernetes services.              ##
-## Used here to provide a page listing all the components deployed behind   ##
-## the OIDC ingress.                                                        ##
-##############################################################################
-#
-# References:
-#   - https://github.com/stakater/Forecastle/tree/v1.0.27/deployments/kubernetes/chart/forecastle
-# v1.0.27  url: "git+https://github.com/stakater/Forecastle@deployments/kubernetes/chart?ref=ffb5179aa659e0e3cf0ca20e1c8bd94c5fd66a2e"
-#   - https://github.com/stakater/Forecastle
-#
-- name: "oidc-istio-gateway-forecastle"
-  namespace: "istio-system"
-  labels:
-    chart: "forecastle"
-    repo: "github"
-    component: "iap"
-    namespace: "istio-system"
-    vendor: "stakater"
-    default: "false"
-  chart: "forecastle/forecastle"
-  version: "v1.0.27"
-  wait: false
-  installed: {{ env "OIDC_ISTIO_GATEWAY_FORECASTLE_INSTALLED" | default "true" }}
-  force: true
-  recreatePods: true
-  values:
-    - nameOverride: oidc-istio-gateway-forecastle
-      fullNameOverride: oidc-istio-gateway-forecastle
-      forecastle:
-        image:
-          pullPolicy: "IfNotPresent"
-        namespace: "istio-system"
-        deployment:
-          # The chart sets lots of annotations by default unless explicitly cleared
-          annotations: ""
-          replicas: '{{- env "OIDC_ISTIO_GATEWAY_FORECASTLE_REPLICAS" | default "2" -}}'
-          revisionHistoryLimit: '{{- env "OIDC_ISTIO_GATEWAY_FORECASTLE_REVISION_HISTORY_LIMIT" | default "10" -}}'
-        config:
-          # Let the Forecastle instance name reflect the nginx ingress class
-          # for simplicity and ease of understanding.
-          instanceName: '{{ env "OIDC_ISTIO_GATEWAY_NGINX_CLASS" | default "istio-forecastle" }}'
-          namespaceSelector:
-            any: true
-            # The chart sets namespaces to match unless explicitly cleared
-            matchNames: []
-          title: {{ env "OIDC_ISTIO_GATEWAY_PORTAL_TITLE" | default "ISTIO Portal" }}
-        service:
-          # The chart sets lots of annotations by default unless explicitly cleared
-          annotations: ""
-          expose: "true"
-
-
-###############################################################################
-## Ingress ####################################################################
-## Use Kubernetes raw chart to create an Ingress for the Forecastle service   #
-## https://github.com/helm/charts/tree/master/incubator/raw                   #
-###############################################################################
-- name: 'oidc-istio-gateway-forecastle-ingress'
-  chart: "kubernetes-incubator/raw"
-  namespace: "istio-system"
-  labels:
-    component: "iap"
-    namespace: "istio-system"
-    default: "false"
-  version: "0.1.0"
-  wait: true
-  force: true
-  recreatePods: true
-  installed: {{ env "OIDC_ISTIO_GATEWAY_FORECASTLE_INSTALLED" | default "true" }}
-  values:
-  - resources:
-    - apiVersion: extensions/v1beta1
-      kind: Ingress
-      metadata:
-        annotations:
-          forecastle.stakater.com/appName: "{{ env "OIDC_ISTIO_GATEWAY_PORTAL_TITLE" | default "ISTIO Portal" }}"
-          forecastle.stakater.com/expose: "true"
-          forecastle.stakater.com/url: 'https://{{- env "OIDC_ISTIO_GATEWAY_PORTAL_HOST" -}}'
-          {{- if eq (env "OIDC_ISTIO_GATEWAY_FORECASTLE_PORTAL_ICON_ENABLED" | default "true") "true" }}
-          forecastle.stakater.com/icon: '{{- env "OIDC_ISTIO_GATEWAY_FORECASTLE_PORTAL_ICON" | default "https://cloudposse.com/wp-content/uploads/2019/09/portal.png" -}}'
-          {{- end }}
-          {{- if env "FORECASTLE_INSTANCE_NAME" }}
-          forecastle.stakater.com/instance: "{{ env "FORECASTLE_INSTANCE_NAME" }}"
-          {{- end }}
-          forecastle.stakater.com/group: "{{ env "OIDC_ISTIO_GATEWAY_FORECASTLE_GROUP" | default "portal" }}"
-          kubernetes.io/ingress.class: '{{ env "OIDC_ISTIO_GATEWAY_NGINX_CLASS" | default "oidc-istio-gateway" }}'
-          kubernetes.io/tls-acme: "false"
-        name: oidc-istio-gateway-portal
-      spec:
-        rules:
-        - host: '{{ env "OIDC_ISTIO_GATEWAY_PORTAL_HOST" }}'
-          http:
-            paths:
-              - path: /
-                backend:
-                  serviceName: 'oidc-istio-gateway-forecastle'
-                  servicePort: http
