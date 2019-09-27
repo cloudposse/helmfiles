@@ -26,9 +26,6 @@ releases:
     wait: true
     installed: {{ env "ISTIO_INSTALLED" | default "true" }}
     values:
-    {{- if env "ISTIO_ADDITIONAL_GATEWAYS_YAML" }}
-    - {{ env "ISTIO_ADDITIONAL_GATEWAYS_YAML" }}
-    {{- end }}
     - gateways:
         # @see https://github.com/istio/istio/blob/master/install/kubernetes/helm/istio/charts/gateways/values.yaml
         enabled: {{ env "ISTIO_GATEWAYS_ENABLED" | default "true" }}
@@ -38,6 +35,9 @@ releases:
             external-dns.alpha.kubernetes.io/hostname: '{{ requiredEnv "ISTIO_GATEWAYS_INGRESS_HOSTNAME" }}'
             ### Optional: ISTIO_GATEWAYS_INGRESS_TTL; e.g. 60
             external-dns.alpha.kubernetes.io/ttl: '{{ env "ISTIO_GATEWAYS_INGRESS_TTL" | default "60" }}'
+{{- if env "ISTIO_ADDITIONAL_GATEWAYS_YAML" }}
+        {{ env "ISTIO_ADDITIONAL_GATEWAYS_YAML" }}
+{{- end }}
 
 
       # @see https://github.com/istio/istio/blob/master/install/kubernetes/helm/istio/charts/sidecarInjectorWebhook/values.yaml
