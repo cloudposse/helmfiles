@@ -182,7 +182,7 @@ releases:
           podAntiAffinityLabelSelector: []
           podAntiAffinityTermLabelSelector: []
 {{- if env "ISTIO_ADDITIONAL_GATEWAYS_YAML" }}
-        {{ env "ISTIO_ADDITIONAL_GATEWAYS_YAML" }}
+{{ env "ISTIO_ADDITIONAL_GATEWAYS_YAML" | toYaml | indent 8 }}
 {{- end }}
 
       # @see https://github.com/istio/istio/blob/master/install/kubernetes/helm/istio/charts/sidecarInjectorWebhook/values.yaml
