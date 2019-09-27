@@ -1,0 +1,49 @@
+repositories:
+  # Repo of new Kubernetes charts in development
+  - name: "kubernetes-incubator"
+    url: "https://kubernetes-charts-incubator.storage.googleapis.com"
+
+releases:
+
+  #
+  # References:
+  #   - https://github.com/helm/charts/tree/master/incubator/sentry-kubernetes
+  #
+
+  - name: "sentry-kubernetes"
+    namespace: '{{ env "SENTRY_KUBERNETES_NAMESPACE" | default "monitoring" }}'
+    labels:
+      chart: "sentry-kubernetes"
+      repo: "kubernetes-incubator"
+      component: "monitoring"
+      namespace: "monitoring"
+      vendor: "kubernetes-helm"
+    chart: "kubernetes-incubator/sentry-kubernetes"
+    version: '{{ env "SENTRY_CHART_VERSION" | default "0.2.2" }}'
+    force: true
+    wait: true
+    timeout: 600
+    installed: {{ env "SENTRY_KUBERNETES_INSTALLED" | default "true" }}
+    values:
+      - image:
+          repository: "getsentry/sentry-kubernetes"
+          tag: '{{ env "SENTRY_KUBERNETES_IMAGE_TAG" | default "latest" }}'
+          pullPolicy: "IfNotPresent"
+
+        sentry:
+          dsn: '{{ requiredEnv "SENTRY_KUBERNETES_DSN" }}'
+          logLevel: '{{ env "SENTRY_KUBERNETES_LOG_LEVEL" | default "error" }}'
+          environment: '{{ env "SENTRY_KUBERNETES_ENVIRONMENT" }}'
+        # Sentry DSN config using an existing secret:
+        # existingSecret:
+
+        serviceAccount:
+          # Specifies whether a ServiceAccount should be created
+          create: {{ env "SENTRY_KUBERNETES_CREATE_SERVICE_ACCOUNT" | default "true" }}
+          # The name of the ServiceAccount to use.
+          # If not set and create is true, a name is generated using the fullname template
+          name: {{ env "SENTRY_KUBERNETES_SERVICE_ACCOUNT_NAME" | default "" }}
+
+        rbac:
+          # Specifies whether RBAC resources should be created
+          create: {{ env "SENTRY_KUBERNETES_CREATE_RBAC" | default "true" }}
