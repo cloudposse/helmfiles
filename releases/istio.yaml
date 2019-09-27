@@ -26,6 +26,9 @@ releases:
     wait: true
     installed: {{ env "ISTIO_INSTALLED" | default "true" }}
     values:
+    {{- if env "ISTIO_ADDITIONAL_GATEWAYS_YAML" }}
+    - {{ env "ISTIO_ADDITIONAL_GATEWAYS_YAML" }}
+    {{- end }}
     - gateways:
         # @see https://github.com/istio/istio/blob/master/install/kubernetes/helm/istio/charts/gateways/values.yaml
         enabled: {{ env "ISTIO_GATEWAYS_ENABLED" | default "true" }}
