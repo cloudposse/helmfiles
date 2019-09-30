@@ -177,18 +177,3 @@ releases:
               name: http
               number: 80
               protocol: HTTP
-    - apiVersion: networking.istio.io/v1alpha3
-      kind: Gateway
-      metadata:
-        name: istio-ingressgateway
-      spec:
-        selector:
-          istio: ingressgateway
-        servers:
-          - hosts:
-              - "*"
-            port:
-              name: http
-              number: 80
-              protocol: HTTP
-

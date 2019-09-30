@@ -953,3 +953,37 @@ releases:
                   - sourceLabels: [__meta_kubernetes_pod_name]
                     action: replace
                     targetLabel: pod_name
+
+  ###############################################################################
+  ## Ingress ####################################################################
+  ## Use Kubernetes raw chart to create an Ingress for the Forecastle service   #
+  ## https://github.com/helm/charts/tree/master/incubator/raw                   #
+  ###############################################################################
+  - name: 'istio-additional'
+    chart: "kubernetes-incubator/raw"
+    namespace: "istio-system"
+    labels:
+      component: "iap"
+      namespace: "istio-system"
+      default: "false"
+    version: "0.1.0"
+    wait: true
+    force: true
+    recreatePods: true
+    installed: {{ env "ISTIO_INSTALLED" | default "true" }}
+    values:
+      - resources:
+          - apiVersion: networking.istio.io/v1alpha3
+            kind: Gateway
+            metadata:
+              name: istio-ingressgateway
+            spec:
+              selector:
+                istio: ingressgateway
+              servers:
+                - hosts:
+                    - "*"
+                  port:
+                    name: http
+                    number: 80
+                    protocol: HTTP
