@@ -172,7 +172,7 @@ releases:
           istio: istio-oidc-ingressgateway
         servers:
           - hosts:
-              - '*'
+              - "*"
             port:
               name: http
               number: 80
@@ -183,10 +183,10 @@ releases:
         name: istio-ingressgateway
       spec:
         selector:
-          istio: istio-ingressgateway
+          istio: ingressgateway
         servers:
           - hosts:
-              - '*'
+              - "*"
             port:
               name: http
               number: 80
