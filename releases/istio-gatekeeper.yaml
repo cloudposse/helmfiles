@@ -9,12 +9,6 @@ repositories:
 # Repo of new Kubernetes charts in development
 - name: "kubernetes-incubator"
   url: "https://kubernetes-charts-incubator.storage.googleapis.com"
-- name: "forecastle"
-  # Cannot use release tags, see https://github.com/aslafy-z/helm-git/issues/9
-  # url: "git+https://github.com/stakater/Forecastle@deployments/kubernetes/chart?ref=v1.0.25"
-  # v1.0.25 url: "git+https://github.com/stakater/Forecastle@deployments/kubernetes/chart?ref=8f36b82beaf2a1a42b364a3857bc83638c51e30b"
-  # v1.0.27:
-  url: "git+https://github.com/stakater/Forecastle@deployments/kubernetes/chart?ref=ffb5179aa659e0e3cf0ca20e1c8bd94c5fd66a2e"
 
 releases:
 
@@ -149,3 +143,37 @@ releases:
       requests:
         cpu: "10m"
         memory: "10Mi"
+
+  ###############################################################################
+  ## Ingress ####################################################################
+  ## Use Kubernetes raw chart to create an Ingress for the Forecastle service   #
+  ## https://github.com/helm/charts/tree/master/incubator/raw                   #
+  ###############################################################################
+- name: 'istio-gatekeeper-additional'
+  chart: "kubernetes-incubator/raw"
+  namespace: "istio-system"
+  labels:
+    component: "iap"
+    namespace: "istio-system"
+    default: "false"
+  version: "0.1.0"
+  wait: true
+  force: true
+  recreatePods: true
+  installed: {{ env "OIDC_ISTIO_GATEWAY_INSTALLED" | default "true" }}
+  values:
+    - resources:
+        - apiVersion: networking.istio.io/v1alpha3
+          kind: Gateway
+          metadata:
+            name: istio-oidc-ingressgateway
+          spec:
+            selector:
+              istio: istio-oidc-ingressgateway
+            servers:
+              - hosts:
+                  - '*'
+                port:
+                  name: http
+                  number: 80
+                  protocol: HTTP
