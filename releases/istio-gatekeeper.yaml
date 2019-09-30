@@ -52,7 +52,7 @@ releases:
   chart: "gabibbo97/keycloak-gatekeeper"
   version: "1.2.1"
   wait: false
-  installed: {{ env "OIDC_ISTIO_GATEWAY_INSTALLED" | default "true" }}
+  installed: {{ env "OIDC_ISTIO_GATEWAY_INSTALLED" | default "false" }}
   values:
   - nameOverride: "istio-gatekeeper"
     fullNameOverride: "istio-gatekeeper"
@@ -160,7 +160,7 @@ releases:
   wait: true
   force: true
   recreatePods: true
-  installed: {{ env "OIDC_ISTIO_GATEWAY_INSTALLED" | default "true" }}
+  installed: {{ env "OIDC_ISTIO_GATEWAY_INSTALLED" | default "false" }}
   values:
   - resources:
     - apiVersion: networking.istio.io/v1alpha3
