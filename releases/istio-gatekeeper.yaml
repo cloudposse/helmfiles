@@ -162,18 +162,33 @@ releases:
   recreatePods: true
   installed: {{ env "OIDC_ISTIO_GATEWAY_INSTALLED" | default "true" }}
   values:
-    - resources:
-        - apiVersion: networking.istio.io/v1alpha3
-          kind: Gateway
-          metadata:
-            name: istio-oidc-ingressgateway
-          spec:
-            selector:
-              istio: istio-oidc-ingressgateway
-            servers:
-              - hosts:
-                  - '*'
-                port:
-                  name: http
-                  number: 80
-                  protocol: HTTP
+  - resources:
+    - apiVersion: networking.istio.io/v1alpha3
+      kind: Gateway
+      metadata:
+        name: istio-oidc-ingressgateway
+      spec:
+        selector:
+          istio: istio-oidc-ingressgateway
+        servers:
+          - hosts:
+              - '*'
+            port:
+              name: http
+              number: 80
+              protocol: HTTP
+    - apiVersion: networking.istio.io/v1alpha3
+      kind: Gateway
+      metadata:
+        name: istio-ingressgateway
+      spec:
+        selector:
+          istio: istio-ingressgateway
+        servers:
+          - hosts:
+              - '*'
+            port:
+              name: http
+              number: 80
+              protocol: HTTP
+
