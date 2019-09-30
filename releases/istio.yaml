@@ -972,18 +972,18 @@ releases:
     recreatePods: true
     installed: {{ env "ISTIO_INSTALLED" | default "true" }}
     values:
-      - resources:
-          - apiVersion: networking.istio.io/v1alpha3
-            kind: Gateway
-            metadata:
-              name: istio-ingressgateway
-            spec:
-              selector:
-                istio: ingressgateway
-              servers:
-                - hosts:
-                    - "*"
-                  port:
-                    name: http
-                    number: 80
-                    protocol: HTTP
+    - resources:
+      - apiVersion: networking.istio.io/v1alpha3
+        kind: Gateway
+        metadata:
+          name: istio-ingressgateway
+        spec:
+          selector:
+            istio: ingressgateway
+          servers:
+            - hosts:
+                - "*"
+              port:
+                name: http
+                number: 80
+                protocol: HTTP
