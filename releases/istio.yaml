@@ -26,7 +26,7 @@ releases:
     wait: true
     installed: {{ env "ISTIO_INSTALLED" | default "true" }}
     values:
-    {{- if eq (env "OIDC_ISTIO_GATEWAY_INSTALLED" | default "false") "true" }}
+    {{- if eq (env "ISTIO_GATEKEEPER_INSTALLED" | default "false") "true" }}
     - ./values/istio-oidc-additional-gateway.yaml.gotmpl
     {{- end }}
     - gateways:
