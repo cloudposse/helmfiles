@@ -264,7 +264,7 @@ releases:
           annotations:
             forecastle.stakater.com/appName: "{{ env "ISTIO_GATEKEEPER_FORECASTLE_PORTAL_TITLE" | default "QA Portal" }}"
             forecastle.stakater.com/expose: "true"
-            forecastle.stakater.com/url: 'https://{{- env ""ISTIO_GATEKEEPER_FORECASTLE_PORTAL_HOST" -}}'
+            forecastle.stakater.com/url: 'https://{{ env "ISTIO_GATEKEEPER_FORECASTLE_PORTAL_HOST" }}'
             {{- if eq (env ""ISTIO_GATEKEEPER_FORECASTLE_PORTAL_ICON_ENABLED" | default "true") "true" }}
             forecastle.stakater.com/icon: '{{- env ""ISTIO_GATEKEEPER_FORECASTLE_PORTAL_ICON" | default "https://cloudposse.com/wp-content/uploads/2019/09/portal.png" -}}'
             {{- end }}
