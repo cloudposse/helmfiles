@@ -301,5 +301,3 @@ releases:
               route:
                 - destination:
                     host: istio-gatekeeper-forecastle
-                    port:
-                      name: http
