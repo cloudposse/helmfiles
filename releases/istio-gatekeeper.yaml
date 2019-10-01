@@ -146,7 +146,7 @@ releases:
 
   ###############################################################################
   ## Ingress ####################################################################
-  ## Use Kubernetes raw chart to create an Ingress for the Forecastle service   #
+  ## Use Kubernetes raw chart to create a OIDC Istio Gateway                    #
   ## https://github.com/helm/charts/tree/master/incubator/raw                   #
   ###############################################################################
 - name: 'istio-gatekeeper-additional'

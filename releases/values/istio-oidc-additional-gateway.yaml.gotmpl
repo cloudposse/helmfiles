@@ -39,11 +39,6 @@ gateways:
     loadBalancerIP: ""
     loadBalancerSourceRanges: []
     externalIPs: []
-    serviceAnnotations:
-      ### Required: ISTIO_GATEWAYS_INGRESS_HOSTNAME; e.g. istio.us-west-2.cloudposse.org
-      external-dns.alpha.kubernetes.io/hostname: 'oidc-istio.{{ env "KOPS_CLUSTER_NAME" }}'
-      ### Optional: ISTIO_GATEWAYS_INGRESS_TTL; e.g. 60
-      external-dns.alpha.kubernetes.io/ttl: '{{ env "ISTIO_GATEWAYS_INGRESS_TTL" | default "60" }}'
     podAnnotations: {}
     type: ClusterIP
     #change to NodePort, ClusterIP or LoadBalancer if need be
