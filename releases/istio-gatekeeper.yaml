@@ -9,6 +9,13 @@ repositories:
 # Repo of new Kubernetes charts in development
 - name: "kubernetes-incubator"
   url: "https://kubernetes-charts-incubator.storage.googleapis.com"
+# Forecastle does not have a chart in a helm repo. Use plugin to pull the chart from GitHub repo
+- name: "forecastle"
+  # Cannot use release tags, see https://github.com/aslafy-z/helm-git/issues/9
+  # url: "git+https://github.com/stakater/Forecastle@deployments/kubernetes/chart?ref=v1.0.22"
+  # v1.0.22: url: "git+https://github.com/stakater/Forecastle@deployments/kubernetes/chart?ref=8d6e5cd2dba3ad6c265ae94138c40276425b7634"
+  # v1.0.25 url: "git+https://github.com/stakater/Forecastle@deployments/kubernetes/chart?ref=8f36b82beaf2a1a42b364a3857bc83638c51e30b"
+  url: "git+https://github.com/stakater/Forecastle@deployments/kubernetes/chart?ref=ffb5179aa659e0e3cf0ca20e1c8bd94c5fd66a2e"
 
 releases:
 
@@ -177,3 +184,122 @@ releases:
               name: http
               number: 80
               protocol: HTTP
+
+  ##############################################################################
+  ## Forecastle ################################################################
+  ## Forecastle is a dynamic web portal for Kubernetes services.              ##
+  ## Used here to provide a page listing all the components deployed behind   ##
+  ## the OIDC ingress.                                                        ##
+  ##############################################################################
+  #
+  # References:
+  #   - https://github.com/stakater/Forecastle/tree/v1.0.27/deployments/kubernetes/chart/forecastle
+  # v1.0.27  url: "git+https://github.com/stakater/Forecastle@deployments/kubernetes/chart?ref=ffb5179aa659e0e3cf0ca20e1c8bd94c5fd66a2e"
+  #   - https://github.com/stakater/Forecastle
+  #
+- name: "istio-gatekeeper-forecastle"
+  namespace: "istio-system"
+  labels:
+    chart: "forecastle"
+    repo: "github"
+    component: "iap"
+    namespace: "istio-system"
+    vendor: "stakater"
+    default: "false"
+  chart: "forecastle/forecastle"
+  version: "v1.0.27"
+  wait: false
+  installed: {{ env "ISTIO_GATEKEEPER_FORECASTLE_INSTALLED" | default "true" }}
+  force: true
+  recreatePods: true
+  values:
+    - nameOverride: istio-gatekeeper-forecastle
+      fullNameOverride: istio-gatekeeper-forecastle
+      forecastle:
+        image:
+          pullPolicy: "IfNotPresent"
+        namespace: "oidc-ingress"
+        deployment:
+          # The chart sets lots of annotations by default unless explicitly cleared
+          annotations: ""
+          replicas: '{{- env "ISTIO_GATEKEEPER_FORECASTLE_REPLICAS" | default "2" -}}'
+          revisionHistoryLimit: '{{- env "ISTIO_GATEKEEPER_FORECASTLE_REVISION_HISTORY_LIMIT" | default "10" -}}'
+        config:
+          # Let the Forecastle instance name reflect the nginx ingress class
+          # for simplicity and ease of understanding.
+          instanceName: '{{ env "ISTIO_GATEKEEPER_FORECASTLE_NGINX_CLASS" | default "mock-ingress" }}'
+          namespaceSelector:
+            any: true
+            # The chart sets namespaces to match unless explicitly cleared
+            matchNames: []
+          title: {{ env "ISTIO_GATEKEEPER_FORECASTLE_PORTAL_TITLE" | default "QA Portal" }}
+        service:
+          # The chart sets lots of annotations by default unless explicitly cleared
+          annotations: ""
+          expose: "true"
+
+
+  ###############################################################################
+  ## Ingress ####################################################################
+  ## Use Kubernetes raw chart to create an Ingress for the Forecastle service   #
+  ## https://github.com/helm/charts/tree/master/incubator/raw                   #
+  ###############################################################################
+- name: 'istio-gatekeeper-forecastle-additional'
+  chart: "kubernetes-incubator/raw"
+  namespace: "istio-system"
+  labels:
+    component: "iap"
+    namespace: "istio-system"
+    default: "false"
+  version: "0.1.0"
+  wait: true
+  force: true
+  recreatePods: true
+  installed: {{ env "ISTIO_GATEKEEPER_FORECASTLE_INSTALLED" | default "true" }}
+  values:
+    - resources:
+      - apiVersion: extensions/v1beta1
+        kind: Ingress
+        metadata:
+          annotations:
+            forecastle.stakater.com/appName: "{{ env "ISTIO_GATEKEEPER_FORECASTLE_PORTAL_TITLE" | default "QA Portal" }}"
+            forecastle.stakater.com/expose: "true"
+            forecastle.stakater.com/url: 'https://{{- env ""ISTIO_GATEKEEPER_FORECASTLE_PORTAL_HOST" -}}'
+            {{- if eq (env ""ISTIO_GATEKEEPER_FORECASTLE_PORTAL_ICON_ENABLED" | default "true") "true" }}
+            forecastle.stakater.com/icon: '{{- env ""ISTIO_GATEKEEPER_FORECASTLE_PORTAL_ICON" | default "https://cloudposse.com/wp-content/uploads/2019/09/portal.png" -}}'
+            {{- end }}
+            {{- if env ""ISTIO_GATEKEEPER_FORECASTLE_INSTANCE_NAME" }}
+            forecastle.stakater.com/instance: "{{ env ""ISTIO_GATEKEEPER_FORECASTLE_INSTANCE_NAME" }}"
+            {{- end }}
+            forecastle.stakater.com/group: "{{ env ""ISTIO_GATEKEEPER_FORECASTLE_GROUP" | default "portal" }}"
+            kubernetes.io/ingress.class: '{{ env "ISTIO_GATEKEEPER_FORECASTLE_NGINX_CLASS" | default "oidc-ingress" }}'
+            kubernetes.io/tls-acme: "false"
+          name: istio-gatekeeper-forecastle
+        spec:
+          rules:
+            - host: '{{ env "ISTIO_GATEKEEPER_FORECASTLE_PORTAL_HOST" }}'
+              http:
+                paths:
+                  - path: /
+                    backend:
+                      serviceName: 'istio-gatekeeper-forecastle'
+                      servicePort: http
+
+      - apiVersion: networking.istio.io/v1alpha3
+        kind: VirtualService
+        metadata:
+          name: istio-gatekeeper-forecastle
+        spec:
+          hosts:
+            - {{ env "ISTIO_GATEKEEPER_FORECASTLE_PORTAL_HOST" }}
+          gateways:
+            - {{ env "ISTIO_GATEKEEPER_FORECASTLE_PORTAL_GATEWAY" | default "istio-system/istio-oidc-ingressgateway" }}
+          http:
+            - match:
+                - uri:
+                    exact: /
+              route:
+                - destination:
+                    host: istio-gatekeeper-forecastle
+                    port:
+                      name: http
