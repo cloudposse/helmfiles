@@ -262,16 +262,16 @@ releases:
         kind: Ingress
         metadata:
           annotations:
-            forecastle.stakater.com/appName: "{{ env "ISTIO_GATEKEEPER_FORECASTLE_PORTAL_TITLE" | default "QA Portal" }}"
+            forecastle.stakater.com/appName: '{{ env "ISTIO_GATEKEEPER_FORECASTLE_PORTAL_TITLE" | default "QA Portal" }}'
             forecastle.stakater.com/expose: "true"
             forecastle.stakater.com/url: 'https://{{ env "ISTIO_GATEKEEPER_FORECASTLE_PORTAL_HOST" }}'
-            {{- if eq (env ""ISTIO_GATEKEEPER_FORECASTLE_PORTAL_ICON_ENABLED" | default "true") "true" }}
-            forecastle.stakater.com/icon: '{{- env ""ISTIO_GATEKEEPER_FORECASTLE_PORTAL_ICON" | default "https://cloudposse.com/wp-content/uploads/2019/09/portal.png" -}}'
+            {{- if eq (env "ISTIO_GATEKEEPER_FORECASTLE_PORTAL_ICON_ENABLED" | default "true") "true" }}
+            forecastle.stakater.com/icon: '{{- env "ISTIO_GATEKEEPER_FORECASTLE_PORTAL_ICON" | default "https://cloudposse.com/wp-content/uploads/2019/09/portal.png" -}}'
             {{- end }}
-            {{- if env ""ISTIO_GATEKEEPER_FORECASTLE_INSTANCE_NAME" }}
-            forecastle.stakater.com/instance: "{{ env ""ISTIO_GATEKEEPER_FORECASTLE_INSTANCE_NAME" }}"
+            {{- if env "ISTIO_GATEKEEPER_FORECASTLE_INSTANCE_NAME" }}
+            forecastle.stakater.com/instance: '{{ env "ISTIO_GATEKEEPER_FORECASTLE_INSTANCE_NAME" }}'
             {{- end }}
-            forecastle.stakater.com/group: "{{ env ""ISTIO_GATEKEEPER_FORECASTLE_GROUP" | default "portal" }}"
+            forecastle.stakater.com/group: '{{ env "ISTIO_GATEKEEPER_FORECASTLE_GROUP" | default "portal" }}'
             kubernetes.io/ingress.class: '{{ env "ISTIO_GATEKEEPER_FORECASTLE_NGINX_CLASS" | default "oidc-ingress" }}'
             kubernetes.io/tls-acme: "false"
           name: istio-gatekeeper-forecastle
