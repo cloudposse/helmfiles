@@ -297,7 +297,7 @@ releases:
           http:
             - match:
                 - uri:
-                    exact: /
+                    prefix: /
               route:
                 - destination:
                     host: istio-gatekeeper-forecastle
