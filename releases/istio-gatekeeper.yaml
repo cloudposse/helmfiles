@@ -59,21 +59,21 @@ releases:
   chart: "gabibbo97/keycloak-gatekeeper"
   version: "1.2.1"
   wait: false
-  installed: {{ env "OIDC_ISTIO_GATEWAY_INSTALLED" | default "false" }}
+  installed: {{ env "ISTIO_GATEKEEPER_INSTALLED" | default "false" }}
   values:
   - nameOverride: "istio-gatekeeper"
     fullNameOverride: "istio-gatekeeper"
     image:
       tag: 6.0.1
       pullPolicy: "IfNotPresent"
-    debug: {{ env "OIDC_ISTIO_GATEWAY_DEBUG" | default "false" }}
-    replicas: {{ env "OIDC_ISTIO_GATEWAY_REPLICAS" | default 1 }}
+    debug: {{ env "ISTIO_GATEKEEPER_DEBUG" | default "false" }}
+    replicas: {{ env "ISTIO_GATEKEEPER_REPLICAS" | default 1 }}
     logging: false
     sessionCookies: false
     droolsPolicyEnabled: false
-    # You must set OIDC_ISTIO_GATEWAY_DENY_ACCESS_BY_DEFAULT to "false" if you want
+    # You must set ISTIO_GATEKEEPER_DENY_ACCESS_BY_DEFAULT to "false" if you want
     # to permit access to URLs not otherwise restricted.
-    defaultDeny: {{ env "OIDC_ISTIO_GATEWAY_DENY_ACCESS_BY_DEFAULT" | default "true" }}
+    defaultDeny: {{ env "ISTIO_GATEKEEPER_DENY_ACCESS_BY_DEFAULT" | default "true" }}
     ingress:
       enabled: true
       annotations:
@@ -82,35 +82,35 @@ releases:
         # Disable custom errors on the ingress in front of the OIDC ingress,
         # because otherwise errors behind the OIDC ingress would not get through
         nginx.ingress.kubernetes.io/custom-http-errors: "418,599"
-        {{- if env "OIDC_ISTIO_GATEWAY_PROXY_TIMEOUT" }}
-        nginx.ingress.kubernetes.io/proxy-connect-timeout: "{{- env "OIDC_ISTIO_GATEWAY_PROXY_TIMEOUT" -}}"
-        nginx.ingress.kubernetes.io/proxy-read-timeout: "{{- env "OIDC_ISTIO_GATEWAY_PROXY_TIMEOUT" -}}"
-        nginx.ingress.kubernetes.io/proxy-send-timeout: "{{- env "OIDC_ISTIO_GATEWAY_PROXY_TIMEOUT" -}}"
+        {{- if env "ISTIO_GATEKEEPER_PROXY_TIMEOUT" }}
+        nginx.ingress.kubernetes.io/proxy-connect-timeout: "{{- env "ISTIO_GATEKEEPER_PROXY_TIMEOUT" -}}"
+        nginx.ingress.kubernetes.io/proxy-read-timeout: "{{- env "ISTIO_GATEKEEPER_PROXY_TIMEOUT" -}}"
+        nginx.ingress.kubernetes.io/proxy-send-timeout: "{{- env "ISTIO_GATEKEEPER_PROXY_TIMEOUT" -}}"
         {{- end }}
-        kubernetes.io/tls-acme: "{{  env "OIDC_ISTIO_GATEWAY_TLS_ENABLED" | default "true" }}"
-        # OIDC_ISTIO_GATEWAY_INGRESS_HOST is the hostname of the ingress IN FRONT OF istio-gatekeeper
-        external-dns.alpha.kubernetes.io/target: '{{ requiredEnv "OIDC_ISTIO_GATEWAY_INGRESS_HOST" }}'
+        kubernetes.io/tls-acme: "{{  env "ISTIO_GATEKEEPER_TLS_ENABLED" | default "true" }}"
+        # ISTIO_GATEKEEPER_INGRESS_HOST is the hostname of the ingress IN FRONT OF istio-gatekeeper
+        external-dns.alpha.kubernetes.io/target: '{{ requiredEnv "ISTIO_GATEKEEPER_INGRESS_HOST" }}'
         external-dns.alpha.kubernetes.io/ttl: "60"
-      hosts: ['{{- requiredEnv "OIDC_ISTIO_GATEWAY_HOST" }}']
-      {{- if (env "OIDC_ISTIO_GATEWAY_TLS_ENABLED" | default "true") }}
+      hosts: ['{{- requiredEnv "ISTIO_GATEKEEPER_HOST" }}']
+      {{- if (env "ISTIO_GATEKEEPER_TLS_ENABLED" | default "true") }}
       tls:
         - secretName: "istio-gatekeeper-tls"
-          hosts: ['{{- requiredEnv "OIDC_ISTIO_GATEWAY_HOST" }}']
+          hosts: ['{{- requiredEnv "ISTIO_GATEKEEPER_HOST" }}']
       {{- end }}
     # discoveryURL is the  OIDC provider's base URL, under which you can retrieve ".well-known/openid-configuration"
-    discoveryURL: '{{- coalesce (env "OIDC_ISTIO_GATEWAY_OIDC_ISSUER_URL") (env "KEYCLOAK_GATEKEEPER_DISCOVERY_URL") (env "KOPS_OIDC_ISSUER_URL") }}'
-    # OIDC_ISTIO_GATEWAY_NGINX_HOST is the hostname of the ingress BEHIND (protected by) istio-gatekeeper
-    upstreamURL: '{{- env "OIDC_ISTIO_GATEWAY_UPSTREAM_SCHEME" | default "https" -}}://{{- env "OIDC_ISTIO_GATEWAY_NGINX_HOST" | default "istio-ingressgateway.istio-system.svc" }}'
-    skipUpstreamTlsVerify: {{ env "OIDC_ISTIO_GATEWAY_SKIP_UPSTREAM_TLS_VERIFY" | default "true" }}
-    ClientID: '{{- coalesce (env "OIDC_ISTIO_GATEWAY_CLIENT_ID") (env "KOPS_OIDC_CLIENT_ID") "kubernetes" }}'
-    ClientSecret: '{{- requiredEnv "OIDC_ISTIO_GATEWAY_CLIENT_SECRET" }}'
+    discoveryURL: '{{- coalesce (env "ISTIO_GATEKEEPER_OIDC_ISSUER_URL") (env "KEYCLOAK_GATEKEEPER_DISCOVERY_URL") (env "KOPS_OIDC_ISSUER_URL") }}'
+    # ISTIO_GATEKEEPER_NGINX_HOST is the hostname of the ingress BEHIND (protected by) istio-gatekeeper
+    upstreamURL: '{{- env "ISTIO_GATEKEEPER_UPSTREAM_SCHEME" | default "https" -}}://{{- env "ISTIO_GATEKEEPER_NGINX_HOST" | default "istio-ingressgateway.istio-system.svc" }}'
+    skipUpstreamTlsVerify: {{ env "ISTIO_GATEKEEPER_SKIP_UPSTREAM_TLS_VERIFY" | default "true" }}
+    ClientID: '{{- coalesce (env "ISTIO_GATEKEEPER_CLIENT_ID") (env "KOPS_OIDC_CLIENT_ID") "kubernetes" }}'
+    ClientSecret: '{{- requiredEnv "ISTIO_GATEKEEPER_CLIENT_SECRET" }}'
     # If encryption key is not provided, one will be generated, but it will change on each install
     # Should be 16 or 32 ASCII characters for for AES-128/AES-256
-    encryptionKey: {{ env "OIDC_ISTIO_GATEWAY_ENCRYPTION_KEY" | quote }}
+    encryptionKey: {{ env "ISTIO_GATEKEEPER_ENCRYPTION_KEY" | quote }}
     scopes:
       - roles
     rules:
-    {{- range $i, $rule := ( (env "OIDC_ISTIO_GATEWAY_RULES" | default "uri=/*|roles=user") | splitList ";" ) }}
+    {{- range $i, $rule := ( (env "ISTIO_GATEKEEPER_RULES" | default "uri=/*|roles=user") | splitList ";" ) }}
       - "{{ $rule }}"
     {{- end }}
     extraArgs:
@@ -118,14 +118,14 @@ releases:
       - enable-token-header=false
       - enable-authorization-header=false
       - enable-authorization-cookies=false
-      {{- if env "OIDC_ISTIO_GATEWAY_PROXY_TIMEOUT" }}
-      - upstream-timeout={{- env "OIDC_ISTIO_GATEWAY_PROXY_TIMEOUT" -}}s
-      - server-read-timeout={{- env "OIDC_ISTIO_GATEWAY_PROXY_TIMEOUT" -}}s
-      - server-write-timeout={{- env "OIDC_ISTIO_GATEWAY_PROXY_TIMEOUT" -}}s
-      - upstream-expect-continue-timeout={{- env "OIDC_ISTIO_GATEWAY_PROXY_TIMEOUT" -}}s
-      - upstream-response-header-timeout={{- env "OIDC_ISTIO_GATEWAY_PROXY_TIMEOUT" -}}s
+      {{- if env "ISTIO_GATEKEEPER_PROXY_TIMEOUT" }}
+      - upstream-timeout={{- env "ISTIO_GATEKEEPER_PROXY_TIMEOUT" -}}s
+      - server-read-timeout={{- env "ISTIO_GATEKEEPER_PROXY_TIMEOUT" -}}s
+      - server-write-timeout={{- env "ISTIO_GATEKEEPER_PROXY_TIMEOUT" -}}s
+      - upstream-expect-continue-timeout={{- env "ISTIO_GATEKEEPER_PROXY_TIMEOUT" -}}s
+      - upstream-response-header-timeout={{- env "ISTIO_GATEKEEPER_PROXY_TIMEOUT" -}}s
       {{- end }}
-      {{- if eq (env "OIDC_ISTIO_GATEWAY_DEBUG_ENABLED" | default "false") "true" }}
+      {{- if eq (env "ISTIO_GATEKEEPER_DEBUG_ENABLED" | default "false") "true" }}
       - enable-logging=true
       - verbose
       {{- end }}
@@ -167,7 +167,7 @@ releases:
   wait: true
   force: true
   recreatePods: true
-  installed: {{ env "OIDC_ISTIO_GATEWAY_INSTALLED" | default "false" }}
+  installed: {{ env "ISTIO_GATEKEEPER_INSTALLED" | default "false" }}
   values:
   - resources:
     - apiVersion: networking.istio.io/v1alpha3
