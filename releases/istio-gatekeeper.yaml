@@ -218,7 +218,7 @@ releases:
       forecastle:
         image:
           pullPolicy: "IfNotPresent"
-        namespace: "oidc-ingress"
+        namespace: "istio-system"
         deployment:
           # The chart sets lots of annotations by default unless explicitly cleared
           annotations: ""
