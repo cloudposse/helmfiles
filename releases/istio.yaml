@@ -707,6 +707,10 @@ releases:
         # This field is set to false by default, so 'helm template ...'
         # will ignore the helm test yaml files when generating the template
         enableHelmTest: {{ env "ISTIO_HELM_TEST_ENABLED" | default "false" }}
+{{- if env "ISTIO_CUSTOM_YAML" }}
+    - {{ env "ISTIO_CUSTOM_YAML" }}
+{{- end }}
+
 
   - name: "istio-prometheus"
     namespace: "istio-system"
@@ -953,9 +957,7 @@ releases:
                   - sourceLabels: [__meta_kubernetes_pod_name]
                     action: replace
                     targetLabel: pod_name
-      {{- if env "ISTIO_GATEKEEPER_CUSTOM_YAML" }}
-      - {{ env "ISTIO_GATEKEEPER_CUSTOM_YAML" }}
-      {{- end }}
+
   ###############################################################################
   ## Ingress ####################################################################
   ## Use Kubernetes raw chart to create a public Istio Gateway                  #
