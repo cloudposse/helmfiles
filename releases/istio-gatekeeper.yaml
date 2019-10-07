@@ -100,7 +100,7 @@ releases:
     # discoveryURL is the  OIDC provider's base URL, under which you can retrieve ".well-known/openid-configuration"
     discoveryURL: '{{- coalesce (env "ISTIO_GATEKEEPER_OIDC_ISSUER_URL") (env "KEYCLOAK_GATEKEEPER_DISCOVERY_URL") (env "KOPS_OIDC_ISSUER_URL") }}'
     # ISTIO_GATEKEEPER_NGINX_HOST is the hostname of the ingress BEHIND (protected by) istio-gatekeeper
-    upstreamURL: '{{- env "ISTIO_GATEKEEPER_UPSTREAM_SCHEME" | default "https" -}}://{{- env "ISTIO_GATEKEEPER_UPSTREAM_HOST" | default "istio-ingressgateway.istio-system.svc" }}'
+    upstreamURL: '{{- env "ISTIO_GATEKEEPER_UPSTREAM_SCHEME" | default "https" -}}://{{- env "ISTIO_GATEKEEPER_UPSTREAM_HOST" | default "istio-oidc-ingressgateway.istio-system.svc" }}'
     skipUpstreamTlsVerify: {{ env "ISTIO_GATEKEEPER_SKIP_UPSTREAM_TLS_VERIFY" | default "true" }}
     ClientID: '{{- coalesce (env "ISTIO_GATEKEEPER_CLIENT_ID") (env "KOPS_OIDC_CLIENT_ID") "kubernetes" }}'
     ClientSecret: '{{- requiredEnv "ISTIO_GATEKEEPER_CLIENT_SECRET" }}'
@@ -272,7 +272,7 @@ releases:
             forecastle.stakater.com/instance: '{{ env "ISTIO_GATEKEEPER_FORECASTLE_INSTANCE_NAME" }}'
             {{- end }}
             forecastle.stakater.com/group: '{{ env "ISTIO_GATEKEEPER_FORECASTLE_GROUP" | default "portal" }}'
-            kubernetes.io/ingress.class: '{{ env "ISTIO_GATEKEEPER_FORECASTLE_NGINX_CLASS" | default "oidc-ingress" }}'
+            kubernetes.io/ingress.class: '{{ env "ISTIO_GATEKEEPER_FORECASTLE_NGINX_CLASS" | default "mock-ingress" }}'
             kubernetes.io/tls-acme: "false"
           name: istio-gatekeeper-forecastle
         spec:
