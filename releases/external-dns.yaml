@@ -23,13 +23,16 @@ releases:
     vendor: "kubernetes-incubator"
     default: "true"
   chart: "stable/external-dns"
-  version: "1.7.4"
+  version: "2.7.0"
   wait: true
   installed: {{ env "EXTERNAL_DNS_INSTALLED" | default "true" }}
   values:
     - sources:
       - service
       - ingress
+{{- if env "EXTERNAL_DNS_CRD_ENABLED" | default "false" | eq "true" }}
+      - crd
+{{- end }}
       ### Required: EXTERNAL_DNS_TXT_OWNER_ID; e.g. us-west-2.staging.cloudposse.org
       txtOwnerId: '{{ env "EXTERNAL_DNS_TXT_OWNER_ID" }}'
       ### Required: EXTERNAL_DNS_TXT_PREFIX; e.g. 11591833-F9CE-407C-8519-35A947DB1D87-
@@ -50,6 +53,9 @@ releases:
         ### Required: EXTERNAL_DNS_IAM_ROLE; e.g. cp-staging-external-dns
         iam.amazonaws.com/role: '{{ env "EXTERNAL_DNS_IAM_ROLE" }}'
         {{- end }}
+      crd:
+        ## Install and use the integrated DNSEndpoint CRD
+        create: {{ env "EXTERNAL_DNS_CRD_ENABLED" | default "false" | quote }}
       resources:
         limits:
           cpu: '{{ env "EXTERNAL_DNS_LIMIT_CPU" | default "200m" }}'
