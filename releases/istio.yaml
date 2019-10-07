@@ -953,7 +953,9 @@ releases:
                   - sourceLabels: [__meta_kubernetes_pod_name]
                     action: replace
                     targetLabel: pod_name
-
+      {{- if env "ISTIO_GATEKEEPER_CUSTOM_YAML" }}
+      - {{ env "ISTIO_GATEKEEPER_CUSTOM_YAML" }}
+      {{- end }}
   ###############################################################################
   ## Ingress ####################################################################
   ## Use Kubernetes raw chart to create a public Istio Gateway                  #
