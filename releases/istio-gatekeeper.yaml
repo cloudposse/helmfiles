@@ -184,6 +184,14 @@ releases:
               name: http
               number: 80
               protocol: HTTP
+            tls:
+              httpsRedirect: true
+          - hosts:
+              - "*"
+            port:
+              name: https
+              number: 443
+              protocol: HTTP
 
   ##############################################################################
   ## Forecastle ################################################################
