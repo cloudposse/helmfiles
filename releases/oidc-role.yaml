@@ -101,4 +101,3 @@ releases:
           verbs:
             - list
             - get
-
