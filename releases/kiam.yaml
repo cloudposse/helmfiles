@@ -6,6 +6,10 @@ repositories:
 - name: "kubernetes-incubator"
   url: "https://kubernetes-charts-incubator.storage.googleapis.com"
 
+  # Cloud Posse incubator repo of helm charts
+- name: "cloudposse-incubator"
+  url: "https://charts.cloudposse.com/incubator/"
+
 releases:
 
 ################################################################################
@@ -120,7 +124,7 @@ releases:
     vendor: "uswitch"
     default: "true"
   chart: "stable/kiam"
-  version: "2.1.0"
+  version: "2.5.2"
   wait: true
   recreatePods: false
   installed: {{ env "KIAM_INSTALLED" | default "true" }}
@@ -193,3 +197,30 @@ releases:
           keyFileName:  tls.key
           caFileName:   ca.crt
         updateStrategy: RollingUpdate
+
+- name: 'kiam-promtheus'
+  namespace: kube-system
+  labels:
+    component: "iam"
+    namespace: "kube-system"
+    default: "false"
+  chart: "cloudposse-incubator/monochart"
+  version: "0.17.0"
+  wait: true
+  # Unfortunately, you cannot split a go template statement across multiple lines, so this has to be one big long line
+  installed: {{ and (eq ( env "KIAM_PROMETHEUS_INSTALLED" | default "false" ) "true") (eq ( env "KIAM_INSTALLED" | default "true" ) "true" ) }}
+  values:
+  - serviceMonitors:
+      default:
+        labels:
+          app: prometheus-operator-prometheus
+        selector:
+          matchLabels:
+            app: kiam
+            release: kiam
+        namespaceSelector:
+          matchNames:
+            - kube-system
+        endpoints:
+          - port: "metrics"
+            interavl: 15s
