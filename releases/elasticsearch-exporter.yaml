@@ -107,21 +107,24 @@ releases:
               description: >-
                 Elasticsearch cluster {{`{{ $labels.cluster }}`}}: not all replica shards are allocated to nodes.
           - alert: Elasticsearch_Filesystem_Full
-            expr: elasticsearch_filesystem_data_available_bytes * 100 / elasticsearch_filesystem_data_size_bytes < 5
+            expr: elasticsearch_filesystem_data_available_bytes * 100 / elasticsearch_filesystem_data_size_bytes < 15
             labels:
               severity: critical
             annotations:
-              summary:  "Elasticsearch cluster file system over 95% full"
+              summary:  "Elasticsearch cluster file system over 85% full"
               description: >-
                 Elasticsearch node {{`{{ $labels.name }}`}} file system has only {{`{{printf "%.1f" $value}}`}}% free space.
+                Serious performance degradation, including failure to collect performance metrics, may have already started.
           - alert: Elasticsearch_Filesystem_Near_Full
-            expr: elasticsearch_filesystem_data_available_bytes * 100 / elasticsearch_filesystem_data_size_bytes < 10
+            expr: elasticsearch_filesystem_data_available_bytes * 100 / elasticsearch_filesystem_data_size_bytes < 25
             labels:
               severity: warning
             annotations:
-              summary:  "Elasticsearch cluster file system over 90% full"
+              summary:  "Elasticsearch cluster file system over 75% full"
               description: >-
                 Elasticsearch node {{`{{ $labels.name }}`}} file system has only {{`{{printf "%.1f" $value}}`}}% free space.
+                Elasticsearch metrics may start failing to be collected, so future warnings about even less free disk space
+                may never trigger.
           - alert: Elasticsearch_Count_of_JVM_GC_Runs
             expr: rate(elasticsearch_jvm_gc_collection_seconds_count{}[5m])>5
             for: 60s
