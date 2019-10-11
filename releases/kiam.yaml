@@ -211,16 +211,63 @@ releases:
   installed: {{ and (eq ( env "KIAM_PROMETHEUS_INSTALLED" | default "false" ) "true") (eq ( env "KIAM_INSTALLED" | default "true" ) "true" ) }}
   values:
   - serviceMonitors:
-      default:
+      server:
         labels:
           app: prometheus-operator-prometheus
         selector:
           matchLabels:
             app: kiam
             release: kiam
+            component: server
         namespaceSelector:
           matchNames:
             - kube-system
         endpoints:
           - port: "metrics"
             interavl: 15s
+      agent:
+        labels:
+          app: prometheus-operator-prometheus
+        selector:
+          matchLabels:
+            app: kiam
+            release: kiam
+            component: agent
+        namespaceSelector:
+          matchNames:
+            - kube-system
+        endpoints:
+          - port: "metrics"
+            interavl: 15s
+    prometheusRules:
+      default:
+        labels:
+          app: prometheus-operator-prometheus
+        groups:
+          - name: kiam.rules
+            rules:
+            - alert: kiam_sts_issuing_errors_total
+              annotations:
+                message: There are errors issuing credentials {{ $labels.namespace }}/{{ $labels.pod }}
+              expr: {{ env "KIAM_ALERT_STS_ISSUING_ERROR_TOTAL_WARNING_EXPR" | default "kiam_sts_issuing_errors_total >= 1" }}
+              labels:
+                severity: warning
+            - alert: kiam_sts_issuing_errors_total
+              annotations:
+                message: There are errors issuing credentials {{ $labels.namespace }}/{{ $labels.pod }}
+              expr: {{ env "KIAM_ALERT_STS_ISSUING_ERROR_TOTAL_CRITICAL_EXPR" | default "avg_over_time(kiam_sts_issuing_errors_total[1m]) >= 1" }}
+              labels:
+                severity: critical
+
+            - alert: kiam_metadata_find_role_errors_total
+              annotations:
+                message: There are errors issuing credentials {{ $labels.namespace }}/{{ $labels.pod }}
+              expr: {{ env "KIAM_ALERT_METADATA_FIND_ROLE_ERRORS_TOTAL_WARNING_EXPR" | default "kiam_metadata_find_role_errors_total >= 1" }}
+              labels:
+                severity: warning
+            - alert: kiam_metadata_find_role_errors_total
+              annotations:
+                message: There are errors issuing credentials {{ $labels.namespace }}/{{ $labels.pod }}
+              expr: {{ env "KIAM_ALERT_METADATA_FIND_ROLE_ERRORS_TOTAL_CRITICAL_EXPR" | default "avg_over_time(kiam_metadata_find_role_errors_total[1m]) >= 1" }}
+              labels:
+                severity: critical
