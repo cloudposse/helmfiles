@@ -225,6 +225,7 @@ releases:
         endpoints:
           - port: "metrics"
             interavl: 15s
+
       agent:
         labels:
           app: prometheus-operator-prometheus
@@ -239,6 +240,7 @@ releases:
         endpoints:
           - port: "metrics"
             interavl: 15s
+
     prometheusRules:
       default:
         labels:
