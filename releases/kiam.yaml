@@ -211,7 +211,7 @@ releases:
   installed: {{ and (eq ( env "KIAM_PROMETHEUS_INSTALLED" | default "false" ) "true") (eq ( env "KIAM_INSTALLED" | default "true" ) "true" ) }}
   values:
   - serviceMonitors:
-      nginx-ingress:
+      default:
         labels:
           app: prometheus-operator-prometheus
         selector:
