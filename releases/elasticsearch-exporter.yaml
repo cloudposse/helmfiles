@@ -42,6 +42,7 @@ releases:
           enabled: {{ env "ELASTICSEARCH_EXPORTER_PROMETHEUS_RULES_INSTALLED" | default "true" }}
           rules:
           {{- $nodecount := int (env "ELASTICSEARCH_EXPORTER_EXPECTED_NODE_COUNT" | default "4") }}
+          {{- $aws := eq (env "ELASTICSEARCH_EXPORTER_AWS_HOSTED" | default "true") "true" }}
           - record: elasticsearch_filesystem_data_used_percent
             expr: 100 * (elasticsearch_filesystem_data_size_bytes - elasticsearch_filesystem_data_free_bytes)
               / elasticsearch_filesystem_data_size_bytes
@@ -57,24 +58,32 @@ releases:
               summary: Elasticsearch is running on fewer than {{ $nodecount }} nodes
               description: 'There are only {{`{{$value}}`}} Elasticsearch nodes running, but there should be {{ $nodecount }}.'
           {{- end }}
-          - alert: Elasticsearch_Heap_Too_High_90
-            expr: elasticsearch_jvm_memory_used_bytes{area="heap"} / elasticsearch_jvm_memory_max_bytes{area="heap"}
-              > 0.9
+          - alert: Elasticsearch_Heap_Too_High
+            expr: elasticsearch_jvm_memory_used_bytes{area="heap"} * 100 / elasticsearch_jvm_memory_max_bytes{area="heap"}
+              > 88
             for: 15m
             labels:
               severity: critical
             annotations:
               summary: 'Elasticsearch node {{`{{$labels.name}}`}} heap usage is high'
-              description: 'Elasticsearch node {{`{{$labels.name}}`}} heap usage is over 90% for 15m'
-          - alert: Elasticsearch_Heap_Too_High_80
-            expr: elasticsearch_jvm_memory_used_bytes{area="heap"} / elasticsearch_jvm_memory_max_bytes{area="heap"}
-              > 0.8
+              description: >-
+                Elasticsearch node {{`{{$labels.name}}`}} heap usage is over 88% for 15m.
+                {{- if $aws }}
+                At this level, AWS may block write operations.
+              runbook_url: https://aws.amazon.com/premiumsupport/knowledge-center/elasticsearch-node-crash/
+              {{- end }}
+          - alert: Elasticsearch_Heap_Too_High
+            expr: elasticsearch_jvm_memory_used_bytes{area="heap"} * 100 / elasticsearch_jvm_memory_max_bytes{area="heap"}
+              > 76
             for: 15m
             labels:
               severity: warning
             annotations:
               summary: 'Elasticsearch node {{`{{$labels.name}}`}} heap usage is high'
-              description: 'Elasticsearch node {{`{{$labels.name}}`}} heap usage is over 80% for 15m'
+              description: 'Elasticsearch node {{`{{$labels.name}}`}} heap usage is over 76% for 15m'
+              {{- if $aws }}
+              runbook_url: https://aws.amazon.com/premiumsupport/knowledge-center/high-jvm-memory-pressure-elasticsearch/
+              {{- end }}
           - alert: Elasticsearch_Health_Metrics_DOWN
             expr: elasticsearch_cluster_health_up != 1
             for: 120s
@@ -106,25 +115,59 @@ releases:
               runbook_url: https://docs.aws.amazon.com/elasticsearch-service/latest/developerguide/aes-handling-errors.html#aes-handling-errors-yellow-cluster-status
               description: >-
                 Elasticsearch cluster {{`{{ $labels.cluster }}`}}: not all replica shards are allocated to nodes.
+          {{- if $aws }}
+          # Calculations to take into account AWS ES reserved space according to
+          # https://docs.aws.amazon.com/elasticsearch-service/latest/developerguide/sizing-domains.html#aes-bp-storage
+          # Linux reserved space not included so that the calculations return numbers reasonably
+          # consistent with AWS CloudWatch metric FreeStorageSpace
           - alert: Elasticsearch_Filesystem_Full
-            expr: elasticsearch_filesystem_data_available_bytes * 100 / elasticsearch_filesystem_data_size_bytes < 15
+            expr: >-
+              (elasticsearch_filesystem_data_available_bytes -
+              (clamp_max(elasticsearch_filesystem_data_size_bytes, 107374182400) * 0.20) )  * 100
+              / elasticsearch_filesystem_data_size_bytes < 10
             labels:
               severity: critical
             annotations:
-              summary:  "Elasticsearch cluster file system over 85% full"
+              summary:  "Elasticsearch cluster file system over 90% full"
               description: >-
                 Elasticsearch node {{`{{ $labels.name }}`}} file system has only {{`{{printf "%.1f" $value}}`}}% free space.
-                Serious performance degradation, including failure to collect performance metrics, may have already started.
-          - alert: Elasticsearch_Filesystem_Near_Full
-            expr: elasticsearch_filesystem_data_available_bytes * 100 / elasticsearch_filesystem_data_size_bytes < 25
+                Because of system reserved space, write failures can happen before file system is completely full.
+                Delete data or increase file system size immediately.
+              runbook_url: https://docs.aws.amazon.com/elasticsearch-service/latest/developerguide/aes-handling-errors.html#aes-handling-errors-watermark
+          - alert: Elasticsearch_Filesystem_Full
+            expr: >-
+              (elasticsearch_filesystem_data_available_bytes -
+              (clamp_max(elasticsearch_filesystem_data_size_bytes, 107374182400) * 0.20) )  * 100
+              / elasticsearch_filesystem_data_size_bytes < 20
             labels:
               severity: warning
             annotations:
-              summary:  "Elasticsearch cluster file system over 75% full"
+              summary:  "Elasticsearch cluster file system over 80% full"
               description: >-
                 Elasticsearch node {{`{{ $labels.name }}`}} file system has only {{`{{printf "%.1f" $value}}`}}% free space.
-                Elasticsearch metrics may start failing to be collected, so future warnings about even less free disk space
-                may never trigger.
+                Serious performance degradation can start when free space drops below 20%.
+              runbook_url: https://docs.aws.amazon.com/elasticsearch-service/latest/developerguide/sizing-domains.html#aes-bp-storage
+          {{- else }}
+          - alert: Elasticsearch_Filesystem_Full
+            expr: elasticsearch_filesystem_data_available_bytes * 100 / elasticsearch_filesystem_data_size_bytes < 10
+            labels:
+              severity: critical
+            annotations:
+              summary:  "Elasticsearch cluster file system over 90% full"
+              description: >-
+                Elasticsearch node {{`{{ $labels.name }}`}} file system has only {{`{{printf "%.1f" $value}}`}}% free space.
+                Due to system reserved space and other overhead, writes may soon start failing, resulting in data loss
+              runbook_url: https://docs.aws.amazon.com/elasticsearch-service/latest/developerguide/aes-handling-errors.html#aes-handling-errors-watermark
+          - alert: Elasticsearch_Filesystem_Full
+            expr: elasticsearch_filesystem_data_available_bytes * 100 / elasticsearch_filesystem_data_size_bytes < 20
+            labels:
+              severity: warning
+            annotations:
+              summary:  "Elasticsearch cluster file system over 80% full"
+              description: >-
+                Elasticsearch node {{`{{ $labels.name }}`}} file system has only {{`{{printf "%.1f" $value}}`}}% free space.
+                Delete old data or increase storage space.
+          {{- end }}
           - alert: Elasticsearch_Count_of_JVM_GC_Runs
             expr: rate(elasticsearch_jvm_gc_collection_seconds_count{}[5m])>5
             for: 60s
@@ -136,14 +179,14 @@ releases:
                 Elasticsearch node {{`{{ $labels.name }}`}}: Average of {{`{{ $value }}`}} JVM GC runs per
                 second over past 60 seconds.
           - alert: Elasticsearch_GC_Run_Time
-            expr: rate(elasticsearch_jvm_gc_collection_seconds_sum[5m])>0.3
+            expr: rate(elasticsearch_jvm_gc_collection_seconds_sum[5m]) * 100 > 30
             for: 60s
             labels:
               severity: "warning"
             annotations:
               summary:  "Elasticsearch GC running > 30% of real time"
               description: >-
-                Elasticsearch node {{`{{ $labels.name }}`}} GC was running {{`{{ $value }}`}}% of real time over the past 60 seconds.
+                Elasticsearch node {{`{{ $labels.name }}`}} GC was running {{`{{ printf "%.1f" $value }}`}}% of real time over the past 60 seconds.
           - alert: Elasticsearch_JSON_Parse_Failures
             expr: increase(elasticsearch_cluster_health_json_parse_failures[10m])>0
             labels:
