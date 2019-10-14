@@ -22,7 +22,7 @@ releases:
       vendor: "istio"
       default: "false"
     chart: "istio.io/istio"
-    version: "{{ coalesce (env "ISTIO_INIT_IMAGE_TAG") (env "ISTIO_IMAGE_TAG") "1.3.0" }}"
+    version: "{{ coalesce (env "ISTIO_INIT_IMAGE_TAG") (env "ISTIO_IMAGE_TAG") "1.3.3" }}"
     wait: true
     installed: {{ env "ISTIO_INSTALLED" | default "true" }}
     values:
@@ -55,8 +55,9 @@ releases:
             app: istio-ingressgateway
             istio: ingressgateway
           autoscaleEnabled: true
-          autoscaleMin: 1
+          autoscaleMin: 2
           autoscaleMax: 5
+          replicaCount: 2
           # specify replicaCount when autoscaleEnabled: false
           # replicaCount: 1
           rollingMaxSurge: 100%
@@ -188,27 +189,43 @@ releases:
       # @see https://github.com/istio/istio/blob/master/install/kubernetes/helm/istio/charts/sidecarInjectorWebhook/values.yaml
       sidecarInjectorWebhook:
         enabled: {{ env "ISTIO_SIDECAR_INJECTOR_WEBHOOK_ENABLED" | default "true" }}
+        replicaCount: 2
 
       # @see https://github.com/istio/istio/blob/master/install/kubernetes/helm/istio/charts/galley/values.yaml
       galley:
         enabled: {{ env "ISTIO_GALLEY_ENABLED" | default "true" }}
+        replicaCount: 2
 
       # @see https://github.com/istio/istio/blob/master/install/kubernetes/helm/istio/charts/mixer/values.yaml
       mixer:
         policy:
           # if policy is enabled the global.disablePolicyChecks has affect.
           enabled: {{ env "ISTIO_MIXER_POLICY_ENABLED" | default "true" }}
+          replicaCount: 2
+          autoscaleEnabled: true
+          autoscaleMin: 2
+          autoscaleMax: 5
 
         telemetry:
           enabled: {{ env "ISTIO_MIXER_TELEMETRY_ENABLED" | default "true" }}
+          replicaCount: 2
+          autoscaleEnabled: true
+          autoscaleMin: 2
+          autoscaleMax: 5
 
       # @see https://github.com/istio/istio/blob/master/install/kubernetes/helm/istio/charts/pilot/values.yaml
       pilot:
         enabled: {{ env "ISTIO_PILOT_ENABLED" | default "true" }}
+        replicaCount: 2
+        autoscaleEnabled: true
+        autoscaleMin: 2
+        autoscaleMax: 5
+
 
       # @see https://github.com/istio/istio/blob/master/install/kubernetes/helm/istio/charts/security/values.yaml
       security:
         enabled: {{ env "ISTIO_SECURITY_ENABLED" | default "true" }}
+        replicaCount: 2
 
       # @see https://github.com/istio/istio/blob/master/install/kubernetes/helm/istio/charts/nodeagent/values.yaml
       nodeagent:
@@ -217,10 +234,12 @@ releases:
       # @see https://github.com/istio/istio/blob/master/install/kubernetes/helm/istio/charts/grafana/values.yaml
       grafana:
         enabled: {{ env "ISTIO_GRAFANA_ENABLED" | default "false" }}
+        replicaCount: 2
 
       # @see https://github.com/istio/istio/blob/master/install/kubernetes/helm/istio/charts/prometheus/values.yaml
       prometheus:
         enabled: {{ env "ISTIO_PROMETHEUS_ENABLED" | default "false" }}
+        replicaCount: 2
 
       # @see https://github.com/istio/istio/blob/master/install/kubernetes/helm/istio/charts/tracing/values.yaml
       tracing:
@@ -229,6 +248,7 @@ releases:
       # @see https://github.com/istio/istio/blob/master/install/kubernetes/helm/istio/charts/kiali/values.yaml
       kiali:
         enabled: {{ env "ISTIO_KIALI_ENABLED" | default "false" }}
+        replicaCount: 2
         contextPath: /
         prometheusAddr: {{ env "ISTIO_PROMETHEUS" | default "http://prometheus-operator-prometheus.monitoring:9090" }}
         dashboard:
@@ -239,6 +259,7 @@ releases:
       # @see https://github.com/istio/istio/blob/master/install/kubernetes/helm/istio/charts/certmanager/values.yaml
       certmanager:
         enabled: {{ env "ISTIO_CERTMANAGER_ENABLED" | default "false" }}
+        replicaCount: 2
 
       #
       # Istio CNI plugin enabled
@@ -255,6 +276,7 @@ releases:
       # @see https://github.com/istio/istio/blob/master/install/kubernetes/helm/istio/charts/istiocoredns/values.yaml
       istiocoredns:
         enabled: {{ env "ISTIO_COREDNS_ENABLED" | default "true" }}
+        replicaCount: 2
 
       # Common settings used among istio subcharts.
       global:
