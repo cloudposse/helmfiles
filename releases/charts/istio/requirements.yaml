@@ -1,53 +1,53 @@
 dependencies:
   - name: sidecarInjectorWebhook
-    repository: "file://charts/sidecarInjectorWebhook"
+    repository: "file://local-charts/sidecarInjectorWebhook"
     version: 1.1.0
     condition: sidecarInjectorWebhook.enabled
   - name: security
-    repository: "file://charts/security"
+    repository: "file://local-charts/security"
     version: 1.1.0
     condition: security.enabled
   - name: gateways
-    repository: "file://charts/gateways"
+    repository: "file://local-charts/gateways"
     version: 1.1.0
     condition: gateways.enabled
   - name: mixer
-    repository: "file://charts/mixer"
+    repository: "file://local-charts/mixer"
     version: 1.1.0
     condition: or mixer.policy.enabled mixer.telemetry.enabled
   - name: nodeagent
-    repository: "file://charts/nodeagent"
+    repository: "file://local-charts/nodeagent"
     version: 1.1.0
     condition: nodeagent.enabled
   - name: pilot
-    repository: "file://charts/pilot"
+    repository: "file://local-charts/pilot"
     version: 1.1.0
     condition: pilot.enabled
   - name: grafana
-    repository: "file://charts/grafana"
+    repository: "file://local-charts/grafana"
     version: 1.1.0
     condition: grafana.enabled
   - name: prometheus
-    repository: "file://charts/prometheus"
+    repository: "file://local-charts/prometheus"
     version: 1.1.0
     condition: prometheus.enabled
   - name: tracing
-    repository: "file://charts/tracing"
+    repository: "file://local-charts/tracing"
     version: 1.1.0
     condition: tracing.enabled
   - name: galley
-    repository: "file://charts/galley"
+    repository: "file://local-charts/galley"
     version: 1.1.0
     condition: galley.enabled
   - name: kiali
-    repository: "file://charts/kiali"
+    repository: "file://local-charts/kiali"
     version: 1.1.0
     condition: kiali.enabled
   - name: istiocoredns
-    repository: "file://charts/istiocoredns"
+    repository: "file://local-charts/istiocoredns"
     version: 1.1.0
     condition: istiocoredns.enabled
   - name: certmanager
-    repository: "file://charts/certmanager"
+    repository: "file://local-charts/certmanager"
     version: 1.1.0
     condition: certmanager.enabled
