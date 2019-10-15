@@ -1,53 +1,53 @@
 dependencies:
   - name: sidecarInjectorWebhook
     repository: "file://local-charts/sidecarInjectorWebhook"
-    version: 1.1.0
+    version: 1.3.3
     condition: sidecarInjectorWebhook.enabled
   - name: security
     repository: "file://local-charts/security"
-    version: 1.1.0
+    version: 1.3.3
     condition: security.enabled
   - name: gateways
     repository: "file://local-charts/gateways"
-    version: 1.1.0
+    version: 1.3.3
     condition: gateways.enabled
   - name: mixer
     repository: "file://local-charts/mixer"
-    version: 1.1.0
+    version: 1.3.3
     condition: or mixer.policy.enabled mixer.telemetry.enabled
   - name: nodeagent
     repository: "file://local-charts/nodeagent"
-    version: 1.1.0
+    version: 1.3.3
     condition: nodeagent.enabled
   - name: pilot
     repository: "file://local-charts/pilot"
-    version: 1.1.0
+    version: 1.3.3
     condition: pilot.enabled
   - name: grafana
     repository: "file://local-charts/grafana"
-    version: 1.1.0
+    version: 1.3.3
     condition: grafana.enabled
   - name: prometheus
     repository: "file://local-charts/prometheus"
-    version: 1.1.0
+    version: 1.3.3
     condition: prometheus.enabled
   - name: tracing
     repository: "file://local-charts/tracing"
-    version: 1.1.0
+    version: 1.3.3
     condition: tracing.enabled
   - name: galley
     repository: "file://local-charts/galley"
-    version: 1.1.0
+    version: 1.3.3
     condition: galley.enabled
   - name: kiali
     repository: "file://local-charts/kiali"
-    version: 1.1.0
+    version: 1.3.3
     condition: kiali.enabled
   - name: istiocoredns
     repository: "file://local-charts/istiocoredns"
-    version: 1.1.0
+    version: 1.3.3
     condition: istiocoredns.enabled
   - name: certmanager
     repository: "file://local-charts/certmanager"
-    version: 1.1.0
+    version: 1.3.3
     condition: certmanager.enabled
