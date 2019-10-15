@@ -393,7 +393,7 @@ releases:
           # would only capture egress traffic on those two IP Ranges, all other outbound traffic would
           # be allowed by the sidecar
           includeIPRanges: "*"
-          excludeIPRanges: ""
+          excludeIPRanges: "169.254.169.254/32"
           excludeOutboundPorts: ""
 
           # pod internal interfaces
