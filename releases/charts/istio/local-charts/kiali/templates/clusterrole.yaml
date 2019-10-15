@@ -131,16 +131,6 @@ rules:
   - list
   - patch
   - watch
-- apiGroups: ["security.istio.io"]
-  resources:
-    - authorizationpolicies
-  verbs:
-    - create
-    - delete
-    - get
-    - list
-    - patch
-    - watch
 - apiGroups: ["monitoring.kiali.io"]
   resources:
   - monitoringdashboards
@@ -269,13 +259,6 @@ rules:
   - get
   - list
   - watch
-- apiGroups: ["security.istio.io"]
-  resources:
-    - authorizationpolicies
-  verbs:
-    - get
-    - list
-    - watch
 - apiGroups: ["monitoring.kiali.io"]
   resources:
   - monitoringdashboards

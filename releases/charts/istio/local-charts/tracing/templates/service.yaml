@@ -20,9 +20,10 @@ items:
       heritage: {{ .Release.Service }}
       release: {{ .Release.Name }}
   spec:
+    type: {{ .Values.service.type }}
     ports:
       - port: {{ .Values.service.externalPort }}
-        targetPort: {{ .Values.zipkin.queryPort }}
+        targetPort: 9411
         protocol: TCP
         name: {{ .Values.service.name }}
     selector:
@@ -42,15 +43,14 @@ items:
       heritage: {{ .Release.Service }}
       release: {{ .Release.Name }}
   spec:
-    type: {{ .Values.service.type }}
     ports:
       - name: http-query
-        port: {{ .Values.service.externalPort }}
+        port: 80
         protocol: TCP
 {{ if eq .Values.provider "jaeger" }}
         targetPort: 16686
 {{ else }}
-        targetPort: {{ .Values.zipkin.queryPort }}
+        targetPort: 9411
 {{ end}}
     selector:
       app: {{ .Values.provider }}

@@ -2,6 +2,8 @@
 
 [Istio](https://istio.io/) is an open platform for providing a uniform way to integrate microservices, manage traffic flow across microservices, enforce policies and aggregate telemetry data.
 
+
+
 The documentation here is for developers only, please follow the installation instructions from [istio.io](https://istio.io/docs/setup/kubernetes/install/helm/) for all other uses.
 
 ## Introduction
@@ -39,27 +41,23 @@ The chart deploys pods that consume minimum resources as specified in the resour
 ## Installing the Chart
 
 1. If a service account has not already been installed for Tiller, install one:
-
-    ```bash
+    ```
     $ kubectl apply -f install/kubernetes/helm/helm-service-account.yaml
     ```
 
 1. Install Tiller on your cluster with the service account:
-
-    ```bash
+    ```
     $ helm init --service-account tiller
     ```
 
 1. Set and create the namespace where Istio was installed:
-
-    ```bash
+    ```
     $ NAMESPACE=istio-system
     $ kubectl create ns $NAMESPACE
     ```
 
 1. If you are enabling `kiali`, you need to create the secret that contains the username and passphrase for `kiali` dashboard:
-
-    ```bash
+    ```
     $ echo -n 'admin' | base64
     YWRtaW4=
     $ echo -n '1f2d1e2e67df' | base64
@@ -82,50 +80,45 @@ The chart deploys pods that consume minimum resources as specified in the resour
 1. If you are using security mode for Grafana, create the secret first as follows:
 
     - Encode username, you can change the username to the name as you want:
-
-        ```bash
-        $ echo -n 'admin' | base64
-        YWRtaW4=
-        ```
+    ```
+    $ echo -n 'admin' | base64
+    YWRtaW4=
+    ```
 
     - Encode passphrase, you can change the passphrase to the passphrase as you want:
-
-        ```bash
-        $ echo -n '1f2d1e2e67df' | base64
-        MWYyZDFlMmU2N2Rm
-        ```
+    ```
+    $ echo -n '1f2d1e2e67df' | base64
+    MWYyZDFlMmU2N2Rm
+    ```
 
     - Create secret for Grafana:
-
-        ```bash
-        $ cat <<EOF | kubectl apply -f -
-        apiVersion: v1
-        kind: Secret
-        metadata:
-          name: grafana
-          namespace: $NAMESPACE
-          labels:
-            app: grafana
-        type: Opaque
-        data:
-          username: YWRtaW4=
-          passphrase: MWYyZDFlMmU2N2Rm
-        EOF
-        ```
+    ```
+    $ cat <<EOF | kubectl apply -f -
+    apiVersion: v1
+    kind: Secret
+    metadata:
+      name: grafana
+      namespace: $NAMESPACE
+      labels:
+        app: grafana
+    type: Opaque
+    data:
+      username: YWRtaW4=
+      passphrase: MWYyZDFlMmU2N2Rm
+    EOF
+    ```
 
 1. To install the chart with the release name `istio` in namespace $NAMESPACE you defined above:
 
     - With [automatic sidecar injection](https://istio.io/docs/setup/kubernetes/sidecar-injection/#automatic-sidecar-injection) (requires Kubernetes >=1.9.0):
-
-        ```bash
-        $ helm install istio --name istio --namespace $NAMESPACE
-        ```
+    ```
+    $ helm install istio --name istio --namespace $NAMESPACE
+    ```
 
     - Without the sidecar injection webhook:
-
-        ```bash
-        $ helm install istio --name istio --namespace $NAMESPACE --set sidecarInjectorWebhook.enabled=false
-        ```
+    ```
+    $ helm install istio --name istio --namespace $NAMESPACE --set sidecarInjectorWebhook.enabled=false
+    ```
 
 ## Configuration
 
@@ -137,13 +130,11 @@ Helm charts expose configuration options which are currently in alpha.  The curr
 ## Uninstalling the Chart
 
 To uninstall/delete the `istio` release but continue to track the release:
-
-```bash
-$ helm delete istio
-```
+    ```
+    $ helm delete istio
+    ```
 
 To uninstall/delete the `istio` release completely and make its name free for later use:
-
-```bash
-$ helm delete --purge istio
-```
+    ```
+    $ helm delete --purge istio
+    ```

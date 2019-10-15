@@ -9,8 +9,7 @@ initContainers:
 {{- else }}
   image: "{{ .Values.global.hub }}/{{ .Values.global.proxy_init.image }}:{{ .Values.global.tag }}"
 {{- end }}
-  command:
-  - istio-iptables
+  args:
   - "-p"
   - "15001"
   - "-z"
@@ -132,12 +131,12 @@ containers:
   - "{{ .ProxyConfig.StatsdUdpAddress }}"
 {{- end }}
 {{- if .Values.global.proxy.envoyMetricsService.enabled }}
-  - --envoyMetricsService
-  - '{{ protoToJSON .ProxyConfig.EnvoyMetricsService }}'
+  - --envoyMetricsServiceAddress
+  - "{{ .ProxyConfig.GetEnvoyMetricsService.GetAddress }}"
 {{- end }}
 {{- if .Values.global.proxy.envoyAccessLogService.enabled }}
   - --envoyAccessLogService
-  - '{{ protoToJSON .ProxyConfig.EnvoyAccessLogService }}'
+  - '{{ structToJSON .ProxyConfig.EnvoyAccessLogService }}'
 {{- end }}
   - --proxyAdminPort
   - "{{ .ProxyConfig.ProxyAdminPort }}"
@@ -147,7 +146,7 @@ containers:
   {{ end -}}
   - --controlPlaneAuthPolicy
   - "{{ annotation .ObjectMeta `sidecar.istio.io/controlPlaneAuthPolicy` .ProxyConfig.ControlPlaneAuthPolicy }}"
-{{- if (ne (annotation .ObjectMeta "status.sidecar.istio.io/port" (valueOrDefault .Values.global.proxy.statusPort 0 )) `0`) }}
+{{- if (ne (annotation .ObjectMeta "status.sidecar.istio.io/port" .Values.global.proxy.statusPort) "0") }}
   - --statusPort
   - "{{ annotation .ObjectMeta `status.sidecar.istio.io/port` .Values.global.proxy.statusPort }}"
   - --applicationPorts
@@ -171,7 +170,7 @@ containers:
       {{- end}}
       ]
   - name: ISTIO_META_CLUSTER_ID
-    value: "{{ valueOrDefault .Values.global.multiCluster.clusterName `Kubernetes` }}"
+    value: "{{ valueOrDefault .Values.global.multicluster.clusterName `Kubernetes` }}"
   - name: POD_NAMESPACE
     valueFrom:
       fieldRef:
@@ -248,7 +247,7 @@ containers:
     value: "{{ .Values.global.trustDomain }}"
   {{- end }}
   imagePullPolicy: {{ .Values.global.imagePullPolicy }}
-  {{ if ne (annotation .ObjectMeta `status.sidecar.istio.io/port` (valueOrDefault .Values.global.proxy.statusPort 0 )) `0` }}
+  {{ if ne (annotation .ObjectMeta `status.sidecar.istio.io/port` .Values.global.proxy.statusPort) `0` }}
   readinessProbe:
     httpGet:
       path: /healthz/ready

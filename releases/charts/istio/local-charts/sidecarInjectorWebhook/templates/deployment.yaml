@@ -28,9 +28,6 @@ spec:
         istio: sidecar-injector
       annotations:
         sidecar.istio.io/inject: "false"
-        {{- if .Values.podAnnotations }}
-{{ toYaml .Values.podAnnotations | indent 8 }}
-        {{- end }}
     spec:
       serviceAccountName: istio-sidecar-injector-service-account
 {{- if .Values.global.priorityClassName }}
@@ -92,11 +89,7 @@ spec:
           name: istio
       - name: certs
         secret:
-{{- if .Values.global.certificates }}
-          secretName: dns.istio-sidecar-injector-service-account
-{{- else }}
           secretName: istio.istio-sidecar-injector-service-account
-{{- end }}
       - name: inject-config
         configMap:
           name: istio-sidecar-injector

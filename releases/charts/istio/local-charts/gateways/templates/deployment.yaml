@@ -1,15 +1,18 @@
 {{- range $key, $spec := .Values }}
 {{- if ne $key "enabled" }}
 {{- if $spec.enabled }}
-
-{{- $labels := merge (dict "release" $.Release.Name "chart" (include "gateway.chart" $) "heritage" $.Release.Service) $spec.labels }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ $key }}
   namespace: {{ $spec.namespace | default $.Release.Namespace }}
   labels:
-{{ $labels | toYaml | indent 4 }}
+    chart: {{ template "gateway.chart" $ }}
+    heritage: {{ $.Release.Service }}
+    release: {{ $.Release.Name }}
+    {{- range $key, $val := $spec.labels }}
+    {{ $key }}: {{ $val }}
+    {{- end }}
 spec:
 {{- if not $spec.autoscaleEnabled }}
 {{- if $spec.replicaCount }}
@@ -30,7 +33,12 @@ spec:
   template:
     metadata:
       labels:
-{{ $labels | toYaml | indent 8 }}
+        chart: {{ template "gateway.chart" $ }}
+        heritage: {{ $.Release.Service }}
+        release: {{ $.Release.Name }}
+        {{- range $key, $val := $spec.labels }}
+        {{ $key }}: {{ $val }}
+        {{- end }}
       annotations:
         sidecar.istio.io/inject: "false"
 {{- if $spec.podAnnotations }}
@@ -134,11 +142,9 @@ spec:
           - {{ $.Values.global.proxy.envoyStatsd.host }}:{{ $.Values.global.proxy.envoyStatsd.port }}
         {{- end }}
         {{- if $.Values.global.proxy.envoyMetricsService.enabled }}
-          - --envoyMetricsService
-          {{- with  $.Values.global.proxy.envoyMetricsService }}
-          - '{"address":"{{ .host }}:{{.port }}"{{ if .tlsSettings }},"tlsSettings":{{ .tlsSettings | toJson }}{{- end }}{{ if .tcpKeepalive }},"tcpKeepalive":{{ .tcpKeepalive | toJson }}{{- end }}}'
-          {{- end }}
-        {{- end}}
+          - --envoyMetricsServiceAddress
+          - {{ $.Values.global.proxy.envoyMetricsService.host }}:{{ $.Values.global.proxy.envoyMetricsService.port }}
+        {{- end }}
         {{- if $.Values.global.proxy.envoyAccessLogService.enabled }}
           - --envoyAccessLogService
           {{- with  $.Values.global.proxy.envoyAccessLogService }}
@@ -230,24 +236,12 @@ spec:
             valueFrom:
               fieldRef:
                 fieldPath: metadata.namespace
-          - name: ISTIO_METAJSON_LABELS
-            value: |
-              {{ $labels | toJson}}
-          - name: ISTIO_META_CLUSTER_ID
-            value: "{{ $.Values.global.multiCluster.clusterName | default `Kubernetes` }}"
           - name: SDS_ENABLED
             value: "{{ $.Values.global.sds.enabled }}"
           - name: ISTIO_META_WORKLOAD_NAME
             value: {{ $key }}
           - name: ISTIO_META_OWNER
             value: kubernetes://api/apps/v1/namespaces/{{ $spec.namespace | default $.Release.Namespace }}/deployments/{{ $key }}
-          {{- if $.Values.global.meshID }}
-          - name: ISTIO_META_MESH_ID
-            value: "{{ $.Values.global.meshID }}"
-          {{- else if $.Values.global.trustDomain }}
-          - name: ISTIO_META_MESH_ID
-            value: "{{ $.Values.global.trustDomain }}"
-          {{- end }}
           {{- if $spec.sds }}
           {{- if $spec.sds.enabled }}
           - name: ISTIO_META_USER_SDS
@@ -258,13 +252,6 @@ spec:
           {{- range $key, $val := $spec.env }}
           - name: {{ $key }}
             value: {{ $val }}
-          {{- end }}
-          {{- end }}
-          {{ if eq $key "istio-ingressgateway" }}
-          {{ $network_set := index $spec.env "ISTIO_META_NETWORK" }}
-          {{- if and (not $network_set) $.Values.global.network }}
-          - name: ISTIO_META_NETWORK
-            value: {{ $.Values.global.network }}
           {{- end }}
           {{- end }}
           volumeMounts:
