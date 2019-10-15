@@ -1,7 +1,6 @@
 repositories:
   - name: istio.io
-    #url: https://storage.googleapis.com/istio-release/releases/{{ coalesce (env "ISTIO_INIT_IMAGE_TAG") (env "ISTIO_IMAGE_TAG") "1.3.3" }}/charts
-    url: "git+https://github.com/istio/istio@install/kubernetes/helm/istio?ref=4170e2e2bd27e4d5b6e585fde8bfe9cce9d45ce5"
+    url: https://storage.googleapis.com/istio-release/releases/{{ coalesce (env "ISTIO_INIT_IMAGE_TAG") (env "ISTIO_IMAGE_TAG") "1.3.3" }}/charts
 
 releases:
   #######################################################################################
