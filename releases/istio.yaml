@@ -216,6 +216,7 @@ releases:
       # @see https://github.com/istio/istio/blob/master/install/kubernetes/helm/istio/charts/pilot/values.yaml
       pilot:
         enabled: {{ env "ISTIO_PILOT_ENABLED" | default "true" }}
+        enableProtocolSniffingForOutbound: false
         replicaCount: 2
         autoscaleEnabled: true
         autoscaleMin: 2
