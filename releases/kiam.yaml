@@ -198,7 +198,7 @@ releases:
           caFileName:   ca.crt
         updateStrategy: RollingUpdate
 
-- name: 'kiam-promtheus'
+- name: 'kiam-prometheus'
   namespace: kube-system
   labels:
     component: "iam"
