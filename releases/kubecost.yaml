@@ -27,7 +27,7 @@ releases:
       vendor: "kubecost"
       default: "false"
     chart: "kubecost/cost-analyzer"
-    version: "v1.37.0"
+    version: "v1.46.6"
     wait: true
     installed: {{ env "KUBECOST_INSTALLED" | default "true" }}
     values:
