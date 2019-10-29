@@ -23,7 +23,7 @@ releases:
       namespace: "sentry"
       vendor: "kubernetes-helm"
     chart: "stable/sentry"
-    version: '{{ env "SENTRY_CHART_VERSION" | default "2.1.1" }}'
+    version: '{{ env "SENTRY_CHART_VERSION" | default "3.1.0" }}'
     force: true
     wait: true
     timeout: 600
@@ -49,6 +49,14 @@ releases:
           nodeSelector: {}
           tolerations: []
           affinity: {}
+          env:
+            - name: SENTRY_SLACK_CLIENT_ID
+              value: '{{ env "SENTRY_SLACK_CLIENT_ID" | default "" }}'
+            - name: SENTRY_SLACK_CLIENT_SECRET
+              value: '{{ env "SENTRY_SLACK_CLIENT_SECRET" | default "" }}'
+            - name: SENTRY_SLACK_VERIFICATION_TOKEN
+              value: '{{ env "SENTRY_SLACK_VERIFICATION_TOKEN" | default "" }}'
+
           ## Use an alternate scheduler, e.g. "stork".
           ## ref: https://kubernetes.io/docs/tasks/administer-cluster/configure-multiple-schedulers/
           ##
@@ -68,7 +76,13 @@ releases:
           nodeSelector: {}
           tolerations: []
           affinity: {}
-          # schedulerName:
+          env:
+            - name: SENTRY_SLACK_CLIENT_ID
+              value: '{{ env "SENTRY_SLACK_CLIENT_ID" | default "" }}'
+            - name: SENTRY_SLACK_CLIENT_SECRET
+              value: '{{ env "SENTRY_SLACK_CLIENT_SECRET" | default "" }}'
+            - name: SENTRY_SLACK_VERIFICATION_TOKEN
+              value: '{{ env "SENTRY_SLACK_VERIFICATION_TOKEN" | default "" }}'
           # Optional extra labels for pod, i.e. redis-client: "true"
           # podLabels: []
 
@@ -87,7 +101,13 @@ releases:
           nodeSelector: {}
           tolerations: []
           affinity: {}
-          # schedulerName:
+          env:
+            - name: SENTRY_SLACK_CLIENT_ID
+              value: '{{ env "SENTRY_SLACK_CLIENT_ID" | default "" }}'
+            - name: SENTRY_SLACK_CLIENT_SECRET
+              value: '{{ env "SENTRY_SLACK_CLIENT_SECRET" | default "" }}'
+            - name: SENTRY_SLACK_VERIFICATION_TOKEN
+              value: '{{ env "SENTRY_SLACK_VERIFICATION_TOKEN" | default "" }}'
           # Optional extra labels for pod, i.e. redis-client: "true"
           # podLabels: []
           # concurrency:
@@ -206,12 +226,12 @@ releases:
           imageTag: '{{ env "SENTRY_POSTGRES_IMAGE_TAG" | default "9.6" }}'
           persistence:
             enabled: {{ env "SENTRY_POSTGRES_PERSISTENCE_ENABLED" | default "false" }}
-          postgresDatabase: '{{ env "SENTRY_POSTGRES_DATABASE" | default "sentry" }}'
-          postgresUser: '{{ env "SENTRY_POSTGRES_USER" | default "sentry" }}'
+          postgresqlDatabase: '{{ env "SENTRY_POSTGRES_DATABASE" | default "sentry" }}'
+          postgresqlUsername: '{{ env "SENTRY_POSTGRES_USER" | default "sentry" }}'
           # Only used when internal PG is disabled
-          postgresHost: '{{ env "SENTRY_POSTGRES_HOST" | default "postgres" }}'
-          postgresPassword: '{{ env "SENTRY_POSTGRES_PASSWORD" | default "" }}'
-          postgresPort: '{{ env "SENTRY_POSTGRES_PORT" | default "5432" }}'
+          postgresqlHost: '{{ env "SENTRY_POSTGRES_HOST" | default "postgres" }}'
+          postgresqlPassword: '{{ env "SENTRY_POSTGRES_PASSWORD" | default "" }}'
+          postgresqlPort: '{{ env "SENTRY_POSTGRES_PORT" | default "5432" }}'
 
         redis:
           enabled: {{ env "SENTRY_REDIS_ENABLED" | default "false" }}
@@ -229,8 +249,17 @@ releases:
         config:
           configYml: |-
             system.url-prefix: 'https://{{ env "SENTRY_HOSTNAME" }}'
+            github.apps-install-url: 'https://{{ env "SENTRY_HOSTNAME" }}/extensions/github/setup/'
+            github-app.id: {{ env "SENTRY_GITHUB_APP_ID" | default "" }}
+            github-app.client-id: '{{ env "SENTRY_GITHUB_APP_CLIENT_ID" | default "" }}'
+            github-app.name: '{{ env "SENTRY_GITHUB_APP_NAME" | default "" }}'
+            github-app.client-secret: '{{ env "SENTRY_GITHUB_APP_CLIENT_SECRET" | default "" }}'
+            github-app.webhook-secret: '{{ env "SENTRY_GITHUB_APP_WEBHOOK_SECRET" | default "" }}'
+            github-app.private-key: |-
+{{ env "SENTRY_GITHUB_APP_PRIVATE_KEY" | default "" | indent 14 }}
 
-          sentryConfPy: ""
+          sentryConfPy: |
+            SLACK_INTEGRATION_USE_WST = True
 
         ## Prometheus Exporter / Metrics
         ##
