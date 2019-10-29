@@ -251,7 +251,7 @@ releases:
             - alert: kiam_sts_issuing_errors_total
               annotations:
                 message: There are errors issuing credentials
-              expr: {{ env "KIAM_ALERT_STS_ISSUING_ERROR_TOTAL_WARNING_EXPR" | default "increase(kiam_sts_issuing_errors_total[1m])(kiam_sts_issuing_errors_total[1m]) >= 1" }}
+              expr: {{ env "KIAM_ALERT_STS_ISSUING_ERROR_TOTAL_WARNING_EXPR" | default "increase(kiam_sts_issuing_errors_total[1m]) >= 1" }}
               labels:
                 severity: warning
             - alert: kiam_sts_issuing_errors_total
@@ -264,7 +264,7 @@ releases:
             - alert: kiam_metadata_find_role_errors_total
               annotations:
                 message: Pod try to use non-exiting role
-              expr: {{ env "KIAM_ALERT_METADATA_FIND_ROLE_ERRORS_TOTAL_WARNING_EXPR" | default "increase(kiam_metadata_find_role_errors_total) >= 1" }}
+              expr: {{ env "KIAM_ALERT_METADATA_FIND_ROLE_ERRORS_TOTAL_WARNING_EXPR" | default "increase(kiam_metadata_find_role_errors_total[1m]) >= 1" }}
               labels:
                 severity: warning
             - alert: kiam_metadata_find_role_errors_total
