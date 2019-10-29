@@ -240,7 +240,7 @@ releases:
         endpoints:
           - port: "metrics"
             interavl: 15s
-
+{{ $prometheusBaseUrl := env "PROMETHEUS_PROMETHEUS_EXTERNAL_URL" | default (print "https://api." (env "KOPS_CLUSTER_NAME") "/api/v1/namespaces/monitoring/services/prometheus-operator-prometheus:") }}
     prometheusRules:
       default:
         labels:
@@ -251,12 +251,16 @@ releases:
             - alert: kiam_sts_issuing_errors_total
               annotations:
                 message: There are errors issuing credentials
+                description: Number of errors issuing credentials
+                runbook_url: {{ $prometheusBaseUrl }}/_plugin/kibana/app/kibana#/discover?_g=(refreshInterval:(pause:!t,value:0),time:(from:now-15m,mode:quick,to:now))&_a=(columns:!(_source),filters:!(('$state':(store:appState),meta:(alias:!n,disabled:!f,index:'logstash-*',key:kubernetes.labels.release,negate:!f,params:(query:kiam,type:phrase),type:phrase,value:kiam),query:(match:(kubernetes.labels.release:(query:kiam,type:phrase))))),index:'logstash-*',interval:auto,query:(language:lucene,query:'"error%20requesting%20credentials"'),sort:!('@timestamp',desc))
               expr: {{ env "KIAM_ALERT_STS_ISSUING_ERROR_TOTAL_WARNING_EXPR" | default "increase(kiam_sts_issuing_errors_total[1m]) >= 1" }}
               labels:
                 severity: warning
             - alert: kiam_sts_issuing_errors_total
               annotations:
                 message: There are errors issuing credentials
+                description: Number of errors issuing credentials
+                runbook_url: {{ $prometheusBaseUrl }}/_plugin/kibana/app/kibana#/discover?_g=(refreshInterval:(pause:!t,value:0),time:(from:now-15m,mode:quick,to:now))&_a=(columns:!(_source),filters:!(('$state':(store:appState),meta:(alias:!n,disabled:!f,index:'logstash-*',key:kubernetes.labels.release,negate:!f,params:(query:kiam,type:phrase),type:phrase,value:kiam),query:(match:(kubernetes.labels.release:(query:kiam,type:phrase))))),index:'logstash-*',interval:auto,query:(language:lucene,query:'"error%20requesting%20credentials"'),sort:!('@timestamp',desc))
               expr: {{ env "KIAM_ALERT_STS_ISSUING_ERROR_TOTAL_CRITICAL_EXPR" | default "increase(kiam_sts_issuing_errors_total[5m]) >= 1" }}
               labels:
                 severity: critical
@@ -264,12 +268,67 @@ releases:
             - alert: kiam_metadata_find_role_errors_total
               annotations:
                 message: Pod try to use non-exiting role
+                description: Number of errors finding the role for a pod
+                runbook_url: {{ $prometheusBaseUrl }}/_plugin/kibana/app/kibana#/discover?_g=(refreshInterval:(pause:!t,value:0),time:(from:now-15m,mode:quick,to:now))&_a=(columns:!(_source),filters:!(('$state':(store:appState),meta:(alias:!n,disabled:!f,index:'logstash-*',key:kubernetes.labels.release,negate:!f,params:(query:kiam,type:phrase),type:phrase,value:kiam),query:(match:(kubernetes.labels.release:(query:kiam,type:phrase))))),index:'logstash-*',interval:auto,query:(language:lucene,query:'%22error%20finding%20role%20for%20pod%22'),sort:!('@timestamp',desc))
               expr: {{ env "KIAM_ALERT_METADATA_FIND_ROLE_ERRORS_TOTAL_WARNING_EXPR" | default "increase(kiam_metadata_find_role_errors_total[1m]) >= 1" }}
               labels:
                 severity: warning
             - alert: kiam_metadata_find_role_errors_total
               annotations:
                 message: Pod try to use non-exiting role
+                description: Number of errors finding the role for a pod
+                runbook_url: {{ $prometheusBaseUrl }}/_plugin/kibana/app/kibana#/discover?_g=(refreshInterval:(pause:!t,value:0),time:(from:now-15m,mode:quick,to:now))&_a=(columns:!(_source),filters:!(('$state':(store:appState),meta:(alias:!n,disabled:!f,index:'logstash-*',key:kubernetes.labels.release,negate:!f,params:(query:kiam,type:phrase),type:phrase,value:kiam),query:(match:(kubernetes.labels.release:(query:kiam,type:phrase))))),index:'logstash-*',interval:auto,query:(language:lucene,query:'%22error%20finding%20role%20for%20pod%22'),sort:!('@timestamp',desc))
               expr: {{ env "KIAM_ALERT_METADATA_FIND_ROLE_ERRORS_TOTAL_CRITICAL_EXPR" | default "increase(kiam_metadata_find_role_errors_total[5m]) >= 1" }}
+              labels:
+                severity: critical
+
+            - alert: kiam_metadata_empty_role_total
+              annotations:
+                message: Pod try to use empty role
+                description: Number of empty roles returned
+                runbook_url: {{ $prometheusBaseUrl }}/_plugin/kibana/app/kibana#/discover?_g=(refreshInterval:(pause:!t,value:0),time:(from:now-15m,mode:quick,to:now))&_a=(columns:!(_source),filters:!(('$state':(store:appState),meta:(alias:!n,disabled:!f,index:'logstash-*',key:kubernetes.labels.release,negate:!f,params:(query:kiam,type:phrase),type:phrase,value:kiam),query:(match:(kubernetes.labels.release:(query:kiam,type:phrase))))),index:'logstash-*',interval:auto,query:(language:lucene,query:'"empty%20role"'),sort:!('@timestamp',desc))
+              expr: {{ env "KIAM_ALERT_METADATA_EMPTY_ROLE_TOTAL_WARNING_EXPR" | default "increase(kiam_metadata_empty_role_total[1m]) >= 1" }}
+              labels:
+                severity: warning
+            - alert: kiam_metadata_empty_role_total
+              annotations:
+                message: Pod try to use empty role
+                description: Number of empty roles returned
+                runbook_url: {{ $prometheusBaseUrl }}/_plugin/kibana/app/kibana#/discover?_g=(refreshInterval:(pause:!t,value:0),time:(from:now-15m,mode:quick,to:now))&_a=(columns:!(_source),filters:!(('$state':(store:appState),meta:(alias:!n,disabled:!f,index:'logstash-*',key:kubernetes.labels.release,negate:!f,params:(query:kiam,type:phrase),type:phrase,value:kiam),query:(match:(kubernetes.labels.release:(query:kiam,type:phrase))))),index:'logstash-*',interval:auto,query:(language:lucene,query:'"empty%20role"'),sort:!('@timestamp',desc))
+              expr: {{ env "KIAM_ALERT_METADATA_EMPTY_ROLE_TOTAL_CRITICAL_EXPR" | default "increase(kiam_metadata_empty_role_total[5m]) >= 1" }}
+              labels:
+                severity: critical
+
+            - alert: kiam_metadata_credential_fetch_errors_total
+              annotations:
+                message: Error fetch aws credentials
+                description: Number of errors fetching the credentials for a pod
+                runbook_url: {{ $prometheusBaseUrl }}/_plugin/kibana/app/kibana#/discover?_g=(refreshInterval:(pause:!t,value:0),time:(from:now-15m,mode:quick,to:now))&_a=(columns:!(_source),filters:!(('$state':(store:appState),meta:(alias:!n,disabled:!f,index:'logstash-*',key:kubernetes.labels.release,negate:!f,params:(query:kiam,type:phrase),type:phrase,value:kiam),query:(match:(kubernetes.labels.release:(query:kiam,type:phrase))))),index:'logstash-*',interval:auto,query:(language:lucene,query:'"error%20fetching%20credentials"'),sort:!('@timestamp',desc))
+              expr: {{ env "KIAM_ALERT_METADATA_CREDENTIAL_FETCH_ERRORS_TOTAL_WARNING_EXPR" | default "increase(kiam_metadata_credential_fetch_errors_total[1m]) >= 1" }}
+              labels:
+                severity: warning
+            - alert: kiam_metadata_credential_fetch_errors_total
+              annotations:
+                message: Error fetch aws credentials
+                description: Number of errors fetching the credentials for a pod
+                runbook_url: {{ $prometheusBaseUrl }}/_plugin/kibana/app/kibana#/discover?_g=(refreshInterval:(pause:!t,value:0),time:(from:now-15m,mode:quick,to:now))&_a=(columns:!(_source),filters:!(('$state':(store:appState),meta:(alias:!n,disabled:!f,index:'logstash-*',key:kubernetes.labels.release,negate:!f,params:(query:kiam,type:phrase),type:phrase,value:kiam),query:(match:(kubernetes.labels.release:(query:kiam,type:phrase))))),index:'logstash-*',interval:auto,query:(language:lucene,query:'"error%20fetching%20credentials"'),sort:!('@timestamp',desc))
+              expr: {{ env "KIAM_ALERT_METADATA_CREDENTIAL_FETCH_ERRORS_TOTAL_CRITICAL_EXPR" | default "increase(kiam_metadata_credential_fetch_errors_total[5m]) >= 1" }}
+              labels:
+                severity: critical
+
+            - alert: kiam_metadata_proxy_requests_blocked_total
+              annotations:
+                message: Assuming role blocked because of namespace annotations `iam.amazonaws.com/permitted`
+                description: Number of access requests to the proxy handler that were blocked by the regexp
+                runbook_url: {{ $prometheusBaseUrl }}/_plugin/kibana/app/kibana#/discover?_g=(refreshInterval:(pause:!t,value:0),time:(from:now-15m,mode:quick,to:now))&_a=(columns:!(_source),filters:!(('$state':(store:appState),meta:(alias:!n,disabled:!f,index:'logstash-*',key:kubernetes.labels.release,negate:!f,params:(query:kiam,type:phrase),type:phrase,value:kiam),query:(match:(kubernetes.labels.release:(query:kiam,type:phrase))))),index:'logstash-*',interval:auto,query:(language:lucene,query:'"request%20blocked%20by%20whitelist-route-regexp"'),sort:!('@timestamp',desc))
+              expr: {{ env "KIAM_ALERT_METADATA_PROXY_REQUESTS_BLOCKED_TOTAL_WARNING_EXPR" | default "increase(kiam_metadata_proxy_requests_blocked_total[1m]) >= 1" }}
+              labels:
+                severity: warning
+            - alert: kiam_metadata_proxy_requests_blocked_total
+              annotations:
+                message: Assuming role blocked because of namespace annotations `iam.amazonaws.com/permitted`
+                description: Number of access requests to the proxy handler that were blocked by the regexp
+                runbook_url: {{ $prometheusBaseUrl }}/_plugin/kibana/app/kibana#/discover?_g=(refreshInterval:(pause:!t,value:0),time:(from:now-15m,mode:quick,to:now))&_a=(columns:!(_source),filters:!(('$state':(store:appState),meta:(alias:!n,disabled:!f,index:'logstash-*',key:kubernetes.labels.release,negate:!f,params:(query:kiam,type:phrase),type:phrase,value:kiam),query:(match:(kubernetes.labels.release:(query:kiam,type:phrase))))),index:'logstash-*',interval:auto,query:(language:lucene,query:'"request%20blocked%20by%20whitelist-route-regexp"'),sort:!('@timestamp',desc))
+              expr: {{ env "KIAM_ALERT_METADATA_PROXY_REQUESTS_BLOCKED_TOTAL_CRITICAL_EXPR" | default "increase(kiam_metadata_proxy_requests_blocked_total[5m]) >= 1" }}
               labels:
                 severity: critical
