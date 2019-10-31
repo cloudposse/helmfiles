@@ -30,13 +30,6 @@ releases:
           uri: {{ env "ELASTICSEARCH_EXPORTER_ELASTICSEARCH_URI" }}
         serviceMonitor:
           enabled: true
-        resources:
-          limits:
-            cpu: '{{ env "ELASTICSEARCH_EXPORTER_LIMIT_CPU" | default "20m" }}'
-            memory: '{{ env "ELASTICSEARCH_EXPORTER_LIMIT_MEMORY" | default "24Mi" }}'
-          requests:
-            cpu: '{{ env "ELASTICSEARCH_EXPORTER_REQUEST_CPU" | default "5m" }}'
-            memory: '{{ env "ELASTICSEARCH_EXPORTER_REQUEST_MEMORY" | default "12Mi" }}'
         prometheusRule:
           # These rules are designed for elasticsearch-exporter running against AWS hosted Elasticsearch
           enabled: {{ env "ELASTICSEARCH_EXPORTER_PROMETHEUS_RULES_INSTALLED" | default "true" }}
