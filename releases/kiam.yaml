@@ -174,7 +174,7 @@ releases:
           # pod's assigned IAM role and corresponding credentials. Here we return to essentially full
           # access to the metadata, while also doing a sanity check on the URL and giving you a template
           # in case you want to restrict access to one section of data.
-          whitelist-route-regexp: '^\/(latest\/(meta-data|user-data|dynamic)|$)'
+          whitelist-route-regexp: '^/(latest/(meta-data|user-data|dynamic)|$)'
       server:
         gatewayTimeoutCreation: "5s"
         nodeSelector:
