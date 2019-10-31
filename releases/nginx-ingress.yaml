@@ -67,6 +67,9 @@ releases:
             {{- if eq ( env "NGINX_INGRESS_NLB_ENABLED" | default "false" ) "true" }}
             service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
             {{- end }}
+            {{- if eq ( env "NGINX_INGRESS_USE_PROXY_PROTOCOL" | default "false" ) "true" }}
+            service.beta.kubernetes.io/aws-load-balancer-proxy-protocol: "*"
+            {{- end }}
         updateStrategy:
           rollingUpdate:
             maxUnavailable: 1
