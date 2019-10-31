@@ -40,7 +40,7 @@ releases:
       - {{ env "FORECASTLE_CUSTOM_APPS_YAML" }}
       {{- end }}
       - forecastle:
-          createCustomResource: false
+          createCustomResource: {{ env "FORECASTLE_CREATE_CRD" | default "true" }}
           image:
             pullPolicy: "IfNotPresent"
           namespace: '{{ env "FORECASTLE_NAMESPACE" | default "kube-system" }}'
