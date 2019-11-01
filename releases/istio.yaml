@@ -463,7 +463,7 @@ releases:
 
         proxy_init:
           # Base name for the proxy_init container, used to configure iptables.
-          image: docker.io/istio/proxy_init:1.3.3
+          image: proxy_init
 
         # controlPlaneSecurityEnabled enabled. Will result in delays starting the pods while secrets are
         # propagated, not recommended for tests.
