@@ -2,6 +2,10 @@ repositories:
   - name: istio.io
     url: https://storage.googleapis.com/istio-release/releases/{{ coalesce (env "ISTIO_INIT_IMAGE_TAG") (env "ISTIO_IMAGE_TAG") "1.3.3" }}/charts
 
+  # Kubernetes incubator repo of helm charts
+  - name: "kubernetes-incubator"
+    url: "https://kubernetes-charts-incubator.storage.googleapis.com"
+
 releases:
   #######################################################################################
   ## istio                                                                             ##
