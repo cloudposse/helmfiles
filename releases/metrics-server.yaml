@@ -58,7 +58,7 @@ releases:
 
     args:
     - --kubelet-insecure-tls
-    - --kubelet-preferred-address-types=InternalIP,Hostname,InternalDNS,ExternalDNS,ExternalIP
+    - --kubelet-preferred-address-types=InternalDNS,InternalIP,ExternalDNS,ExternalIP,Hostname
 
     livenessProbe:
       httpGet:
