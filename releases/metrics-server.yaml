@@ -56,6 +56,9 @@ releases:
       tag: v0.3.5
       pullPolicy: IfNotPresent
 
+    args:
+    - --kubelet-insecure-tls
+
     livenessProbe:
       httpGet:
         path: /healthz
