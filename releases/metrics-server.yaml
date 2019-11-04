@@ -10,12 +10,12 @@ releases:
 #   - https://github.com/helm/charts/blob/master/stable/metrics-server/values.yaml
 #
 - name: "metrics-server"
-  namespace: "kube-addons"
+  namespace: "kube-system"
   labels:
     chart: "metrics-server"
     repo: "stable"
     component: "hpa"
-    namespace: "kube-addons"
+    namespace: "kube-system"
     vendor: "cloudposse"
     default: "false"
   chart: "stable/metrics-server"
