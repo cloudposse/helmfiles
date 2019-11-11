@@ -1,0 +1,51 @@
+repositories:
+# Stable repo of official helm charts
+- name: "spotinst"
+  url: "https://spotinst.github.io/spotinst-kubernetes-helm-charts"
+
+releases:
+
+#
+# References:
+#   - https://github.com/spotinst/spotinst-kubernetes-helm-charts/blob/master/charts/spotinst-kubernetes-cluster-controller/values.yaml
+#
+- name: "spotinst"
+  namespace: "kube-system"
+  labels:
+    chart: "spotinst-kubernetes-cluster-controller"
+    repo: "stable"
+    component: "spotins"
+    namespace: "kube-system"
+    vendor: "spotinst"
+    default: "false"
+  chart: "spotinst/spotinst-kubernetes-cluster-controller"
+  version: "1.0.48"
+  wait: true
+  installed: {{ env "SPOTINST_INSTALLED" | default "true" }}
+  values:
+  - spotinst:
+      # Account credentials, see: https://api.spotinst.com/spotinst-api/administration/create-an-api-token.
+      token: {{ requiredEnv "SPOTINST_TOKEN"  | quote }}
+      account: {{ requiredEnv "SPOTINST_ACCOUNT"  | quote }}
+
+      # Controller configuration.
+      clusterIdentifier: {{ requiredEnv "SPOTINST_CLUSTER_IDENTIFIER"  | quote }}
+      proxyUrl: {{ env "SPOTINST_PROXY_URL"  | quote }}
+      disableAutoUpdate: {{ env "SPOTINST_DISABLE_AUTO_UPDATE" | default "false" }}
+
+    # Metrics Server configuration.
+    metrics-server:
+      deployChart: {{ env "SPOTINST_METRICS_SERVER_DEPLOY" | default "false" }}
+      args:
+        - --logtostderr
+      # enable this if you have self-signed certificates, see: https://github.com/kubernetes-incubator/metrics-server
+      #  - --kubelet-insecure-tls
+
+    # Resource requests and limits.
+    resources:
+      limits:
+        cpu: '{{ env "SPOTINST_LIMIT_CPU" | default "100m" }}'
+        memory: '{{ env "SPOTINST_LIMIT_MEMORY" | default "128Mi" }}'
+      requests:
+        cpu: '{{ env "SPOTINST_REQUEST_CPU" | default "100m" }}'
+        memory: '{{ env "SPOTINST_REQUEST_MEMORY" | default "128Mi" }}'
