@@ -45,7 +45,7 @@ releases:
     resources:
       limits:
         cpu: '{{ env "SPOTINST_LIMIT_CPU" | default "100m" }}'
-        memory: '{{ env "SPOTINST_LIMIT_MEMORY" | default "128Mi" }}'
+        memory: '{{ env "SPOTINST_LIMIT_MEMORY" | default "256Mi" }}'
       requests:
         cpu: '{{ env "SPOTINST_REQUEST_CPU" | default "100m" }}'
-        memory: '{{ env "SPOTINST_REQUEST_MEMORY" | default "128Mi" }}'
+        memory: '{{ env "SPOTINST_REQUEST_MEMORY" | default "256Mi" }}'
