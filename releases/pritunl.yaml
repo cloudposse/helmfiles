@@ -86,7 +86,15 @@ releases:
             app.server_ssl false
             app.server_port 80
             host.public_address {{ env "PRITUNL_EXTERNAL_HOST" }}
-
+    
+    ingress:
+      default:
+        enabled: {{ env "PRITUNL_INGRESS_ENABLED" | default "false" }}
+        annotations:
+          kubernetes.io/ingress.class: {{ env "PRITUNL_INGRESS_CLASS" | default "nginx" }}
+        hosts:
+          {{ env "PRITUNL_EXTERNAL_HOST" }}: /
+          
 - name: pritunl-mongodb
   version: "5.3.4"
   chart: "stable/mongodb"
