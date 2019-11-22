@@ -25,7 +25,7 @@ releases:
   values:
   - spotinst:
       # Account credentials, see: https://api.spotinst.com/spotinst-api/administration/create-an-api-token.
-      token: {{ requiredEnv "SPOTINST_HELM_TOKEN"  | quote }}
+      token: {{ requiredEnv "SPOTINST_TOKEN"  | quote }}
       account: {{ requiredEnv "SPOTINST_ACCOUNT_ID"  | quote }}
 
       # Controller configuration.
