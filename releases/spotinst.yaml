@@ -35,9 +35,11 @@ releases:
 
     # Metrics Server configuration.
     metrics-server:
-      deployChart: {{ env "SPOTINST_METRICS_SERVER_DEPLOY" | default "false" }}
+      deployChart: {{ env "SPOTINST_METRICS_SERVER_DEPLOY" | default "true" }}
       args:
         - --logtostderr
+        - --kubelet-insecure-tls
+        - --kubelet-preferred-address-types=InternalDNS,InternalIP,ExternalDNS,ExternalIP,Hostname
       # enable this if you have self-signed certificates, see: https://github.com/kubernetes-incubator/metrics-server
       #  - --kubelet-insecure-tls
 
