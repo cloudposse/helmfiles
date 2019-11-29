@@ -26,7 +26,7 @@ releases:
   - spotinst:
       # Account credentials, see: https://api.spotinst.com/spotinst-api/administration/create-an-api-token.
       token: {{ requiredEnv "SPOTINST_TOKEN"  | quote }}
-      account: {{ requiredEnv "SPOTINST_ACCOUNT"  | quote }}
+      account: {{ requiredEnv "SPOTINST_ACCOUNT_ID"  | quote }}
 
       # Controller configuration.
       clusterIdentifier: {{ requiredEnv "SPOTINST_CLUSTER_IDENTIFIER"  | quote }}
