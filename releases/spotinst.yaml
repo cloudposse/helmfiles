@@ -19,7 +19,7 @@ releases:
     vendor: "spotinst"
     default: "false"
   chart: "spotinst/spotinst-kubernetes-cluster-controller"
-  version: "1.0.48"
+  version: "1.0.49"
   wait: true
   installed: {{ env "SPOTINST_INSTALLED" | default "true" }}
   values:
