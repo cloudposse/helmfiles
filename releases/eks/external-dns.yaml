@@ -29,12 +29,9 @@ releases:
 {{- if env "EXTERNAL_DNS_CRD_ENABLED" | default "false" | eq "true" }}
       - crd
 {{- end }}
-      ### Required: EXTERNAL_DNS_TXT_OWNER_ID; e.g. us-west-2.staging.cloudposse.org
       txtOwnerId: '{{ env "EXTERNAL_DNS_TXT_OWNER_ID" }}'
-      ### Required: EXTERNAL_DNS_TXT_PREFIX; e.g. 11591833-F9CE-407C-8519-35A947DB1D87-
       txtPrefix: '{{ env "EXTERNAL_DNS_TXT_PREFIX" }}'
       publishInternalServices: true
-      ### Optional: EXTERNAL_DNS_POLICY Modify (options: sync, upsert-only )
       policy:  '{{ env "EXTERNAL_DNS_POLICY" | default "sync" }}'
       provider: '{{ env "EXTERNAL_DNS_PROVIDER" | default "aws" }}'
 {{ if env "EXTERNAL_DNS_PROVIDER" | default "aws" | eq "cloudflare" }}
@@ -56,23 +53,16 @@ releases:
           cpu: '{{ env "EXTERNAL_DNS_REQUEST_CPU" | default "100m" }}'
           memory: '{{ env "EXTERNAL_DNS_REQUEST_MEMORY" | default "128Mi" }}'
       rbac:
-        ## If true, create & use RBAC resources
-        ##
-        ### Optional: RBAC_ENABLED;
-        create: {{ env "RBAC_ENABLED" | default "false" }}
+        create: {{ env "RBAC_ENABLED" | default "true" }}
         ## Service Account for pods
-        ### Optional: EXTERNAL_DNS_RBAC_SERVICE_ACCOUNT_NAME;
         ## https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/
         serviceAccountName: '{{ env "EXTERNAL_DNS_RBAC_SERVICE_ACCOUNT_NAME" | default "external-dns" }}'
         ## Annotations for the Service Account
-        ##
 {{- if env "EXTERNAL_DNS_PROVIDER" | default "aws" | eq "aws" }}
         serviceAccountAnnotations:
           eks.amazonaws.com/role-arn: '{{ env "EXTERNAL_DNS_IAM_ROLE" }}'
 {{- end }}
         ## RBAC API version
-        ##
         apiVersion: v1
         ## Podsecuritypolicy
-        ##
         pspEnabled: false
