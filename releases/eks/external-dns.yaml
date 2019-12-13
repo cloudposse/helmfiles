@@ -59,8 +59,8 @@ releases:
         serviceAccountName: '{{ env "EXTERNAL_DNS_RBAC_SERVICE_ACCOUNT_NAME" | default "external-dns" }}'
         ## Annotations for the Service Account
 {{- if env "EXTERNAL_DNS_PROVIDER" | default "aws" | eq "aws" }}
-        serviceAccountAnnotations:
-          eks.amazonaws.com/role-arn: '{{ env "EXTERNAL_DNS_IAM_ROLE" }}'
+        #serviceAccountAnnotations:
+        #  eks.amazonaws.com/role-arn: '{{ env "EXTERNAL_DNS_IAM_ROLE" }}'
 {{- end }}
         ## RBAC API version
         apiVersion: v1
