@@ -59,11 +59,10 @@ releases:
         ## If true, create & use RBAC resources
         ##
         ### Optional: RBAC_ENABLED;
-        create: {{ env "EXTERNAL_DNS_RBAC_ENABLED" | default "true" }}
+        create: {{ env "RBAC_ENABLED" | default "false" }}
         ## Service Account for pods
         ### Optional: EXTERNAL_DNS_RBAC_SERVICE_ACCOUNT_NAME;
         ## https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/
-        ##
         serviceAccountName: '{{ env "EXTERNAL_DNS_RBAC_SERVICE_ACCOUNT_NAME" | default "external-dns" }}'
         ## Annotations for the Service Account
         ##
