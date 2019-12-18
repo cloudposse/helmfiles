@@ -21,10 +21,9 @@ gateways:
       app: istio-oidc-ingressgateway
       istio:  istio-oidc-ingressgateway
     autoscaleEnabled: true
-    autoscaleMin: 1
+    autoscaleMin: 2
     autoscaleMax: 5
-    # specify replicaCount when autoscaleEnabled: false
-    # replicaCount: 1
+    replicaCount: 2
     rollingMaxSurge: 100%
     rollingMaxUnavailable: 25%
     resources:
