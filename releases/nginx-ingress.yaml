@@ -87,7 +87,7 @@ releases:
                 annotations:
                   description: Nginx ingress controller error
                   summary: NginxIngressControllerError
-                expr: nginx_ingress_controller_requests > {{ env "NGINX_INGRESS_METRICS_CONTROLLER_ERROR_ALERT" | default "100000" }}
+                expr: rate(nginx_ingress_controller_requests[5m]) > {{ env "NGINX_INGRESS_METRICS_CONTROLLER_ERROR_ALERT" | default "10" }}
                 labels:
                   severity: warning
           {{- end }}
