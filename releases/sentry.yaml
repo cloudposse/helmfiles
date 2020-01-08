@@ -259,7 +259,7 @@ releases:
 {{ env "SENTRY_GITHUB_APP_PRIVATE_KEY" | default "" | indent 14 }}
 
           sentryConfPy: |
-            SLACK_INTEGRATION_USE_WST = True
+            SLACK_INTEGRATION_USE_WST = False
 
         ## Prometheus Exporter / Metrics
         ##
