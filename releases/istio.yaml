@@ -216,6 +216,13 @@ releases:
           autoscaleEnabled: true
           autoscaleMin: 2
           autoscaleMax: 5
+          resources:
+            requests:
+              cpu: {{ env "ISTIO_MIXER_TELEMETRY_CPU_REQUEST" | default "1000m" }}
+              memory: {{ env "ISTIO_MIXER_TELEMETRY_MEMORY_REQUEST" | default "1G" }}
+            limits:
+              cpu: {{ env "ISTIO_MIXER_TELEMETRY_CPU_LIMIT" | default "4800m" }}
+              memory: {{ env "ISTIO_MIXER_TELEMETRY_MEMORY_LIMIT" | default "4G" }}
 
       # @see https://github.com/istio/istio/blob/master/install/kubernetes/helm/istio/charts/pilot/values.yaml
       pilot:
@@ -225,7 +232,10 @@ releases:
         autoscaleEnabled: true
         autoscaleMin: 2
         autoscaleMax: 5
-
+        resources:
+          requests:
+            cpu: {{ env "ISTIO_PILOT_CPU_REQUEST" | default "500m" }}
+            memory: {{ env "ISTIO_PILOT_MEMORY_REQUEST" | default "2048Mi" }}
 
       # @see https://github.com/istio/istio/blob/master/install/kubernetes/helm/istio/charts/security/values.yaml
       security:
