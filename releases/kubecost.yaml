@@ -68,18 +68,18 @@ releases:
               enabled: true
       {{- end }}
       - kubecostModel:
-        resources:
-          requests:
-            cpu: '{{ env "KUBECOST_MODEL_REQUEST_CPU" | default "200m" }}'
-            memory: '{{ env "KUBECOST_MODEL_REQUEST_MEMORY" | default "55Mi" }}'
-          limits:
-            cpu: '{{ env "KUBECOST_MODEL_LIMIT_CPU" | default "800m" }}'
-            memory: '{{ env "KUBECOST_MODEL_LIMIT_MEMORY" | default "256Mi" }}'
+          resources:
+            requests:
+              cpu: '{{ env "KUBECOST_MODEL_REQUEST_CPU" | default "200m" }}'
+              memory: '{{ env "KUBECOST_MODEL_REQUEST_MEMORY" | default "55Mi" }}'
+            limits:
+              cpu: '{{ env "KUBECOST_MODEL_LIMIT_CPU" | default "800m" }}'
+              memory: '{{ env "KUBECOST_MODEL_LIMIT_MEMORY" | default "256Mi" }}'
       - kubecost:
-        resources:
-          requests:
-            cpu: '{{ env "KUBECOST_SERVER_REQUEST_CPU" | default "100m" }}'
-            memory: '{{ env "KUBECOST_SERVER_REQUEST_MEMORY" | default "55Mi" }}'
-          limits:
-            cpu: '{{ env "KUBECOST_SERVER_LIMIT_CPU" | default "200m" }}'
-            memory: '{{ env "KUBECOST_SERVER_LIMIT_MEMORY" | default "256Mi" }}'
+          resources:
+            requests:
+              cpu: '{{ env "KUBECOST_SERVER_REQUEST_CPU" | default "100m" }}'
+              memory: '{{ env "KUBECOST_SERVER_REQUEST_MEMORY" | default "55Mi" }}'
+            limits:
+              cpu: '{{ env "KUBECOST_SERVER_LIMIT_CPU" | default "200m" }}'
+              memory: '{{ env "KUBECOST_SERVER_LIMIT_MEMORY" | default "256Mi" }}'
