@@ -50,10 +50,10 @@ releases:
     persistence:
       enabled: true
       storageName: storage
-      storageClass: {{ evn "LIGHTHOUSE_CI_PERSISTENCE_STORAGE_CLASS" | default "default"}}
+      storageClass: {{ env "LIGHTHOUSE_CI_PERSISTENCE_STORAGE_CLASS" | default "default"}}
       mountPath: /data
       accessMode: ReadWriteOnce
-      size: {{ evn "LIGHTHOUSE_CI_PERSISTENCE_SIZE" | default "8Gi"}}
+      size: {{ env "LIGHTHOUSE_CI_PERSISTENCE_SIZE" | default "8Gi"}}
 
     service:
       enabled: true
