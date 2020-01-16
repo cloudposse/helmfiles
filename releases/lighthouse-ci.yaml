@@ -72,7 +72,7 @@ releases:
       default:
         enabled: true
         env:
-          NODE_OPTIONS: --max-old-space-size={{ env "LIGHTHOUSE_CI_LIMITS_MEMORY" | default "512Mi" | regexFind "\d*" }}
+          NODE_OPTIONS: '--max-old-space-size={{ env "LIGHTHOUSE_CI_LIMITS_MEMORY" | default "512Mi" | regexFind "\\d*" }}'
 
     ingress:
       default:
