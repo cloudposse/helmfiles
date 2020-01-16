@@ -1,0 +1,86 @@
+repositories:
+# Stable repo of official helm charts
+- name: "stable"
+  url: "https://kubernetes-charts.storage.googleapis.com"
+# Cloud Posse incubator repo of helm charts
+- name: "cloudposse-incubator"
+  url: "https://charts.cloudposse.com/incubator/"
+
+releases:
+
+#
+# References:
+#   - https://github.com/helm/charts/blob/master/stable/openvpn/values.yaml
+#
+- name: "lighthouse-ci"
+  namespace: "devtools"
+  labels:
+    chart: "monochart"
+    repo: "cloudposse-incubator"
+    component: "lighthouse-ci"
+    namespace: "devtools"
+    vendor: "cloudposse"
+    default: "false"
+  chart: "cloudposse-incubator/monochart"
+  version: "0.10.0"
+  wait: true
+  installed: {{ env "LIGHTHOUSE_CI_INSTALLED" | default "true" }}
+  values:
+  - replicaCount: 1
+
+    image:
+      repository: patrickhulce/lhci-server
+      tag: 0.3.7
+      pullPolicy: Always
+
+    deployment:
+      enabled: true
+      ## Pods replace strategy
+      ## ref: https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#strategy
+      strategy:
+        type: RollingUpdate
+        rollingUpdate:
+          maxSurge: 1
+          maxUnavailable: 0
+      revisionHistoryLimit: 10
+      pod:
+        labels:
+          component: lighthouse-ci
+
+    persistence:
+      enabled: true
+      storageName: storage
+      storageClass: {{ evn "LIGHTHOUSE_CI_PERSISTENCE_STORAGE_CLASS" | default "default"}}
+      mountPath: /data
+      accessMode: ReadWriteOnce
+      size: {{ evn "LIGHTHOUSE_CI_PERSISTENCE_SIZE" | default "8Gi"}}
+
+    service:
+      enabled: true
+      type: ClusterIP
+      ports:
+        default:
+          internal: 9001
+          external: 80
+
+    resources:
+      limits:
+        cpu: {{ env "LIGHTHOUSE_CI_LIMITS_CPU" | default "1000m" }}
+        memory: {{ env "LIGHTHOUSE_CI_LIMITS_MEMORY" | default "512Mi" }}
+      requests:
+        cpu: {{ env "LIGHTHOUSE_CI_REQUESTS_CPU" | default "1000m" }}
+        memory: {{ env "LIGHTHOUSE_CI_REQUESTS_MEMORY" | default "512Mi" }}
+
+    configMaps:
+      default:
+        enabled: true
+        env:
+          NODE_OPTIONS: '--max-old-space-size={{ env "LIGHTHOUSE_CI_LIMITS_MEMORY" | default "512Mi" | regexFind "\d*" }}'
+
+    ingress:
+      default:
+        enabled: {{ env "LIGHTHOUSE_CI_INGRESS_ENABLED" | default "false" }}
+        annotations:
+          kubernetes.io/ingress.class: {{ env "LIGHTHOUSE_CI_INGRESS_CLASS" | default "nginx" }}
+        hosts:
+          {{ env "LIGHTHOUSE_CI_HOST" }}: /
