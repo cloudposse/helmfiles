@@ -43,17 +43,14 @@ releases:
           maxSurge: 1
           maxUnavailable: 0
       revisionHistoryLimit: 10
-      pod:
-        labels:
-          component: lighthouse-ci
 
     persistence:
       enabled: true
       storageName: storage
-      storageClass: {{ env "LIGHTHOUSE_CI_PERSISTENCE_STORAGE_CLASS" | default "default"}}
+      storageClass: {{ env "LIGHTHOUSE_CI_PERSISTENCE_STORAGE_CLASS" | default "default" }}
       mountPath: /data
       accessMode: ReadWriteOnce
-      size: {{ env "LIGHTHOUSE_CI_PERSISTENCE_SIZE" | default "8Gi"}}
+      size: {{ env "LIGHTHOUSE_CI_PERSISTENCE_SIZE" | default "8Gi" }}
 
     service:
       enabled: true
@@ -75,7 +72,7 @@ releases:
       default:
         enabled: true
         env:
-          NODE_OPTIONS: '--max-old-space-size={{ env "LIGHTHOUSE_CI_LIMITS_MEMORY" | default "512Mi" | regexFind "\d*" }}'
+          NODE_OPTIONS: --max-old-space-size={{ env "LIGHTHOUSE_CI_LIMITS_MEMORY" | default "512Mi" | regexFind "\d*" }}
 
     ingress:
       default:
@@ -83,4 +80,4 @@ releases:
         annotations:
           kubernetes.io/ingress.class: {{ env "LIGHTHOUSE_CI_INGRESS_CLASS" | default "nginx" }}
         hosts:
-          {{ env "LIGHTHOUSE_CI_HOST" }}: /
+          {{ env "LIGHTHOUSE_CI_HOST" | default "lighthouse_ci" }}: /
