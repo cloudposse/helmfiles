@@ -142,7 +142,7 @@ releases:
     - rbac:
         ### Optional: RBAC_ENABLED;
         create: {{ env "RBAC_ENABLED" | default "false" }}
-      serviceAccount:
+      serviceAccounts:
         agent:
           ### Optional: RBAC_ENABLED;
           create: {{ env "RBAC_ENABLED" | default "false" }}
