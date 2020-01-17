@@ -14,7 +14,7 @@ repositories:
   # url: "git+https://github.com/stakater/Forecastle@deployments/kubernetes/chart?ref=v1.0.25"
   # v1.0.25 url: "git+https://github.com/stakater/Forecastle@deployments/kubernetes/chart?ref=8f36b82beaf2a1a42b364a3857bc83638c51e30b"
   # v1.0.27:
-  url: "git+https://github.com/stakater/Forecastle@deployments/kubernetes/chart?ref=ffb5179aa659e0e3cf0ca20e1c8bd94c5fd66a2e"
+  url: "git+https://github.com/stakater/Forecastle@deployments/kubernetes/chart?ref=ffb5179aa659e0e3cf0ca20e1c8bd94c5fd66a2e&sparse=0"
 
 releases:
 
