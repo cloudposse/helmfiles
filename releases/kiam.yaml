@@ -177,6 +177,7 @@ releases:
           whitelist-route-regexp: '^/(latest/(meta-data|user-data|dynamic)|$)'
       server:
         gatewayTimeoutCreation: "5s"
+        sessionDuration: {{ env "KIAM_SERVER_SESSION_DURATION" | default "15m" }}
         nodeSelector:
           kubernetes.io/role: "master"
         tolerations:
@@ -186,6 +187,8 @@ releases:
         extraEnv:
           GRPC_GO_LOG_SEVERITY_LEVEL: '{{ env "GRPC_GO_LOG_SEVERITY_LEVEL" | default "info" }}'
           GRPC_GO_LOG_VERBOSITY_LEVEL: '{{ env "GRPC_GO_LOG_VERBOSITY_LEVEL" | default "1" }}'
+        extraArgs:
+          session-refresh: {{ env "KIAM_SERVER_SESSION_REFRESH" | default "5m" }}
         extraHostPathMounts:
           - name: "ssl-certs"
             mountPath: "/etc/ssl/certs"
