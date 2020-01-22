@@ -3,6 +3,16 @@ repositories:
 - name: "cloudposse-incubator"
   url: "https://charts.cloudposse.com/incubator/"
 
+######
+# You need to create a codefresh-service-account-additional-rbac-rules.yaml file with an array RBAC rules,
+# with values that do not use go templating, or you can use go templating
+# by adding `.gotmpl` to the end of the file name
+# See values/codefresh-service-account-additional-rbac-rules.yaml for an example
+#
+environments:
+  default:
+    values:
+      - {{ env "CODEFRESH_SERVICE_ACCOUNT_ADDITIONAL_RBAC_RULES" | default "codefresh-service-account-additional-rbac-rules.yaml" }}
 
 releases:
 
@@ -60,4 +70,7 @@ releases:
         - apiGroups: [""]
           resources: ["pods/portforward"]
           verbs: ["create"]
+{{ with .Environment.Values.rules }}
+{{ toYaml . | indent 8 }}
+{{ end }}
 
