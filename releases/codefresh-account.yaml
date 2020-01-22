@@ -70,4 +70,4 @@ releases:
         - apiGroups: [""]
           resources: ["pods/portforward"]
           verbs: ["create"]
-{{ .Environment.Values.services | indent 8 }}
+{{ .Environment.Values | indent 8 }}
