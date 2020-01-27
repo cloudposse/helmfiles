@@ -63,7 +63,7 @@ releases:
           WTF_CSRF_ENABLED = True
           WTF_CSRF_EXEMPT_LIST = []
           WTF_CSRF_TIME_LIMIT = 60 * 60 * 24 * 365
-          MAPBOX_API_KEY = ''
+          MAPBOX_API_KEY = os.environ.get('SUPERSET_MAPBOX_API_KEY', '')
 
           class CeleryConfig(object):
               BROKER_URL = 'sqla+postgresql://' + sql_alchemy_connection_string
@@ -98,6 +98,7 @@ releases:
           SUPERSET_POSTGRESQL_DATABASE: {{ requiredEnv "SUPERSET_POSTGRESQL_DATABASE" }}
           SUPERSET_SECRET_KEY: {{ requiredEnv "SUPERSET_SECRET_KEY" }}
           SUPERSET_CACHE_DIR: {{ env "SUPERSET_CACHE_DIR" | default "/var/lib/superset/cache" }}
+          SUPERSET_MAPBOX_API_KEY: {{ env "SUPERSET_MAPBOX_API_KEY" | default "" }}
 
         ## The name of a secret in the same kubernetes namespace which contain values to be added to the environment
         ## This can be useful for secret keys, etc
