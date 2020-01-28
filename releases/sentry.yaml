@@ -2,9 +2,6 @@ repositories:
   # Stable repo of official helm charts
   - name: "stable"
     url: "https://kubernetes-charts.storage.googleapis.com"
-  # Repo of new Kubernetes charts in development
-  - name: "kubernetes-incubator"
-    url: "https://kubernetes-charts-incubator.storage.googleapis.com"
 
 releases:
 
@@ -21,9 +18,9 @@ releases:
       repo: "stable"
       component: "monitoring"
       namespace: "sentry"
-      vendor: "kubernetes-helm"
+      vendor: "sentry"
     chart: "stable/sentry"
-    version: '{{ env "SENTRY_CHART_VERSION" | default "3.1.0" }}'
+    version: '{{ env "SENTRY_CHART_VERSION" | default "4.0.0" }}'
     force: true
     wait: true
     timeout: 600
@@ -49,6 +46,18 @@ releases:
           nodeSelector: {}
           tolerations: []
           affinity: {}
+          livenessProbe:
+            failureThreshold: 5
+            initialDelaySeconds: 90
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 2
+          readinessProbe:
+            failureThreshold: 10
+            initialDelaySeconds: 90
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 2
           env:
             - name: SENTRY_SLACK_CLIENT_ID
               value: '{{ env "SENTRY_SLACK_CLIENT_ID" | default "" }}'
