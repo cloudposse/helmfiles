@@ -20,7 +20,7 @@ releases:
       namespace: "sentry"
       vendor: "sentry"
     chart: "stable/sentry"
-    version: '{{ env "SENTRY_CHART_VERSION" | default "3.1.0" }}'
+    version: '{{ env "SENTRY_CHART_VERSION" | default "4.0.0" }}'
     force: true
     wait: true
     timeout: 600
