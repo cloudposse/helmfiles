@@ -52,22 +52,26 @@ releases:
     - events: ["presync"]
       command: "/bin/sh"
       args: ["-c", "kubectl get crd prometheuses.monitoring.coreos.com >/dev/null 2>&1 || \
-             kubectl apply -f https://raw.githubusercontent.com/coreos/prometheus-operator/master/example/prometheus-operator-crd/prometheus.crd.yaml"]
+             kubectl apply -f https://raw.githubusercontent.com/coreos/prometheus-operator/master/example/prometheus-operator-crd/monitoring.coreos.com_prometheuses.yaml"]
     # This hoook installs the alertmanagers.monitoring.coreos.com CustomResourceDefinition if needed
     - events: ["presync"]
       command: "/bin/sh"
       args: ["-c", "kubectl get crd alertmanagers.monitoring.coreos.com >/dev/null 2>&1 || \
-             kubectl apply -f https://raw.githubusercontent.com/coreos/prometheus-operator/master/example/prometheus-operator-crd/alertmanager.crd.yaml"]
+             kubectl apply -f https://raw.githubusercontent.com/coreos/prometheus-operator/master/example/prometheus-operator-crd/monitoring.coreos.com_alertmanagers.yaml"]
     # This hoook installs the prometheusrules.monitoring.coreos.com CustomResourceDefinition if needed
     - events: ["presync"]
       command: "/bin/sh"
       args: ["-c", "kubectl get crd prometheusrules.monitoring.coreos.com >/dev/null 2>&1 || \
-             kubectl apply -f https://raw.githubusercontent.com/coreos/prometheus-operator/master/example/prometheus-operator-crd/prometheusrule.crd.yaml"]
+             kubectl apply -f https://raw.githubusercontent.com/coreos/prometheus-operator/master/example/prometheus-operator-crd/monitoring.coreos.com_prometheusrules.yaml"]
     # This hoook installs the servicemonitors.monitoring.coreos.com CustomResourceDefinition if needed
     - events: ["presync"]
       command: "/bin/sh"
       args: ["-c", "kubectl get crd servicemonitors.monitoring.coreos.com >/dev/null 2>&1 || \
-             kubectl apply -f https://raw.githubusercontent.com/coreos/prometheus-operator/master/example/prometheus-operator-crd/servicemonitor.crd.yaml"]
+             kubectl apply -f https://raw.githubusercontent.com/coreos/prometheus-operator/master/example/prometheus-operator-crd/monitoring.coreos.com_servicemonitors.yaml"]
+    - events: ["presync"]
+      command: "/bin/sh"
+      args: ["-c", "kubectl get crd podmonitors.monitoring.coreos.com >/dev/null 2>&1 || \
+          kubectl apply -f https://raw.githubusercontent.com/coreos/prometheus-operator/master/example/prometheus-operator-crd/monitoring.coreos.com_podmonitors.yaml"]
     values:
     - global:
         rbac:
