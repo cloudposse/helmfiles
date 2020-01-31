@@ -20,7 +20,7 @@ releases:
       chart: "superset"
       namespace: "superset"
     chart: "cloudposse-incubator/superset"
-    version: "1.1.8"
+    version: "1.1.9"
     wait: true
     installed: {{ env "SUPERSET_INSTALLED" | default "true" }}
 
@@ -205,13 +205,13 @@ releases:
         ## Configure resource requests and limits
         ## ref: http://kubernetes.io/docs/user-guide/compute-resources/
         ##
-        resources: {}
-        #  requests:
-        #    cpu: 50m
-        #    memory: 256Mi
-        #  limits:
-        #    cpu: 500m
-        #    memory: 750Mi
+        resources:
+          requests:
+            cpu: '{{ env "SUPERSET_RESOURCES_REQUEST_CPU" | default "50m" }}'
+            memory: '{{ env "SUPERSET_RESOURCES_REQUEST_MEMORY" | default "256Mi" }}'
+          limits:
+            cpu: '{{ env "SUPERSET_RESOURCES_LIMIT_CPU" | default "500m" }}'
+            memory: '{{ env "SUPERSET_RESOURCES_LIMIT_MEMORY" | default "750Mi" }}'
 
         ## Configure liveness/readiness params
         ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/
@@ -235,5 +235,6 @@ releases:
           failureThreshold: 2
 
         worker:
+          resources: {}
           enabled: true
           concurrency: {{ env "SUPERSET_CELERY_WORKER_CONCURRENCY" | default "10" }}
