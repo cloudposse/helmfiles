@@ -351,7 +351,7 @@ releases:
     version: "0.18.4"
     wait: true
     force: true
-    installed: {{ env "SENTRY_ALERT_INSTALLED" | default "true" }}
+    installed: {{ env "SENTRY_ALERTS_INSTALLED" | default "true" }}
     values:
       - prometheusRules:
           name:
