@@ -2,6 +2,9 @@ repositories:
   # Stable repo of official helm charts
   - name: "stable"
     url: "https://kubernetes-charts.storage.googleapis.com"
+  # Cloud Posse incubator repo of helm charts
+  - name: "cloudposse-incubator"
+    url: "https://charts.cloudposse.com/incubator/"
 
 releases:
 
@@ -343,3 +346,26 @@ releases:
               requests:
                 memory: '{{ env "SENTRY_HOOKS_RESOURCES_REQUEST_MEMORY" | default "3200Mi" }}'
 
+  - name: 'sentry-alerts'
+    chart: "cloudposse-incubator/monochart"
+    version: "0.18.4"
+    wait: true
+    force: true
+    installed: {{ env "SENTRY_ALERTS_INSTALLED" | default "true" }}
+    values:
+      - prometheusRules:
+          name:
+            labels:
+              app: prometheus-operator-prometheus
+            groups:
+              - name: sentry.rules
+                rules:
+                  - alert: sentry_queue_processing_idle
+                    annotations:
+                      message: Sentry events queue processing is idle
+                      description: Sentry events queue processing has stalled. It is possible that sentry worker(s) are stuck and must be restarted by killing the sentry worker pods.
+                      url:  https://{{ env "SENTRY_HOSTNAME" }}/manage/queue/
+                    expr: (sentry_jobs_started - sentry_jobs_started offset 5m) == 0
+                    for: 5m
+                    labels:
+                      severity: warning
