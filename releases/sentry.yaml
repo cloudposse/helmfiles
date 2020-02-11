@@ -363,9 +363,9 @@ releases:
                   - alert: sentry_queue_processing_idle
                     annotations:
                       message: Sentry events queue processing is idle
-                      description: Sentry events queue is not being processed for some time. It is possible that sentry worker(s) stuck and have to be restarted.
+                      description: Sentry events queue processing has stalled. It is possible that sentry worker(s) are stuck and must be restarted by killing the sentry worker pods.
                       url:  https://{{ env "SENTRY_HOSTNAME" }}/manage/queue/
-                    expr: {{ env "SENTRY_ALERT_IDLE_QUEUE_EXPR" | default "(sentry_jobs_started - sentry_jobs_started offset 5m) == 0" }}
+                    expr: (sentry_jobs_started - sentry_jobs_started offset 5m) == 0
                     for: 5m
                     labels:
                       severity: warning
