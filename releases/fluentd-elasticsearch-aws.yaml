@@ -47,8 +47,8 @@ releases:
             app: prometheus-operator
             release: prometheus-operator
         env:
-          # The AWS Elasticsearch server (at with least the smaller machines) has a hard limit on request size of 10 MB. 
-          # When sending bulk updates, such as catching up on old logs after a log forwarding outage, requests can get 
+          # The AWS Elasticsearch server (at with least the smaller machines) has a hard limit on request size of 10 MB.
+          # When sending bulk updates, such as catching up on old logs after a log forwarding outage, requests can get
           # substantially bigger than this.
           # As of 3.5.1, the fluentd-plugin-elasticearch has a configurable threshold, and when the potential bulk
           # request size gets above the threshold, it will start breaking down the request into smaller requests. However,
@@ -68,8 +68,8 @@ releases:
           FLUENT_ELASTICSEARCH_SSL_VERSION: "TLSv1_2"
         resources:
           limits:
-            cpu: "100m"
-            memory: "512Mi"
+            cpu: '{{- env "FLUENTD_ELASTICSEARCH_RESOURCES_LIMIT_CPU" | default "100m" }}'
+            memory: '{{- env "FLUENTD_ELASTICSEARCH_RESOURCES_LIMIT_MEMORY" | default "512Mi" }}'
           requests:
-            cpu: "20m"
-            memory: "256Mi"
+            cpu: '{{- env "FLUENTD_ELASTICSEARCH_RESOURCES_REQUEST_CPU" | default "20m" }}'
+            memory: '{{- env "FLUENTD_ELASTICSEARCH_RESOURCES_REQUEST_MEMORY" | default "256Mi" }}'
