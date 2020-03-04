@@ -34,7 +34,7 @@ releases:
         ## Set default image, imageTag, and imagePullPolicy.
         image:
           repository: "amancevice/superset"
-          tag: "0.28.1"
+          tag: "0.35.2"
           pullPolicy: "IfNotPresent"
           pullSecrets: []
 
@@ -46,6 +46,8 @@ releases:
           import os
 
           ROW_LIMIT = os.environ.get('SUPERSET_ROW_LIMIT', 5000)
+          DISPLAY_MAX_ROW = os.environ.get('SUPERSET_DISPLAY_MAX_ROW', 10000)
+          DEFAULT_SQLLAB_LIMIT = os.environ.get('SUPERSET_DEFAULT_SQLLAB_LIMIT', 1000)
           SUPERSET_WEBSERVER_PORT = os.environ.get('SUPERSET_WEBSERVER_PORT', 8080)
 
           sql_alchemy_connection_string = '{user}:{password}@{host}/{database}'.format(
@@ -91,6 +93,8 @@ releases:
         ##
         extraEnv:
           SUPERSET_ROW_LIMIT: {{ env "SUPERSET_ROW_LIMIT" | default "5000" }}
+          SUPERSET_DISPLAY_MAX_ROW: {{ env "SUPERSET_DISPLAY_MAX_ROW" | default "10000" }}
+          SUPERSET_DEFAULT_SQLLAB_LIMIT: {{ env "SUPERSET_DEFAULT_SQLLAB_LIMIT" | default "1000" }}
           SUPERSET_WEBSERVER_PORT: {{ env "SUPERSET_WEBSERVER_PORT" | default "8088" }}
           SUPERSET_POSTGRESQL_USER: {{ env "SUPERSET_POSTGRESQL_USER" | default "superset" }}
           SUPERSET_POSTGRESQL_PASSWORD: {{ requiredEnv "SUPERSET_POSTGRESQL_PASSWORD" }}
