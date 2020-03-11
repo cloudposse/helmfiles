@@ -44,6 +44,10 @@ releases:
         - name: WILDFLY_LOGLEVEL
           value: '{{- env "KEYCLOAK_LOGLEVEL" }}'
       {{- end }}
+      {{- if env "JDBC_PARAMS" }}
+      - name: JDBC_PARAMS
+        value: '{{ env "JDBC_PARAMS" }}'
+      {{- end }}
 #        - name: JDBC_PARAMS
 #          value: '?clientCertificateKeyStoreUrl=file:///opt/pki/rds-ca.jks&clientCertificateKeyStorePassword=mypassword'
 #      extraVolumeMounts: |
