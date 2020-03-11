@@ -45,8 +45,8 @@ releases:
           value: '{{- env "KEYCLOAK_LOGLEVEL" }}'
       {{- end }}
       {{- if env "KEYCLOAK_JDBC_PARAMS" }}
-      - name: JDBC_PARAMS
-        value: '{{ env "KEYCLOAK_JDBC_PARAMS" }}'
+        - name: JDBC_PARAMS
+          value: '{{ env "KEYCLOAK_JDBC_PARAMS" }}'
       {{- end }}
 #        - name: JDBC_PARAMS
 #          value: '?clientCertificateKeyStoreUrl=file:///opt/pki/rds-ca.jks&clientCertificateKeyStorePassword=mypassword'
