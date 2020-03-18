@@ -49,6 +49,7 @@ releases:
             proxy: false
             {{ end }}
         grafana:
+          namespace_dashboards: "monitoring"
           sidecar:
             dashboards:
               enabled: true
