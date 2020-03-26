@@ -307,7 +307,7 @@ releases:
         # The control plane has different scopes depending on component, but can configure default log level across all components
         # If empty, default scope and level will be used as configured in code
         logging:
-          level: "default:info"
+          level: {{ env "ISTIO_LOGGING_LEVEL" | default "default:info" | quote }}
 
         # monitoring port used by mixer, pilot, galley and sidecar injector
         monitoringPort: 15014
