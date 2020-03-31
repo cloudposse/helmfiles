@@ -125,7 +125,6 @@ releases:
       {{- range $i, $rule := $service.rules }}
       - "{{ $rule }}"
       {{- end }}
-    {{- if index $service "extraArgs" }}
     extraArgs:
       # proxyTimeout must be in seconds to work with nginx,
       # but gatekeeper wants a golang Duration, so tack on "s"
@@ -136,10 +135,15 @@ releases:
       - upstream-expect-continue-timeout={{- $service.proxyTimeout -}}s
       - upstream-response-header-timeout={{- $service.proxyTimeout -}}s
       {{- end }}
+      ## If the internet side of the connection is HTTPS but the upstream is HTTP, you may want to add (via extraArgs)
+      # - headers=X-Forwarded-Proto=https
+      # - headers=X-Forwarded-Scheme=https
+      # "proto" is most common and usually enough, but some software only checks "scheme"
+      {{- if index $service "extraArgs" }}
       {{- range $i, $arg := $service.extraArgs }}
       - {{ $arg }}
       {{- end }}
-    {{- end }}
+      {{- end }}
     ### Optional: RBAC_ENABLED;
     rbac:
       create: {{ env "RBAC_ENABLED" | default "false" }}

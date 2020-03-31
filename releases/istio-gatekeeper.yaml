@@ -130,6 +130,10 @@ releases:
       - enable-logging=true
       - verbose
       {{- end }}
+      {{- if and (eq (env "ISTIO_GATEKEEPER_TLS_ENABLED" | default "true") "true") (eq (env "ISTIO_GATEKEEPER_UPSTREAM_SCHEME" | default "https") "http") }}
+      - headers=X-Forwarded-Proto=https
+      - headers=X-Forwarded-Scheme=https
+      {{- end }}
     rbac:
       create: {{ env "RBAC_ENABLED" | default "false" }}
     serviceAccount:
