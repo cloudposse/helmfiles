@@ -289,6 +289,17 @@ releases:
             - ./*.tmpl
         alertmanagerSpec:
           externalUrl: "{{- env "PROMETHEUS_ALERTMANAGER_EXTERNAL_URL" | default (print "https://api." (env "KOPS_CLUSTER_NAME") "/api/v1/namespaces/monitoring/services/prometheus-operator-alertmanager:web/proxy/") }}"
+          {{- if env "PROMETHEUS_ALERTMANAGER_STORAGE_SIZE" }}
+          storageSpec:
+            volumeClaimTemplate:
+              spec:
+                {{- if env "PROMETHEUS_ALERTMANAGER_STORAGE_CLASS" }}
+                storageClassName: {{ env "PROMETHEUS_ALERTMANAGER_STORAGE_CLASS" }}
+                {{- end }}
+                resources:
+                  requests:
+                    storage: {{ env "PROMETHEUS_ALERTMANAGER_STORAGE_SIZE" }}
+          {{- end }}
           resources:
             limits:
               cpu: '{{ env "PROMETHEUS_ALERTMANAGER_LIMIT_CPU" | default "200m" }}'
