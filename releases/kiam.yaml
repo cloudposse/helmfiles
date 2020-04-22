@@ -154,6 +154,8 @@ releases:
           ### Optional: KIAM_SERVER_SERVICE_ACCOUNT_NAME;
           name: '{{ env "KIAM_SERVER_SERVICE_ACCOUNT_NAME" | default "" }}'
       agent:
+        image:
+          tag: "v3.6-rc1"
         gatewayTimeoutCreation: "5s"
         host:
           # IP tables must be set up on node independently of kiam in order to support rolling updates. See above.
@@ -176,6 +178,8 @@ releases:
           # in case you want to restrict access to one section of data.
           whitelist-route-regexp: '^/(latest/(meta-data|user-data|dynamic)|$)'
       server:
+        image:
+          tag: "v3.6-rc1"
         gatewayTimeoutCreation: "5s"
         sessionDuration: {{ env "KIAM_SERVER_SESSION_DURATION" | default "15m" }}
         nodeSelector:
