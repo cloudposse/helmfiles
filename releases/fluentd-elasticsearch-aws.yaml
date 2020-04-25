@@ -1,7 +1,7 @@
 repositories:
   # Cloud Posse incubator repo of helm charts
   - name: "cloudposse-incubator"
-    url: "https://charts.cloudposse.com/incubator/"
+    url: "git+https://charts.cloudposse.com/incubator/?ref=fluentd-alerting-on-new-metrics"
 
 releases:
 
