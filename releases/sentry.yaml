@@ -23,7 +23,7 @@ releases:
       namespace: "sentry"
       vendor: "sentry"
     chart: "stable/sentry"
-    version: '{{ env "SENTRY_CHART_VERSION" | default "4.0.0" }}'
+    version: '{{ env "SENTRY_CHART_VERSION" | default "4.2.1" }}'
     force: true
     wait: true
     timeout: 600
@@ -31,7 +31,7 @@ releases:
     values:
       - image:
           repository: "sentry"
-          tag: '{{ env "SENTRY_IMAGE_TAG" | default "9.1.1" }}'
+          tag: '{{ env "SENTRY_IMAGE_TAG" | default "9.1.2" }}'
           pullPolicy: "IfNotPresent"
 
         # https://github.com/helm/charts/blob/master/stable/sentry/templates/secrets.yaml#L12
@@ -302,6 +302,15 @@ releases:
 
           sentryConfPy: |
             SLACK_INTEGRATION_USE_WST = False
+            SENTRY_WEB_OPTIONS = {
+                    'http': '%s:%s' % (SENTRY_WEB_HOST, SENTRY_WEB_PORT),
+                    'protocol': 'uwsgi',
+                    # This is need to prevent https://git.io/fj7Lw
+                    'uwsgi-socket': None,
+                    'http-keepalive': False,
+                    'memory-report': False,
+                    # 'workers': 3,  # the number of web workers
+                }
 
         ## Prometheus Exporter / Metrics
         ##
