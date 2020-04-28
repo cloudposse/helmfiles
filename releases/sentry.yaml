@@ -48,7 +48,7 @@ releases:
               memory: '{{ env "SENTRY_WEB_RESOURCES_REQUEST_MEMORY" | default "128Mi" }}'
           nodeSelector: {}
           tolerations: []
-          affinity: {
+          affinity:
             podAntiAffinity:
               preferredDuringSchedulingIgnoredDuringExecution:
                 - weight: 100
@@ -63,7 +63,6 @@ releases:
                           operator: In
                           values:
                             - web
-          }
           livenessProbe:
             failureThreshold: 5
             initialDelaySeconds: 90
@@ -127,7 +126,7 @@ releases:
               memory: '{{ env "SENTRY_WORKER_RESOURCES_REQUEST_MEMORY" | default "256Mi" }}'
           nodeSelector: {}
           tolerations: []
-          affinity: {
+          affinity:
             podAntiAffinity:
               preferredDuringSchedulingIgnoredDuringExecution:
                 - weight: 100
@@ -142,7 +141,6 @@ releases:
                           operator: In
                           values:
                             - worker
-          }
           env:
             - name: SENTRY_SLACK_CLIENT_ID
               value: '{{ env "SENTRY_SLACK_CLIENT_ID" | default "" }}'
