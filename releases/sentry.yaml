@@ -63,6 +63,7 @@ releases:
                           operator: In
                           values:
                             - web
+                    topologyKey: "kubernetes.io/hostname"
           livenessProbe:
             failureThreshold: 5
             initialDelaySeconds: 90
@@ -141,6 +142,7 @@ releases:
                           operator: In
                           values:
                             - worker
+                    topologyKey: "kubernetes.io/hostname"
           env:
             - name: SENTRY_SLACK_CLIENT_ID
               value: '{{ env "SENTRY_SLACK_CLIENT_ID" | default "" }}'
