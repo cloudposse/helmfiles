@@ -48,16 +48,31 @@ releases:
               memory: '{{ env "SENTRY_WEB_RESOURCES_REQUEST_MEMORY" | default "128Mi" }}'
           nodeSelector: {}
           tolerations: []
-          affinity: {}
+          affinity:
+            podAntiAffinity:
+              preferredDuringSchedulingIgnoredDuringExecution:
+                - weight: 100
+                  podAffinityTerm:
+                    labelSelector:
+                      matchExpressions:
+                        - key: app
+                          operator: In
+                          values:
+                            - sentry
+                        - key: role
+                          operator: In
+                          values:
+                            - web
+                    topologyKey: "kubernetes.io/hostname"
           livenessProbe:
             failureThreshold: 5
-            initialDelaySeconds: 90
+            initialDelaySeconds: 180
             periodSeconds: 10
             successThreshold: 1
             timeoutSeconds: 2
           readinessProbe:
             failureThreshold: 10
-            initialDelaySeconds: 90
+            initialDelaySeconds: 180
             periodSeconds: 10
             successThreshold: 1
             timeoutSeconds: 2
@@ -112,7 +127,22 @@ releases:
               memory: '{{ env "SENTRY_WORKER_RESOURCES_REQUEST_MEMORY" | default "256Mi" }}'
           nodeSelector: {}
           tolerations: []
-          affinity: {}
+          affinity:
+            podAntiAffinity:
+              preferredDuringSchedulingIgnoredDuringExecution:
+                - weight: 100
+                  podAffinityTerm:
+                    labelSelector:
+                      matchExpressions:
+                        - key: app
+                          operator: In
+                          values:
+                            - sentry
+                        - key: role
+                          operator: In
+                          values:
+                            - worker
+                    topologyKey: "kubernetes.io/hostname"
           env:
             - name: SENTRY_SLACK_CLIENT_ID
               value: '{{ env "SENTRY_SLACK_CLIENT_ID" | default "" }}'
