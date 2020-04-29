@@ -251,17 +251,18 @@ releases:
         ##
         ingress:
           enabled: {{ env "SENTRY_INGRESS_ENABLED" | default "false" }}
-          hostname: '{{ env "SENTRY_HOSTNAME" }}'
+          hostname: {{ env "SENTRY_INGRESS_HOSTNAME" }}
+          path: {{ env "SENTRY_INGRESS_PATH" | default "/" }}
           annotations:
-            kubernetes.io/ingress.class: "nginx"
-            kubernetes.io/tls-acme: "true"
+            kubernetes.io/ingress.class: {{ env "SENTRY_INGRESS_CLASS" | default "nginx" }}
+            kubernetes.io/tls-acme: {{ env "SENTRY_INGRESS_TLS_ACME" | default "true" }}
             external-dns.alpha.kubernetes.io/ttl: "60"
-            external-dns.alpha.kubernetes.io/target: '{{ env "SENTRY_INGRESS" }}'
-            external-dns.alpha.kubernetes.io/hostname: '{{ env "SENTRY_HOSTNAME" }}'
+            external-dns.alpha.kubernetes.io/target: '{{ env "SENTRY_INGRESS_HOSTNAME" }}'
+            external-dns.alpha.kubernetes.io/hostname: '{{ env "SENTRY_INGRESS_HOSTNAME" }}'
           tls:
             - secretName: '{{ env "SENTRY_TLS_SECRET_NAME" | default "sentry-server-tls" }}'
               hosts:
-                - '{{ env "SENTRY_HOSTNAME" }}'
+                - '{{ env "SENTRY_INGRESS_HOSTNAME" }}'
 
         postgresql:
           enabled: {{ env "SENTRY_POSTGRES_ENABLED" | default "false" }}
