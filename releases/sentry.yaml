@@ -257,7 +257,7 @@ releases:
             kubernetes.io/ingress.class: {{ env "SENTRY_INGRESS_CLASS" | default "nginx" }}
             kubernetes.io/tls-acme: {{ env "SENTRY_INGRESS_TLS_ACME" | default "true" }}
             external-dns.alpha.kubernetes.io/ttl: "60"
-            external-dns.alpha.kubernetes.io/target: '{{ env "SENTRY_INGRESS_HOSTNAME" }}'
+            external-dns.alpha.kubernetes.io/target: '{{ env "SENTRY_INGRESS" }}'
             external-dns.alpha.kubernetes.io/hostname: '{{ env "SENTRY_INGRESS_HOSTNAME" }}'
           tls:
             - secretName: '{{ env "SENTRY_TLS_SECRET_NAME" | default "sentry-server-tls" }}'
