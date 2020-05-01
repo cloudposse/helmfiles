@@ -1,7 +1,7 @@
 repositories:
   # Cloud Posse incubator repo of helm charts
   - name: "cloudposse-incubator"
-    url: "git+https://charts.cloudposse.com/incubator/?ref=fluentd-alerting-on-new-metrics"
+    url: "https://charts.cloudposse.com/incubator/"
 
 releases:
 
@@ -24,7 +24,7 @@ releases:
       namespace: "monitoring"
       default: "false"
     chart: "cloudposse-incubator/fluentd-kubernetes-aws"
-    version: "0.1.0"
+    version: "0.2.0"
     wait: true
     installed: {{ env "FLUENTD_ELASTICSEARCH_AWS_INSTALLED" | default "true" }}
     values:
