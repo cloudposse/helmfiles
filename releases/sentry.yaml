@@ -390,7 +390,7 @@ releases:
             groups:
               - name: sentry.rules
                 rules:
-                  - alert: sentry_queue_processing_idle
+                  - alert: SentryQueueProcessingIdle
                     annotations:
                       message: Sentry events queue processing is idle
                       description: Sentry events queue processing has stalled. It is possible that sentry worker(s) are stuck and must be restarted by killing the sentry worker pods.
@@ -399,21 +399,21 @@ releases:
                     for: 5m
                     labels:
                       severity: warning
-                  - alert: sentry_time_to_process_high
+                  - alert: SentryTimeToProcessHigh
                     annotations:
                       message: Sentry time to process events is elevated (currently is {{` {{ $value | printf "%.2f"}}s `}})
                     expr: sentry_events_time_to_process > 0.25
                     for: 5m
                     labels:
                       severity: error
-                  - alert: sentry_error_rate_high
+                  - alert: SentryErrorRateHigh
                     annotations:
                       message: Sentry events error rate is elevated (currently is {{` {{ $value | printf "%.2f"}}% `}})
                     expr: increase(sentry_events_failed[5m]) / (increase(sentry_events_failed[5m]) + increase(sentry_events_processed[5m])) * 100 > 5
                     for: 5m
                     labels:
                       severity: error
-                  - alert: sentry_5xx_error_rate
+                  - alert: Sentry5xxErrorRate
                     annotations:
                       message: Sentry client API is responding with 5xx status code (currently is {{` {{ $value | printf "%.2f"}}/s `}})
                     expr: rate(sentry_client_api_all_versions_responses_5xx[5m]) > 0
