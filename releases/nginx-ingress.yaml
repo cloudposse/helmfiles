@@ -90,6 +90,21 @@ releases:
                 expr: rate(nginx_ingress_controller_requests[5m]) > {{ env "NGINX_INGRESS_METRICS_CONTROLLER_ERROR_ALERT" | default "10" }}
                 labels:
                   severity: warning
+              - alert: NginxIngress5xxErrorRate
+                annotations:
+                  message: Nginx ingress 5xx error rate for {{` {{ $labels.exported_service }} `}} is high (currently is {{` {{ $value | printf "%.2f"}}% `}})
+                  url:  https://{{ env "SENTRY_HOSTNAME" }}/manage/queue/
+                expr: sum by (exported_service) (rate(nginx_ingress_controller_requests{status=~"5.*"}[10m]))  / sum by (exported_service) (rate(nginx_ingress_controller_requests[10m])) * 100 > {{ env "NGINX_INGRESS_ALERTS_5XX_ERROR_RATE_THRESHOLD" | default "5" }}
+                for: 30m
+                labels:
+                  severity: error
+              - alert: NginxIngress4xxErrorRate
+                annotations:
+                  message: Nginx ingress 4xx error rate for {{` {{ $labels.exported_service }} `}} is high (currently is {{` {{ $value | printf "%.2f"}}% `}})
+                expr: sum by (exported_service) (rate(nginx_ingress_controller_requests{status=~"4.*"}[10m]))  / sum by (exported_service) (rate(nginx_ingress_controller_requests[10m])) * 100 > {{ env "NGINX_INGRESS_ALERTS_4XX_ERROR_RATE_THRESHOLD" | default "25" }}
+                for: 60m
+                labels:
+                  severity: warning
           {{- end }}
       ### Regexp used to map
       ### 8080:default/example-tcp-svc:9000,8081:staging/example-tcp-svc:9000
