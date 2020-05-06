@@ -93,7 +93,6 @@ releases:
               - alert: NginxIngress5xxErrorRate
                 annotations:
                   message: Nginx ingress 5xx error rate for {{` {{ $labels.exported_service }} `}} is high (currently is {{` {{ $value | printf "%.2f"}}% `}})
-                  url:  https://{{ env "SENTRY_HOSTNAME" }}/manage/queue/
                 expr: sum by (exported_service) (rate(nginx_ingress_controller_requests{status=~"5.*"}[10m]))  / sum by (exported_service) (rate(nginx_ingress_controller_requests[10m])) * 100 > {{ env "NGINX_INGRESS_ALERTS_5XX_ERROR_RATE_THRESHOLD" | default "5" }}
                 for: 30m
                 labels:
