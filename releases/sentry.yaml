@@ -30,7 +30,7 @@ releases:
     installed: {{ env "SENTRY_INSTALLED" | default "true" }}
     values:
       - image:
-          repository: "sentry"
+          repository: '{{ env "SENTRY_IMAGE_REPOSITORY" | default "sentry" }}'
           tag: '{{ env "SENTRY_IMAGE_TAG" | default "9.1.1" }}'
           pullPolicy: "IfNotPresent"
 
