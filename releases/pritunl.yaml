@@ -59,9 +59,11 @@ releases:
         default:
           internal: 80
           external: 80
-        vpn:
-          internal: {{ env "PRITUNL_VPN_PORT" | default "16807" }}
-          external: {{ env "PRITUNL_VPN_PORT" | default "16807" }}
+      {{- range $i, $port := env "PRITUNL_VPN_PORT" | default "16807" | splitList "," }}
+        vpn{{ $i }}:
+          internal: {{ $port }}
+          external: {{ $port }}
+      {{ end }}
 
     resources:
       limits:
@@ -93,7 +95,7 @@ releases:
         annotations:
           kubernetes.io/ingress.class: {{ env "PRITUNL_INGRESS_CLASS" | default "nginx" }}
         hosts:
-          {{ env "PRITUNL_UI_EXTERNAL_HOST" }}: /
+          {{ env "PRITUNL_UI_EXTERNAL_HOST" | default "pritunl" }}: /
           
 - name: pritunl-mongodb
   version: "5.3.4"
