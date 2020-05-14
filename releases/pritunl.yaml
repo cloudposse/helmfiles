@@ -95,7 +95,7 @@ releases:
         annotations:
           kubernetes.io/ingress.class: {{ env "PRITUNL_INGRESS_CLASS" | default "nginx" }}
         hosts:
-          {{ env "PRITUNL_UI_EXTERNAL_HOST" | default "pritunl" }}: /
+          {{ required "Must specify external host name for Ingress" (or (not (eq (env "PRITUNL_INGRESS_ENABLED") "true")) "PRITUNL_UI_EXTERNAL_HOST") }}: /
           
 - name: pritunl-mongodb
   version: "5.3.4"
