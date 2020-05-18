@@ -59,11 +59,16 @@ releases:
         default:
           internal: 80
           external: 80
-      {{- range $i, $port := env "PRITUNL_VPN_PORT" | default "16807" | splitList "," }}
-        vpn{{ $i }}:
+        {{- range $i, $port := env "PRITUNL_VPN_PORT" | default "16807" | splitList "," }}
+        vpn-tcp-{{ $i }}:
           internal: {{ $port }}
           external: {{ $port }}
-      {{ end }}
+          protocol: TCP
+        vpn-udp-{{ $i }}:
+          internal: {{ $port }}
+          external: {{ $port }}
+          protocol: UDP
+        {{- end }}
 
     resources:
       limits:
