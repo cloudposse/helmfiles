@@ -80,3 +80,26 @@ releases:
           requests:
             cpu: '{{- env "FLUENTD_ELASTICSEARCH_RESOURCES_REQUEST_CPU" | default "20m" }}'
             memory: '{{- env "FLUENTD_ELASTICSEARCH_RESOURCES_REQUEST_MEMORY" | default "256Mi" }}'
+
+  - name: 'fluentd-throttle-alerts'
+    chart: "cloudposse-incubator/monochart"
+    version: "0.18.4"
+    wait: true
+    force: true
+    installed: {{ env "FLUENTD_THROTTLE_ALERTS_INSTALLED" | default "false" }}
+    values:
+      - prometheusRules:
+          name:
+            labels:
+              app: prometheus-operator-prometheus
+            groups:
+              - name: fluentd-throttle.rules
+                rules:
+                  - alert: FluentdThrottleActivated
+                    annotations:
+                      message: Fluentd is throttling messages for pod {{`{{ $labels.group_key }}`}}
+                      description: Throttling of logs undesirable behaviour and indicates problem with related application. Throttling is enabled to mitigate possibility of choking log system.
+                    expr: sum(increase(fluentd_events_rate_exceeded_messages_total[1m])) by (group_key) > 0
+                    for: 15m
+                    labels:
+                      severity: error
