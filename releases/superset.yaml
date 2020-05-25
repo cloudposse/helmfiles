@@ -83,6 +83,12 @@ releases:
           from werkzeug.contrib.cache import FileSystemCache
           RESULTS_BACKEND = FileSystemCache(os.environ.get('SUPERSET_CACHE_DIR', '/var/lib/superset/cache'), default_timeout=60*24*7)
 
+          # The file upload folder, when using models with files
+          UPLOAD_FOLDER = '/var/lib/superset/app/static/uploads/'
+
+          # The image upload folder, when using models with images
+          IMG_UPLOAD_FOLDER = '/var/lib/superset/app/static/uploads/'
+
         ## Extra confiuguration files and their content to be made available next to the config file
         extraConfigFiles: {}
           ## custom_sso_security_manager.py: |-
