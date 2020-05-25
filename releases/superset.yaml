@@ -20,7 +20,7 @@ releases:
       chart: "superset"
       namespace: "superset"
     chart: "cloudposse-incubator/superset"
-    version: "1.1.9"
+    version: "1.2.0"
     wait: true
     installed: {{ env "SUPERSET_INSTALLED" | default "true" }}
 
@@ -40,15 +40,16 @@ releases:
 
         initFile: |-
           /usr/local/bin/superset-init --username admin --firstname admin --lastname user --email admin@fab.org --password admin
-          superset runserver
+          superset run
 
         configFile: |-
           import os
 
-          ROW_LIMIT = os.environ.get('SUPERSET_ROW_LIMIT', 5000)
-          DISPLAY_MAX_ROW = os.environ.get('SUPERSET_DISPLAY_MAX_ROW', 10000)
-          DEFAULT_SQLLAB_LIMIT = os.environ.get('SUPERSET_DEFAULT_SQLLAB_LIMIT', 1000)
+          ROW_LIMIT = int(os.environ.get('SUPERSET_ROW_LIMIT', 5000))
+          DISPLAY_MAX_ROW = int(os.environ.get('SUPERSET_DISPLAY_MAX_ROW', 10000))
+          DEFAULT_SQLLAB_LIMIT = int(os.environ.get('SUPERSET_DEFAULT_SQLLAB_LIMIT', 1000))
           SUPERSET_WEBSERVER_PORT = os.environ.get('SUPERSET_WEBSERVER_PORT', 8080)
+          ENABLE_PROXY_FIX = True
 
           sql_alchemy_connection_string = '{user}:{password}@{host}/{database}'.format(
               user=os.environ['SUPERSET_POSTGRESQL_USER'],
@@ -71,17 +72,24 @@ releases:
               BROKER_URL = 'sqla+postgresql://' + sql_alchemy_connection_string
               CELERY_IMPORTS = (
                   'superset.sql_lab',
+                  'superset.tasks',
               )
               CELERY_RESULT_BACKEND = 'db+postgresql://' + sql_alchemy_connection_string
               CELERYD_LOG_LEVEL = 'DEBUG'
               CELERYD_PREFETCH_MULTIPLIER = 10
               CELERY_ANNOTATIONS = {'tasks.add': {'rate_limit': '10/s'}}
 
-
+          RESULTS_BACKEND_USE_MSGPACK = False
           CELERY_CONFIG = CeleryConfig
 
           from werkzeug.contrib.cache import FileSystemCache
           RESULTS_BACKEND = FileSystemCache(os.environ.get('SUPERSET_CACHE_DIR', '/var/lib/superset/cache'), default_timeout=60*24*7)
+
+          # The file upload folder, when using models with files
+          UPLOAD_FOLDER = '/var/lib/superset/app/static/uploads/'
+
+          # The image upload folder, when using models with images
+          IMG_UPLOAD_FOLDER = '/var/lib/superset/app/static/uploads/'
 
         ## Extra confiuguration files and their content to be made available next to the config file
         extraConfigFiles: {}
