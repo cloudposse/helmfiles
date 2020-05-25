@@ -19,7 +19,7 @@ releases:
     labels:
       chart: "superset"
       namespace: "superset"
-    chart: "/localhost/Development/CloudPosse/charts/incubator/superset/"
+    chart: "cloudposse-incubator/superset"
     version: "1.2.0"
     wait: true
     installed: {{ env "SUPERSET_INSTALLED" | default "true" }}
