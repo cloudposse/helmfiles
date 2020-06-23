@@ -58,6 +58,7 @@ releases:
           use-proxy-protocol: '{{ env "NGINX_INGRESS_USE_PROXY_PROTOCOL" | default "false" }}'
         service:
           externalTrafficPolicy: '{{ env "NGINX_INGRESS_EXTERNAL_TRAFFIC_POLICY" | default "Cluster" }}'
+          omitClusterIP: true
           annotations:
             ### Required: NGINX_INGRESS_HOSTNAME; e.g. ingress.us-west-2.cloudposse.org
             external-dns.alpha.kubernetes.io/hostname: '{{ env "NGINX_INGRESS_HOSTNAME" }}'
