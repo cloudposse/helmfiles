@@ -95,16 +95,17 @@ releases:
         # ClockSkewDetected has been modified to fire less often, for changed from 2m to 10m
         node-time:
           groups:
-            - name: node-time
-              rules:
-                - alert: ClockSkewDetected
-                  annotations:
-                    message: Clock skew detected on node-exporter {{`{{`}} $labels.namespace {{`}}`}}/{{`{{`}} $labels.pod {{`}}`}}. Ensure NTP is configured correctly on this host.
-                  expr: abs(node_timex_offset_seconds{job="node-exporter"}) > 0.1
-                  for: 2m
-                  labels:
-                    severity: warning
+          - name: node-time
+            rules:
+              - alert: ClockSkewDetected
+                annotations:
+                  message: Clock skew detected on node-exporter {{`{{`}} $labels.namespace {{`}}`}}/{{`{{`}} $labels.pod {{`}}`}}. Ensure NTP is configured correctly on this host.
+                expr: abs(node_timex_offset_seconds{job="node-exporter"}) > 0.1
+                for: 2m
+                labels:
+                  severity: warning
         kubernetes-resources:
+          groups:
           - name: kubernetes-resources
             rules:
             - alert: KubeCPUOvercommit
