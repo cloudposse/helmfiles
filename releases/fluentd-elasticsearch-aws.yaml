@@ -82,6 +82,7 @@ releases:
             memory: '{{- env "FLUENTD_ELASTICSEARCH_RESOURCES_REQUEST_MEMORY" | default "256Mi" }}'
 
   - name: 'fluentd-throttle-alerts'
+    namespace: "monitoring"
     chart: "cloudposse-incubator/monochart"
     version: "0.18.4"
     wait: true

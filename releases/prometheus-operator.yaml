@@ -93,17 +93,18 @@ releases:
         # CPUThrottlingHigh has been modified, to be replaced with a customizable version
         # to reduce alerts caused by https://github.com/kubernetes/kubernetes/pull/63437
         # ClockSkewDetected has been modified to fire less often, for changed from 2m to 10m
-        kubernetes-resources:
+        node-time:
           groups:
-          - name: node-time
-            rules:
-            - alert: ClockSkewDetected
-              annotations:
-                message: Clock skew detected on node-exporter {{`{{`}} $labels.namespace {{`}}`}}/{{`{{`}} $labels.pod {{`}}`}}. Ensure NTP is configured correctly on this host.
-              expr: abs(node_timex_offset_seconds{job="node-exporter"}) > 0.03
-              for: 10m
-              labels:
-                severity: warning
+            - name: node-time
+              rules:
+                - alert: ClockSkewDetected
+                  annotations:
+                    message: Clock skew detected on node-exporter {{`{{`}} $labels.namespace {{`}}`}}/{{`{{`}} $labels.pod {{`}}`}}. Ensure NTP is configured correctly on this host.
+                  expr: abs(node_timex_offset_seconds{job="node-exporter"}) > 0.1
+                  for: 2m
+                  labels:
+                    severity: warning
+        kubernetes-resources:
           - name: kubernetes-resources
             rules:
             - alert: KubeCPUOvercommit
