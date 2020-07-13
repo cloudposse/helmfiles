@@ -296,6 +296,17 @@ releases:
                     firing: '{{"{{"}} template "pagerduty.default.firing" . {{"}}"}}'
                     resolved: '{{"{{"}} template "pagerduty.default.resolved" . {{"}}"}}'
               {{- end }}
+              {{- if not ( env "KUBE_PROMETHEUS_ALERT_MANAGER_OPSGENIE_API_KEY" | empty ) }}
+              opsgenie_configs:
+                - api_key: '{{ env "KUBE_PROMETHEUS_ALERT_MANAGER_OPSGENIE_API_KEY" | empty }}'
+                  send_resolved: true
+                  {{- if not ( env "NAMESPACE" | empty ) }}
+                  tags: '{{ env "NAMESPACE" | default "" }}'
+                  {{- end }}
+                  details:
+                    stage: '{{ env "STAGE" | default "N/A" }}'
+                    namespace: '{{ env "NAMESPACE" | default "N/A" }}'
+              {{- end }}
           templates:
             - ./*.tmpl
         alertmanagerSpec:
