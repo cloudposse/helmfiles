@@ -6,7 +6,7 @@ repositories:
     # v1.0.22: url: "git+https://github.com/stakater/Forecastle@deployments/kubernetes/chart?ref=8d6e5cd2dba3ad6c265ae94138c40276425b7634"
     # v1.0.25 url: "git+https://github.com/stakater/Forecastle@deployments/kubernetes/chart?ref=8f36b82beaf2a1a42b364a3857bc83638c51e30b"
     # v1.0.34 url: "git+https://github.com/stakater/Forecastle@deployments/kubernetes/chart?ref=19b369aa684152ad52c33d1935a74b0f425db2cb"
-    url: "git+https://github.com/stakater/Forecastle@deployments/kubernetes/chart?ref=19b369aa684152ad52c33d1935a74b0f425db2cb&sparse=0"
+    url: "git+https://github.com/stakater/Forecastle@deployments/kubernetes/chart?ref=2a922956b0f69c1a36205d5a7c7d9c380f1e924d&sparse=0"
 
 releases:
 
@@ -30,7 +30,7 @@ releases:
       vendor: "stakater"
       default: "false"
     chart: "forecastle/forecastle"
-    version: "v1.0.34"
+    version: "v1.0.41"
     wait: false
     installed: {{ env "FORECASTLE_INSTALLED" | default "true" }}
     force: true
