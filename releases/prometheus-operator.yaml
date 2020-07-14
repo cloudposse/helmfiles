@@ -298,14 +298,17 @@ releases:
               {{- end }}
               {{- if not ( env "KUBE_PROMETHEUS_ALERT_MANAGER_OPSGENIE_API_KEY" | empty ) }}
               opsgenie_configs:
-                - api_key: '{{ env "KUBE_PROMETHEUS_ALERT_MANAGER_OPSGENIE_API_KEY" | empty }}'
+                - api_key: '{{ env "KUBE_PROMETHEUS_ALERT_MANAGER_OPSGENIE_API_KEY" }}'
                   send_resolved: true
                   {{- if not ( env "NAMESPACE" | empty ) }}
-                  tags: '{{ env "NAMESPACE" | default "" }}'
+                  tags: '{{ env "NAMESPACE" }}'
                   {{- end }}
                   details:
                     stage: '{{ env "STAGE" | default "N/A" }}'
                     namespace: '{{ env "NAMESPACE" | default "N/A" }}'
+                    {{- if not ( env "CLUSTER_NAME" | empty ) }}
+                    cluster_name: '{{ env "CLUSTER_NAME" }}'
+                    {{- end }}
               {{- end }}
           templates:
             - ./*.tmpl
