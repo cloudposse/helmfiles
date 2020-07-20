@@ -300,9 +300,10 @@ releases:
               opsgenie_configs:
                 - api_key: '{{ env "KUBE_PROMETHEUS_ALERT_MANAGER_OPSGENIE_API_KEY" }}'
                   send_resolved: true
-                  {{- if not ( env "NAMESPACE" | empty ) }}
-                  tags: '{{ env "NAMESPACE" }}'
+                  {{- if not ( env "KUBE_PROMETHEUS_ALERT_MANAGER_OPSGENIE_MESSAGE" | empty ) }}
+                  message: '{{ env "KUBE_PROMETHEUS_ALERT_MANAGER_OPSGENIE_MESSAGE" }}'
                   {{- end }}
+                  tags: '{{ env "KUBE_PROMETHEUS_ALERT_MANAGER_OPSGENIE_TAGS" | default ` {{ range .CommonLabels.SortedPairs }}{{ .Name }}:{{ .Value }},{{ end }}`}}{{ env "STAGE" | default "N/A" }},{{ env "NAMESPACE" | default "N/A" }}'
                   details:
                     stage: '{{ env "STAGE" | default "N/A" }}'
                     namespace: '{{ env "NAMESPACE" | default "N/A" }}'
