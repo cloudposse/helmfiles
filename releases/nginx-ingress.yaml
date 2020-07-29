@@ -20,7 +20,6 @@ releases:
 {{ $client_errors := env "NGINX_INGRESS_CUSTOM_CLIENTS_ERRORS" | default "403,404" | splitList "," }}
 {{ $server_errors := env "NGINX_INGRESS_CUSTOM_SERVER_ERRORS" | default "500,501,502,503,504" | splitList "," }}
 
-
 - name: "ingress-backend"
   namespace: "kube-system"
   labels:
