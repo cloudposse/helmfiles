@@ -175,44 +175,6 @@ releases:
         ### Optional: NGINX_INGRESS_SERVICE_ACCOUNT_NAME;
         name: '{{ env "NGINX_INGRESS_SERVICE_ACCOUNT_NAME" | default "" }}'
 
-- name: "ingress-backend"
-  namespace: "kube-system"
-  labels:
-    chart: "nginx-default-backend"
-    component: "ingress"
-    namespace: "kube-system"
-    vendor: "kubernetes"
-    default: "true"
-  chart: "cloudposse-incubator/nginx-default-backend"
-  version: "0.4.0"
-  wait: true
-  installed: {{ env "NGINX_INGRESS_BACKEND_INSTALLED" | default "true" }}
-  values:
-    - nameOverride: default
-      ### Optional: NGINX_INGRESS_BACKEND_REPLICA_COUNT; e.g. 2
-      ### Setting this to 1 can interfere with cluster auto-scaling
-      replicaCount: '{{ env "NGINX_INGRESS_BACKEND_REPLICA_COUNT" | default "2" }}'
-      resources:
-        limits:
-          cpu: '{{ env "NGINX_INGRESS_DEFAULT_BACKEND_LIMIT_CPU" | default "50m" }}'
-          memory: '{{ env "NGINX_INGRESS_DEFAULT_BACKEND_LIMIT_MEMORY" | default "24Mi" }}'
-        requests:
-          cpu: '{{ env "NGINX_INGRESS_DEFAULT_BACKEND_REQUEST_CPU" | default "1m" }}'
-          memory: '{{ env "NGINX_INGRESS_DEFAULT_BACKEND_REQUEST_MEMORY" | default "8Mi" }}'
-      errors:
-        configmap: default
-        default:
-          email: '{{ env "NGINX_INGRESS_SUPPORT_EMAIL" | default "hello@cloudposse.com" }}'
-          site: /
-        client:
-{{- range $status := $client_errors  }}
-        - "{{ $status }}"
-{{- end }}
-        server:
-{{- range $status := $server_errors  }}
-        - "{{ $status }}"
-{{- end }}
-
 #######################################################################################
 ## ingress-monitoring                                                                ##
 ## Integrates kube-prometheus and grafana with nginx ingress                         ##
