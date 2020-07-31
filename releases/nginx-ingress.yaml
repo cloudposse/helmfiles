@@ -29,7 +29,7 @@ releases:
     vendor: "kubernetes"
     default: "true"
   chart: "cloudposse-incubator/nginx-default-backend"
-  version: "0.4.0"
+  version: "0.5.0"
   wait: true
   installed: {{ env "NGINX_INGRESS_BACKEND_INSTALLED" | default "true" }}
   values:
