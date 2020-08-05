@@ -6,7 +6,8 @@ repositories:
     # v1.0.22: url: "git+https://github.com/stakater/Forecastle@deployments/kubernetes/chart?ref=8d6e5cd2dba3ad6c265ae94138c40276425b7634"
     # v1.0.25 url: "git+https://github.com/stakater/Forecastle@deployments/kubernetes/chart?ref=8f36b82beaf2a1a42b364a3857bc83638c51e30b"
     # v1.0.34 url: "git+https://github.com/stakater/Forecastle@deployments/kubernetes/chart?ref=19b369aa684152ad52c33d1935a74b0f425db2cb"
-    url: "git+https://github.com/stakater/Forecastle@deployments/kubernetes/chart?ref=19b369aa684152ad52c33d1935a74b0f425db2cb&sparse=0"
+    # v1.0.54 url: "git+https://github.com/stakater/Forecastle@deployments/kubernetes/chart?ref=febcb287ae120f091427ee186c82b87adf3b8410&sparse=0"
+    url: "git+https://github.com/stakater/Forecastle@deployments/kubernetes/chart?ref=febcb287ae120f091427ee186c82b87adf3b8410&sparse=0"
 
 releases:
 
@@ -17,7 +18,7 @@ releases:
 
   #
   # References:
-  #   - https://github.com/stakater/Forecastle/tree/v1.0.25/deployments/kubernetes/chart/forecastle
+  #   - https://github.com/stakater/Forecastle/tree/v1.0.54/deployments/kubernetes/chart/forecastle
   #   - https://github.com/stakater/Forecastle
   #
   - name: "forecastle"
@@ -29,25 +30,29 @@ releases:
       namespace: "kube-system"
       vendor: "stakater"
       default: "false"
+    # Requires Helmfile 0.125.0 or later
+    # chart: git::http://github.com/stakater/Forecastle.git@deployments/kubernetes/chart/forecastle?ref=v1.0.54
     chart: "forecastle/forecastle"
-    version: "v1.0.34"
+    version: "v1.0.54"
     wait: false
     installed: {{ env "FORECASTLE_INSTALLED" | default "true" }}
     force: true
-    recreatePods: true
+    # At some point we home Helmfile supports skipCrds
+    # skipCrds: {{ env "FORECASTLE_CREATE_CRD" | default "true" }}
     values:
       {{- if env "FORECASTLE_CUSTOM_APPS_YAML" }}
       - {{ env "FORECASTLE_CUSTOM_APPS_YAML" }}
       {{- end }}
       - forecastle:
-          createCustomResource: {{ env "FORECASTLE_CREATE_CRD" | default "true" }}
           image:
             pullPolicy: "IfNotPresent"
           namespace: '{{ env "FORECASTLE_NAMESPACE" | default "kube-system" }}'
           deployment:
-            # Some annotation is required or else we get a bunch of
-            # annotations from the default values.yaml
-            annotations: ""
+            # Helm 3 does not support "recreate pods" but Forecastle chart 1.0.54 does not
+            # support Pod template annotations. Using Reloader is our only hope until this is fixed.
+            # https://github.com/stakater/Forecastle/issues/121
+            annotations:
+              reloader.stakater.com/auto: "true"
             replicas: '{{- env "FORECASTLE_REPLICAS" | default "2" -}}'
             revisionHistoryLimit: '{{- env "FORECASTLE_REVISION_HISTORY_LIMIT" | default "10" -}}'
 
@@ -75,5 +80,4 @@ releases:
             #          icon: https://world
             #          group: Test
           service:
-            annotations: ""
             expose: "true"
