@@ -23,13 +23,15 @@ releases:
     namespace: "kube-system"
     vendor: "kubernetes"
   chart: "stable/cluster-autoscaler"
-  version: "6.0.0"
+  version: "7.3.4"
   wait: true
   installed: {{ env "CLUSTER_AUTOSCALER_INSTALLED" | default "true" }}
   values:
     - image:
         ### Optional: CLUSTER_AUTOSCALER_IMAGE_TAG;
-        tag: '{{ env "CLUSTER_AUTOSCALER_IMAGE_TAG" | default "v1.14.5" }}'
+        tag: '{{ env "CLUSTER_AUTOSCALER_IMAGE_TAG" | default "v1.17.3" }}'
+        ### Optional: CLUSTER_AUTOSCALER_IMAGE_REPOSITORY
+        repository: '{{ env "CLUSTER_AUTOSCALER_IMAGE_REPOSITORY" | default "k8s.gcr.io/autoscaling/cluster-autoscaler" }}'
       autoDiscovery:
         ### Required: KOPS_CLUSTER_NAME; e.g. cluster.k8s.local
         clusterName: '{{ env "KOPS_CLUSTER_NAME" }}'
