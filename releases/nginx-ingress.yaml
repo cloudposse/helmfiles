@@ -68,7 +68,7 @@ releases:
     vendor: "kubernetes"
     default: "true"
   chart: "stable/nginx-ingress"
-  version: "1.17.1"
+  version: "1.41.2"
   wait: true
   installed: {{ env "NGINX_INGRESS_INSTALLED" | default "true" }}
   values:
