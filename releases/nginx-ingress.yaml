@@ -68,15 +68,16 @@ releases:
     vendor: "kubernetes"
     default: "true"
   chart: "stable/nginx-ingress"
-  version: "1.17.1"
+  version: "1.41.2"
   wait: true
   installed: {{ env "NGINX_INGRESS_INSTALLED" | default "true" }}
   values:
     - controller:
         image:
-          repository: "quay.io/kubernetes-ingress-controller/nginx-ingress-controller"
+          registry: '{{ env "NGINX_INGRESS_IMAGE_REGISTRY" | default "us.gcr.io" }}'
+          repository: '{{ env "NGINX_INGRESS_IMAGE_REPOSITORY" | default "k8s-artifacts-prod/ingress-nginx/controller" }}'
           ### Optional: NGINX_INGRESS_IMAGE_TAG; e.g. 0.25.1
-          tag: '{{ env "NGINX_INGRESS_IMAGE_TAG" | default "0.25.1" }}'
+          tag: '{{ env "NGINX_INGRESS_IMAGE_TAG" | default "v0.34.1" }}'
           pullPolicy: "IfNotPresent"
         ### Optional: NGINX_INGRESS_REPLICA_COUNT; Used only if `kind=Deployment` e.g. 4
         replicaCount: '{{ env "NGINX_INGRESS_REPLICA_COUNT" | default "4" }}'

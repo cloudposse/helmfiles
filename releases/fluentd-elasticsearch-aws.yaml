@@ -24,7 +24,7 @@ releases:
       namespace: "monitoring"
       default: "false"
     chart: "cloudposse-incubator/fluentd-kubernetes-aws"
-    version: "0.2.0"
+    version: "0.2.1"
     wait: true
     installed: {{ env "FLUENTD_ELASTICSEARCH_AWS_INSTALLED" | default "true" }}
     values:
@@ -66,11 +66,13 @@ releases:
           FLUENT_ELASTICSEARCH_RECONNECT_ON_ERROR: true
           FLUENT_ELASTICSEARCH_RELOAD_ON_FAILURE: true
           FLUENT_ELASTICSEARCH_SSL_VERSION: "TLSv1_2"
+          # Settings for log throttling.
+          # See https://github.com/rubrikinc/fluent-plugin-throttle
           FLUENTD_THROTTLE_GROUP_KEY: '{{- env "FLUENTD_THROTTLE_GROUP_KEY" | default "kubernetes.pod_name" }}'
-          FLUENTD_THROTTLE_GROUP_BUCKET_PERIOD: '{{- env "FLUENTD_THROTTLE_GROUP_BUCKET_PERIOD" | default "600" }}'
-          FLUENTD_THROTTLE_GROUP_BUCKET_LIMIT: '{{- env "FLUENTD_THROTTLE_GROUP_BUCKET_LIMIT" | default "20000" }}'
-          FLUENTD_THROTTLE_GROUP_DROP_LOGS: '{{- env "FLUENTD_THROTTLE_GROUP_DROP_LOGS" | default "true" }}'
-          FLUENTD_THROTTLE_GROUP_RESET_RATE: '{{- env "FLUENTD_THROTTLE_GROUP_RESET_RATE" | default "33" }}'
+          FLUENTD_THROTTLE_GROUP_BUCKET_PERIOD: '{{- env "FLUENTD_THROTTLE_GROUP_BUCKET_PERIOD" | default "3" }}'
+          FLUENTD_THROTTLE_GROUP_BUCKET_LIMIT: '{{- env "FLUENTD_THROTTLE_GROUP_BUCKET_LIMIT" | default "300" }}'
+          FLUENTD_THROTTLE_GROUP_DROP_LOGS: '{{- env "FLUENTD_THROTTLE_GROUP_DROP_LOGS" | default "false" }}'
+          FLUENTD_THROTTLE_GROUP_RESET_RATE: '{{- env "FLUENTD_THROTTLE_GROUP_RESET_RATE" | default "-1" }}'
           FLUENTD_THROTTLE_GROUP_WARNING_DELAY: '{{- env "FLUENTD_THROTTLE_GROUP_WARNING_DELAY" | default "10" }}'
 
         resources:

@@ -24,7 +24,7 @@ releases:
     vendor: "kubernetes"
     default: "false"
   chart: "stable/efs-provisioner"
-  version: "0.7.0"
+  version: "0.13.0"
   wait: true
   installed: {{ env "EFS_PROVISIONER_INSTALLED" | default "true" }}
   values:
@@ -32,7 +32,7 @@ releases:
         deployEnv: '{{ env "DEPLOY_ENV" | default "dev" }}'
       image:
         repository: '{{ env "EFS_PROVISIONER_IMAGE_REPOSITORY" | default "quay.io/external_storage/efs-provisioner" }}'
-        tag: '{{ env "EFS_PROVISIONER_IMAGE_TAG" | default "v2.2.0-k8s1.12" }}'
+        tag: '{{ env "EFS_PROVISIONER_IMAGE_TAG" | default "v2.4.0" }}'
         pullPolicy: "IfNotPresent"
       resources:
         limits:
