@@ -94,6 +94,7 @@ releases:
         config:
           custom-http-errors: '{{ join "," $client_errors }},{{ join "," $server_errors }}'
           use-proxy-protocol: '{{ env "NGINX_INGRESS_USE_PROXY_PROTOCOL" | default "false" }}'
+          use-http2: '{{ env "NGINX_INGRESS_USE_HTTP2" | default "true" }}'
         service:
           externalTrafficPolicy: '{{ env "NGINX_INGRESS_EXTERNAL_TRAFFIC_POLICY" | default "Cluster" }}'
           annotations:

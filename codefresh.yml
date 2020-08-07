@@ -13,7 +13,9 @@ steps:
     title: Build image
     type: build
     description: Build helmfiles
-    image_name: helmfiles
+    image_name: cloudposse/helmfiles
+    tag: '${{CF_REVISION}}'
+    registry: dockerhub
     dockerfile: Dockerfile
 
   semver:
@@ -27,19 +29,9 @@ steps:
     title: Push image with commit based semver tags
     type: push
     candidate: ${{build_image}}
+    registry: dockerhub
     tags:
       - "${{SEMVERSION_COMMIT_SHORT}}"
-
-  push_image_branch_to_cfcr:
-    title: Push image with branch based semver tags
-    type: push
-    candidate: ${{build_image}}
-    tags:
-      - "${{SEMVERSION_BRANCH_COMMIT_SHORT}}"
-    when:
-      condition:
-        all:
-          executeForBranch: "'${{SEMVERSION_BRANCH}}' != ''"
 
   push_image_branch_to_dockerhub:
     title: Push image with branch based semver tags
@@ -54,17 +46,6 @@ steps:
         all:
           executeForBranch: "'${{SEMVERSION_BRANCH}}' != ''"
 
-  push_image_tag_to_cfcr:
-    title: Push image with tag based semver tags
-    type: push
-    registry: cfcr
-    candidate: ${{build_image}}
-    tag: "${{SEMVERSION_TAG}}"
-    when:
-      condition:
-        all:
-          executeForTag: "'${{SEMVERSION_TAG}}' != ''"
-
   push_image_tag_to_dockerhub:
     title: Push image with tag based semver tags
     type: push
@@ -76,18 +57,6 @@ steps:
       condition:
         all:
           executeForTag: "'${{SEMVERSION_TAG}}' != ''"
-
-
-  push_image_latest_to_cfcf:
-    title: Push image with latest tag
-    type: push
-    registry: cfcr
-    candidate: ${{build_image}}
-    tag: latest
-    when:
-      condition:
-        all:
-          executeForMasterBranch: "'${{CF_BRANCH}}' == 'master'"
 
   push_image_latest_to_dockerhub:
     title: Push image with latest tag

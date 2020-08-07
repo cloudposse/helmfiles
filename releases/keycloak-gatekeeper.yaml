@@ -53,7 +53,7 @@ releases:
       pullPolicy: "IfNotPresent"
     debug: {{ index $service "debug" | default "false" }}
     replicas: {{ index $service "replicas" | default 1 }}
-    logging: false
+    logging: {{ index $service "debug" | default "false" }}
     sessionCookies: false
     droolsPolicyEnabled: false
     {{- if index $service "podAnnotations" }}
