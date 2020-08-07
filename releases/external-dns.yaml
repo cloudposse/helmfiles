@@ -1,7 +1,6 @@
 repositories:
-# Stable repo of official helm charts
-- name: "stable"
-  url: "https://kubernetes-charts.storage.googleapis.com"
+- name: bitnami
+  url: https://charts.bitnami.com/bitnami
 
 releases:
 
@@ -22,8 +21,8 @@ releases:
     namespace: "kube-system"
     vendor: "kubernetes-incubator"
     default: "true"
-  chart: "stable/external-dns"
-  version: "2.7.0"
+  chart: "bitnami/external-dns"
+  version: "3.2.6"
   wait: true
   installed: {{ env "EXTERNAL_DNS_INSTALLED" | default "true" }}
   values:
@@ -70,5 +69,8 @@ releases:
         create: {{ env "RBAC_ENABLED" | default "false" }}
         ## Ignored if rbac.create is true
         ##
-        ### Optional: EXTERNAL_DNS_RBAC_SERVICE_ACCOUNT_NAME;
-        serviceAccountName: '{{ env "EXTERNAL_DNS_RBAC_SERVICE_ACCOUNT_NAME" | default "default" }}'
+      ### Optional: EXTERNAL_DNS_RBAC_SERVICE_ACCOUNT_NAME;
+      {{- if not (empty (env "EXTERNAL_DNS_RBAC_SERVICE_ACCOUNT_NAME")) }}
+      serviceAccount:
+        name: '{{ env "EXTERNAL_DNS_RBAC_SERVICE_ACCOUNT_NAME" }}'
+      {{- end }}
