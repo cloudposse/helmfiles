@@ -13,8 +13,9 @@ repositories:
   # Cannot use release tags, see https://github.com/aslafy-z/helm-git/issues/9
   # url: "git+https://github.com/stakater/Forecastle@deployments/kubernetes/chart?ref=v1.0.25"
   # v1.0.25 url: "git+https://github.com/stakater/Forecastle@deployments/kubernetes/chart?ref=8f36b82beaf2a1a42b364a3857bc83638c51e30b"
-  # v1.0.27:
-  url: "git+https://github.com/stakater/Forecastle@deployments/kubernetes/chart?ref=ffb5179aa659e0e3cf0ca20e1c8bd94c5fd66a2e&sparse=0"
+  # v1.0.34 url: "git+https://github.com/stakater/Forecastle@deployments/kubernetes/chart?ref=19b369aa684152ad52c33d1935a74b0f425db2cb"
+  # v1.0.54 url: "git+https://github.com/stakater/Forecastle@deployments/kubernetes/chart?ref=febcb287ae120f091427ee186c82b87adf3b8410&sparse=0"
+  url: "git+https://github.com/stakater/Forecastle@deployments/kubernetes/chart?ref=febcb287ae120f091427ee186c82b87adf3b8410&sparse=0"
 
 releases:
 
@@ -173,7 +174,7 @@ releases:
     vendor: "kubernetes"
     default: "true"
   chart: "stable/nginx-ingress"
-  version: "1.11.5"
+  version: "1.41.2"
   wait: true
   installed: {{ env "OIDC_INGRESS_NGINX_INSTALLED" | default "true" }}
   values:
@@ -182,8 +183,10 @@ releases:
       controller:
         name: controller
         image:
-          repository: "quay.io/kubernetes-ingress-controller/nginx-ingress-controller"
-          tag: '{{ env "OIDC_INGRESS_NGINX_IMAGE_TAG" | default "0.25.1" }}'
+          registry: '{{ env "OIDC_INGRESS_IMAGE_REGISTRY" | default "us.gcr.io" }}'
+          repository: '{{ env "OIDC_INGRESS_IMAGE_REPOSITORY" | default "k8s-artifacts-prod/ingress-nginx/controller" }}'
+          ### Optional: OIDC_INGRESS_IMAGE_TAG; e.g. 0.25.1
+          tag: '{{ env "OIDC_INGRESS_IMAGE_TAG" | default "v0.34.1" }}'
           pullPolicy: "IfNotPresent"
         ### Optional: OIDC_INGRESS_NGINX_REPLICA_COUNT; Used only if `kind=Deployment` e.g. 4
         replicaCount: {{ env "OIDC_INGRESS_NGINX_REPLICA_COUNT" | default "1" }}
@@ -207,6 +210,8 @@ releases:
           # nginx from intercepting any error codes, and instead they will all be passed
           # through to the back end.
           custom-http-errors: '418,599'
+          # Default to false because the Gatekeeper/louketo proxy does not fully support HTTP/2
+          use-http2: '{{ env "OIDC_INGRESS_USE_HTTP2" | default "false" }}'
         service:
           annotations:
             service.beta.kubernetes.io/aws-load-balancer-internal: "true"
@@ -246,7 +251,7 @@ releases:
     vendor: "stakater"
     default: "false"
   chart: "forecastle/forecastle"
-  version: "v1.0.27"
+  version: "v1.0.54"
   wait: false
   installed: {{ env "OIDC_INGRESS_FORECASTLE_INSTALLED" | default "true" }}
   force: true
@@ -290,7 +295,7 @@ releases:
     component: "iap"
     namespace: "oidc-ingress"
     default: "false"
-  version: "0.1.0"
+  version: "0.2.3"
   wait: true
   force: true
   recreatePods: true
