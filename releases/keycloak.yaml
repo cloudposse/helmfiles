@@ -74,6 +74,7 @@ releases:
           {{- if eq (env "KEYCLOAK_FORECASTLE_EXPOSE" | default "true") "true" }}
           forecastle.stakater.com/expose: "true"
           forecastle.stakater.com/appName: "Keycloak"
+          forecastle.stakater.com/icon: '{{ env "KEYCLOAK_FORECASTLE_ICON_URL" | default "https://www.keycloak.org/resources/images/keycloak_logo_480x108.png" }}'
           forecastle.stakater.com/url: 'https://{{- env "KEYCLOAK_INGRESS_HOSTS" -}}/auth/admin/'
           {{- if coalesce (env "KEYCLOAK_FORECASTLE_INSTANCE_NAME") (env "FORECASTLE_INSTANCE_NAME") }}
           forecastle.stakater.com/instance: '{{ coalesce (env "KEYCLOAK_FORECASTLE_INSTANCE_NAME") (env "FORECASTLE_INSTANCE_NAME") }}'
