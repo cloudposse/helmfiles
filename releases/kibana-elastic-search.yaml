@@ -29,7 +29,7 @@ releases:
   installed: {{ env "KIBANA_ELASTICSEARCH_INSTALLED" | default "true" }}
   values:
   - resources:
-    - apiVersion: extensions/v1beta1
+    - apiVersion: networking.k8s.io/v1beta1
       kind: Ingress
       metadata:
         namespace: kube-system
@@ -45,7 +45,7 @@ releases:
                 serviceName: {{ env "KIBANA_INTERNAL_INGRESS_SERVICE" | default "traefik" }}
                 servicePort: {{ env "KIBANA_INTERNAL_INGRESS_SERVICE_PORT" | default "80" }}
               path: /
-    - apiVersion: extensions/v1beta1
+    - apiVersion: networking.k8s.io/v1beta1
       kind: Ingress
       metadata:
         namespace: kube-system

@@ -30,7 +30,7 @@ releases:
         clientId: {{ env "CODEFRESH_OIDC_CLIENT_ID" | b64enc }}
         clientSecret: {{ env "CODEFRESH_OIDC_CLIENT_SECRET" | b64enc }}
 {{ end }}
-    - apiVersion: extensions/v1beta1
+    - apiVersion: networking.k8s.io/v1beta1
       kind: Ingress
       metadata:
         namespace: codefresh
@@ -94,7 +94,7 @@ releases:
           secretName: cf-codefresh-star-selfsigned
 {{ end }}
 
-    - apiVersion: extensions/v1beta1
+    - apiVersion: networking.k8s.io/v1beta1
       kind: Ingress
       metadata:
         namespace: codefresh
