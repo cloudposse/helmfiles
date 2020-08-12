@@ -264,7 +264,7 @@ releases:
   installed: {{ env "ISTIO_GATEKEEPER_FORECASTLE_INSTALLED" | default "true" }}
   values:
     - resources:
-      - apiVersion: extensions/v1beta1
+      - apiVersion: networking.k8s.io/v1beta1
         kind: Ingress
         metadata:
           annotations:

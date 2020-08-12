@@ -4,15 +4,17 @@ repositories:
   url: "https://charts.cloudposse.com/incubator/"
 
 ######
-# You need to create a codefresh-service-account-additional-rbac-rules.yaml file with an array RBAC rules,
+# You may want to to create a codefresh-service-account-additional-rbac-rules.yaml file with an array RBAC rules,
 # with values that do not use go templating, or you can use go templating
 # by adding `.gotmpl` to the end of the file name
 # See values/codefresh-service-account-additional-rbac-rules.yaml for an example
 #
+{{- if env "CODEFRESH_SERVICE_ACCOUNT_ADDITIONAL_RBAC_RULES" }}
 environments:
   default:
     values:
-      - {{ env "CODEFRESH_SERVICE_ACCOUNT_ADDITIONAL_RBAC_RULES" | default "codefresh-service-account-additional-rbac-rules.yaml" }}
+      - {{ env "CODEFRESH_SERVICE_ACCOUNT_ADDITIONAL_RBAC_RULES" }}
+{{- end }}
 
 releases:
 
@@ -48,15 +50,20 @@ releases:
         - apiGroups: [""]
           resources: ["*"]
           verbs: ["list", "watch", "get"]
+          # Under Helm version 3, Codefresh needs direct authority to
+          # make the changes specified in the Helm chart.
+        - apiGroups: [""]
+          resources: ["secrets","configmaps","services","persistentvolumes","persistentvolumeclaims"]
+          verbs: ["*"]
         - apiGroups: [""]
           resources: ["pods"]
           verbs: ["delete"]
         - apiGroups: ["extensions", "apps"]
-          resources: ["deployments", "replicasets"]
+          resources: ["deployments", "replicasets", "daemonsets", "statefulsets"]
           verbs: ["*"]
-        - apiGroups: ["extensions"]
+        - apiGroups: ["extensions", "networking.k8s.io"]
           resources: ["ingresses"]
-          verbs: ["get", "list"]
+          verbs: ["*"]
         - apiGroups: [""]
           resources: ["namespaces"]
 {{ if eq (env "CODEFRESH_SERVICE_ACCOUNT_UNLIMITED_STAGING_ENABLED" | default "false") "true" }}
@@ -66,11 +73,12 @@ releases:
 {{ end }}
         - apiGroups: ["storage.k8s.io"]
           resources: ["storageclasses"]
-          verbs: ["get", "list", "watch"]
+          verbs: ["*"]
         - apiGroups: [""]
           resources: ["pods/portforward"]
           verbs: ["create"]
-{{ with .Environment.Values.rules }}
+{{- if env "CODEFRESH_SERVICE_ACCOUNT_ADDITIONAL_RBAC_RULES" }}
+{{- with index .Environment.Values "rules" }}
 {{ toYaml . | indent 8 }}
-{{ end }}
-
+{{- end }}
+{{- end }}

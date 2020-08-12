@@ -10,7 +10,8 @@ releases:
 
 #
 # References:
-#   - https://github.com/kubernetes/charts/blob/master/stable/external-dns/values.yaml
+#   - https://github.com/bitnami/charts/blob/master/bitnami/external-dns/values.yaml
+#   - https://github.com/bitnami/charts/blob/master/bitnami/external-dns/values-production.yaml
 #
 - name: "dns"
   namespace: "kube-system"
@@ -26,12 +27,27 @@ releases:
   wait: true
   installed: {{ env "EXTERNAL_DNS_INSTALLED" | default "true" }}
   values:
-    - sources:
+    - image:
+        {{- if env "EXTERNAL_DNS_IMAGE_REGISTRY" }}
+        registry: '{{ env "EXTERNAL_DNS_IMAGE_REGISTRY" }}'
+        {{- end }}
+        {{- if env "EXTERNAL_DNS_IMAGE_REPOSITORY" }}
+        repository: '{{ env "EXTERNAL_DNS_IMAGE_REPOSITORY" }}'
+        {{- end }}
+        {{- if env "EXTERNAL_DNS_IMAGE_TAG" }}
+        tag: '{{ env "EXTERNAL_DNS_IMAGE_TAG" }}'
+        {{- end }}
+        pullPolicy: '{{ env "EXTERNAL_DNS_IMAGE_PULL_POLICY" | default "IfNotPresent" }}'
+      sources:
       - service
       - ingress
-{{- if env "EXTERNAL_DNS_CRD_ENABLED" | default "false" | eq "true" }}
+      {{- if env "EXTERNAL_DNS_CRD_ENABLED" | default "false" | eq "true" }}
       - crd
-{{- end }}
+      {{- end }}
+
+      {{- if env "EXTERNAL_DNS_ANNOTATION_FILTER" }}
+      annotationFilter: '{{ env "EXTERNAL_DNS_ANNOTATION_FILTER" }}'
+      {{- end }}
       ### Required: EXTERNAL_DNS_TXT_OWNER_ID; e.g. us-west-2.staging.cloudposse.org
       txtOwnerId: '{{ env "EXTERNAL_DNS_TXT_OWNER_ID" }}'
       ### Required: EXTERNAL_DNS_TXT_PREFIX; e.g. 11591833-F9CE-407C-8519-35A947DB1D87-
@@ -40,11 +56,11 @@ releases:
       ### Optional: EXTERNAL_DNS_POLICY Modify (options: sync, upsert-only )
       policy:  '{{ env "EXTERNAL_DNS_POLICY" | default "sync" }}'
       provider: '{{ env "EXTERNAL_DNS_PROVIDER" | default "aws" }}'
-{{ if env "EXTERNAL_DNS_PROVIDER" | default "aws" | eq "cloudflare" }}
+      {{- if env "EXTERNAL_DNS_PROVIDER" | default "aws" | eq "cloudflare" }}
       cloudflare:
         apiKey: '{{ env "EXTERNAL_DNS_CLOUDFLARE_API_KEY" }}'
         email: '{{ env "EXTERNAL_DNS_CLOUDFLARE_EMAIL" }}'
-{{ end }}
+      {{- end }}
 
       podAnnotations:
         cluster-autoscaler.kubernetes.io/safe-to-evict: "true"

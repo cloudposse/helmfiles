@@ -42,14 +42,17 @@ releases:
     vendor: "keycloak"
     default: "false"
   chart: "gabibbo97/keycloak-gatekeeper"
-  version: "1.2.1"
+  version: "3.3.1"
   wait: false
   installed: true
   values:
   - nameOverride: "key-gate-{{- $service.name }}"
     fullNameOverride: "key-gate-{{- $service.name }}"
     image:
-      tag: 6.0.1
+      {{- if (env "KEYCLOAK_GATEKEEPER_INGRESS_IMAGE_REPOSITORY") }}
+      repository: '{{ env "KEYCLOAK_GATEKEEPER_INGRESS_IMAGE_REPOSITORY" }}'
+      {{- end }}
+      tag: '{{ env "KEYCLOAK_GATEKEEPER_INGRESS_IMAGE_TAG" | default "9.0.3" }}'
       pullPolicy: "IfNotPresent"
     debug: {{ index $service "debug" | default "false" }}
     replicas: {{ index $service "replicas" | default 1 }}

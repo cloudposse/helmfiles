@@ -57,14 +57,17 @@ releases:
     vendor: "keycloak"
     default: "true"
   chart: "gabibbo97/keycloak-gatekeeper"
-  version: "1.2.1"
+  version: "3.3.1"
   wait: false
   installed: {{ env "OIDC_INGRESS_INSTALLED" | default "true" }}
   values:
   - nameOverride: "oidc-ingress"
     fullNameOverride: "oidc-ingress"
     image:
-      tag: 6.0.1
+      {{- if (env "OIDC_INGRESS_IMAGE_REPOSITORY") }}
+      repository: '{{ env "OIDC_INGRESS_IMAGE_REPOSITORY" }}'
+      {{- end }}
+      tag: '{{ env "OIDC_INGRESS_IMAGE_TAG" | default "9.0.3" }}'
       pullPolicy: "IfNotPresent"
     debug: {{ env "OIDC_INGRESS_DEBUG" | default "false" }}
     replicas: {{ env "OIDC_INGRESS_REPLICAS" | default 1 }}
@@ -302,7 +305,7 @@ releases:
   installed: {{ env "OIDC_INGRESS_FORECASTLE_INSTALLED" | default "true" }}
   values:
   - resources:
-    - apiVersion: extensions/v1beta1
+    - apiVersion: networking.k8s.io/v1beta1
       kind: Ingress
       metadata:
         annotations:
