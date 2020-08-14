@@ -34,7 +34,8 @@ releases:
   version: "0.2.0"
   wait: true
   # atomic is not widely supported yet, but when it is, we should use it
-  # atomic: true
+  atomic: true
+  cleanupOnFail: true
   installed: {{ env "TELEPORT_AUTH_INSTALLED" | default "true" }}
   values:
   ## Configuration to be copied into Teleport container
