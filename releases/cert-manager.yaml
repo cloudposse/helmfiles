@@ -108,7 +108,6 @@ releases:
   wait: true
   atomic: true
   cleanupOnFail: true
-  recreatePods: true
   installed: {{ env "CERT_MANAGER_INSTALLED" | default "true" }}
   values:
   - resources:
