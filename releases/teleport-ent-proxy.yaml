@@ -31,7 +31,8 @@ releases:
   chart: "cloudposse-incubator/teleport-ent-proxy"
   version: "0.4.0"
   wait: true
-  force: true
+  atomic: true
+  cleanupOnFail: true
   installed: {{ env "TELEPORT_PROXY_INSTALLED" | default "true" }}
   values:
   ## Configuration to be copied into Teleport container
