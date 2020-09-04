@@ -36,7 +36,7 @@ releases:
     version: "v1.0.54"
     wait: false
     installed: {{ env "FORECASTLE_INSTALLED" | default "true" }}
-    force: true
+    force: false
     # At some point we home Helmfile supports skipCrds
     # skipCrds: {{ env "FORECASTLE_CREATE_CRD" | default "true" }}
     values:
