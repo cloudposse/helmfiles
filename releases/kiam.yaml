@@ -1,7 +1,7 @@
 repositories:
-# Stable repo of official helm charts
-- name: "stable"
-  url: "https://kubernetes-charts.storage.googleapis.com"
+# Official kiam chart repository
+- name: "uswitch"
+  url: "https://uswitch.github.io/kiam-helm-charts/charts/"
   # Kubernetes incubator repo of helm charts
 - name: "kubernetes-incubator"
   url: "https://kubernetes-charts-incubator.storage.googleapis.com"
@@ -16,28 +16,30 @@ releases:
 ## kiam - AWS Assumed Roles for Pods #######################################
 ################################################################################
 #
-# This release REQUIRES that kiam support RollingUpdate wihtout a service outage, because we have enabled
+# This release REQUIRES that kiam support RollingUpdate without a service outage, because we have enabled
 # automatic rotation of the TLS secrets, and without RollingUpdate support that rotation will cause a service outage.
 #
-# Because kiam does not currently support RollingUpdate while also managing the iptable rule it requires
-# (see kiam issue 202 https://github.com/uswitch/kiam/issues/202 ), this release REQUIRES that you set up
-# the necessary iptable rule on every node using some other mechanism.
+# You need to decide on and implement a strategy for managing the iptables rules kiam needs.
+# See https://github.com/uswitch/kiam/tree/master/helm/kiam#key-configuration
+#
+# This release unconditionally sets iptablesRemoveOnShutdown: false and iptables: false
+#
 # Cloudposse currently installs this iptable via a kops cluster hook, but you are free to install it however you like.
 #
 # The required iptable rule is
 #    PREROUTING -d 169.254.169.254/32 -i $INTERFACE_NAME -p tcp -m tcp --dport 80 -j DNAT --to-destination $HOST_LOCAL_IP:8181
-# where $INTERFACE_NAME is the pod networking interface name and HOST_LOCAL_IP is the node's local IPv4 address.
+# where $INTERFACE_NAME is the pod networking interface name and $HOST_LOCAL_IP is the node's local IPv4 address.
 #
 # Cloudposse installs the iptable rule with this command ( cali+ because we are using calico networking)
 #   /bin/sh -c '/sbin/iptables -t nat -A PREROUTING -d 169.254.169.254/32 -i cali+ -p tcp -m tcp --dport 80 -j DNAT --to-destination $(curl -s http://169.254.169.254/latest/meta-data/local-ipv4):8181'
 #
-# If you not want automatic TLS certificates, automatic rotation of secrets, and RollingUpdate support because
-# you do not want to manage the iptable rule, you can use the repository version 0.24.0 of this chart at
-#   https://github.com/cloudposse/helmfiles/blob/0.24.0/releases/kiam.yaml
-# In that earlier version, kiam installs the iptable rule itself.
 #
 # This release REQUIRES that cert-manager is installed and available, as it uses it to provision the
 # TLS certificates that secure the communication between the kiam agents and servers.
+#
+# WARNING: At this time, this release uses the outdated `certmanager.k8s.io/v1alpha1` cert-manager API
+# and not the v1 `cert-manager.io/v1` API. This is to provide a migration path for upgrading `kiam` before
+# upgrading `cert-manager`
 #
 # This release OPTIONALLY uses stakater/reloader, if installed,
 # to automatically restart kiam pods when the TLS certificates change
@@ -51,7 +53,7 @@ releases:
     component: "iam"
     namespace: "kube-system"
     default: "true"
-  version: "0.1.0"
+  version: "0.2.3"
   wait: true
   force: true
   recreatePods: true
@@ -123,8 +125,8 @@ releases:
     namespace: "kube-system"
     vendor: "uswitch"
     default: "true"
-  chart: "stable/kiam"
-  version: "2.5.2"
+  chart: "uswitch/kiam"
+  version: "5.9.0"
   wait: true
   recreatePods: false
   installed: {{ env "KIAM_INSTALLED" | default "true" }}
@@ -154,12 +156,16 @@ releases:
           ### Optional: KIAM_SERVER_SERVICE_ACCOUNT_NAME;
           name: '{{ env "KIAM_SERVER_SERVICE_ACCOUNT_NAME" | default "" }}'
       agent:
+        # Use chart default version of image if not otherwise specified
+        {{- if (env "KIAM_IMAGE_TAG") }}
         image:
-          tag: "v3.6-rc1"
+          tag: {{ env "KIAM_IMAGE_TAG" | quote }}
+        {{- end }}
         gatewayTimeoutCreation: "5s"
         host:
           # IP tables must be set up on node independently of kiam in order to support rolling updates. See above.
           iptables: false
+          iptablesRemoveOnShutdown: false
           interface: "cali+"
         nodeSelector:
           kubernetes.io/role: "node"
@@ -178,8 +184,11 @@ releases:
           # in case you want to restrict access to one section of data.
           whitelist-route-regexp: '^/(latest/(meta-data|user-data|dynamic)|$)'
       server:
+        # Use chart default version of image if not otherwise specified
+        {{- if (env "KIAM_IMAGE_TAG") }}
         image:
-          tag: "v3.6-rc1"
+          tag: {{ env "KIAM_IMAGE_TAG" | quote }}
+        {{- end }}
         gatewayTimeoutCreation: "5s"
         sessionDuration: {{ env "KIAM_SERVER_SESSION_DURATION" | default "15m" }}
         nodeSelector:
@@ -189,15 +198,13 @@ releases:
             effect: "NoSchedule"
             operator: "Exists"
         extraEnv:
-          GRPC_GO_LOG_SEVERITY_LEVEL: '{{ env "GRPC_GO_LOG_SEVERITY_LEVEL" | default "info" }}'
-          GRPC_GO_LOG_VERBOSITY_LEVEL: '{{ env "GRPC_GO_LOG_VERBOSITY_LEVEL" | default "1" }}'
+        - name: GRPC_GO_LOG_SEVERITY_LEVEL
+          value: '{{ env "GRPC_GO_LOG_SEVERITY_LEVEL" | default "info" }}'
+        - name: GRPC_GO_LOG_VERBOSITY_LEVEL
+          value: '{{ env "GRPC_GO_LOG_VERBOSITY_LEVEL" | default "1" }}'
         extraArgs:
           session-refresh: {{ env "KIAM_SERVER_SESSION_REFRESH" | default "5m" }}
-        extraHostPathMounts:
-          - name: "ssl-certs"
-            mountPath: "/etc/ssl/certs"
-            hostPath: '{{ env "KIAM_HOST_CERT_PATH" | default "/etc/ssl/certs" }}'
-            readOnly: true
+        sslCertHostPath: '{{ env "KIAM_HOST_CERT_PATH" | default "/etc/ssl/certs" }}'
         tlsSecret: kiam-server-tls
         tlsCerts:
           certFileName: tls.crt
