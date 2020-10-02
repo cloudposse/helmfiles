@@ -25,7 +25,7 @@ releases:
     chart: "stable/datadog"
     version: '{ { env "DATADOG_CHART_VERSION" | default "2.3.42" } }'
     wait: true
-    timeout: { { env "DATADOG_APPLY_TIMEOUT" | default "1800" } }
+    timeout: { { env "DATADOG_APPLY_TIMEOUT" | default "180" } }
     atomic: true
     cleanupOnFail: true
     installed: { { env "DATADOG_INSTALLED" | default "true" } }
