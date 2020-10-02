@@ -56,3 +56,9 @@ releases:
               enabled: {{ env "DATADOG_CLUSTER_AGENT_CLUSTER_CHECKS_ENABLED" | default "true" }}
           collectEvents: {{ env "DATADOG_COLLECT_EVENTS_ENABLED" | default "true" }}
           leaderElection: {{ env "DATADOG_LEADER_ELECTION_ENABLED" | default "true" }}
+{{- if env "DATADOG_TAGS" }}
+          tags:
+{{- with env "DATADOG_TAGS" }}
+{{ toYaml . | indent 12 }}
+{{- end }}
+{{- end }}
