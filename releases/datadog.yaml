@@ -1,29 +1,25 @@
 repositories:
-  # Stable repo of official helm charts
-  - name: "stable"
-    url: "https://kubernetes-charts.storage.googleapis.com"
+  - name: "datadog"
+    url: "https://helm.datadoghq.com"
 
 releases:
 
-  #######################################################################################
-  ## datadog                                                                           ##
-  ## Datadog is a hosted infrastructure monitoring platform                            ##
-  #######################################################################################
-
-  # DataDog official chart
+  # Datadog is a hosted infrastructure monitoring platform
+  # https://github.com/DataDog/helm-charts
   # https://github.com/helm/charts/tree/master/stable/datadog
   # https://docs.datadoghq.com/agent/kubernetes/helm/
   # https://github.com/helm/charts/blob/master/stable/datadog/values.yaml
+
   - name: "datadog"
     namespace: "monitoring"
     labels:
       chart: "datadog"
-      repo: "stable"
+      repo: "datadog"
       component: "datadog"
       namespace: "monitoring"
       vendor: "datadog"
-    chart: "stable/datadog"
-    version: '{{ env "DATADOG_CHART_VERSION" | default "2.3.42" }}'
+    chart: "datadog/datadog"
+    version: '{{ env "DATADOG_CHART_VERSION" | default "2.4.24" }}'
     wait: true
     timeout: {{ env "DATADOG_APPLY_TIMEOUT" | default "180" }}
     atomic: true
