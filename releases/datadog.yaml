@@ -13,6 +13,7 @@ releases:
   # DataDog official chart
   # https://github.com/helm/charts/tree/master/stable/datadog
   # https://docs.datadoghq.com/agent/kubernetes/helm/
+  # https://github.com/helm/charts/blob/master/stable/datadog/values.yaml
   - name: "datadog"
     namespace: "monitoring"
     labels:
@@ -22,7 +23,7 @@ releases:
       namespace: "monitoring"
       vendor: "datadog"
     chart: "stable/datadog"
-    version: { { env "DATADOG_CHART_VERSION" | default "2.3.42" } }
+    version: '{ { env "DATADOG_CHART_VERSION" | default "2.3.42" } }'
     wait: true
     timeout: { { env "DATADOG_APPLY_TIMEOUT" | default "1800" } }
     atomic: true
@@ -31,9 +32,9 @@ releases:
     createNamespace: { { env "DATADOG_CREATE_NAMESPACE" | default "true" } }
     values:
       - datadog:
-          apiKey: { { env "DATADOG_API_KEY" } }
-          appKey: { { env "DATADOG_APP_KEY" } }
-          logLevel: { { env "DATADOG_LOG_LEVEL" | default "INFO" } }
+          apiKey: '{ { env "DATADOG_API_KEY" } }'
+          appKey: '{ { env "DATADOG_APP_KEY" } }'
+          logLevel: '{ { env "DATADOG_LOG_LEVEL" | default "INFO" } }'
           logs:
             enabled: { { env "DATADOG_LOGS_ENABLED" | default "false" } }
             containerCollectAll: { { env "DATADOG_LOGS_CONTAINER_COLLECT_ALL" | default "false" } }
@@ -41,7 +42,7 @@ releases:
             enabled: { { env "DATADOG_APM_ENABLED" | default "false" } }
           processAgent:
             enabled: { { env "DATADOG_PROCESS_AGENT_ENABLED" | default "false" } }
-            processCollection: { { env "DATADOG_PROCESS_AGENT_PROCESS_COLLECTION" | default "false" } }
+            processCollection: { { env "DATADOG_PROCESS_AGENT_PROCESS_COLLECTION_ENABLED" | default "false" } }
           systemProbe:
             enabled: { { env "DATADOG_SYSTEM_PROBE_ENABLED" | default "false" } }
           kubeStateMetricsEnabled: { { env "DATADOG_KUBE_STATE_METRICS_ENABLED" | default "true" } }
