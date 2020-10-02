@@ -32,6 +32,7 @@ releases:
     createNamespace: {{ env "DATADOG_CREATE_NAMESPACE" | default "true" }}
     values:
       - datadog:
+          clusterName: '{{ env "DATADOG_CLUSTER_NAME" }}'
           apiKey: '{{ env "DATADOG_API_KEY" }}'
           appKey: '{{ env "DATADOG_APP_KEY" }}'
           logLevel: '{{ env "DATADOG_LOG_LEVEL" | default "INFO" }}'
