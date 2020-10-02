@@ -6,9 +6,8 @@ releases:
 
   # Datadog is a hosted infrastructure monitoring platform
   # https://github.com/DataDog/helm-charts
-  # https://github.com/helm/charts/tree/master/stable/datadog
   # https://docs.datadoghq.com/agent/kubernetes/helm/
-  # https://github.com/helm/charts/blob/master/stable/datadog/values.yaml
+  # https://github.com/DataDog/helm-charts/blob/master/charts/datadog/values.yaml
 
   - name: "datadog"
     namespace: "monitoring"
