@@ -68,7 +68,7 @@ releases:
         env:
           NODE_OPTIONS: '--max-old-space-size={{ env "LIGHTHOUSE_CI_LIMITS_MEMORY" | default "512Mi" | regexFind "\\d*" }}'
 
-{{ $storage_dialect := ( env "LIGHTHOUSE_CI_DATABASE_TYPE" | default "sqlite" ) }}
+{{ $storage_dialect := env "LIGHTHOUSE_CI_DATABASE_TYPE" | default "sqlite" }}
 
       postgresql:
         enabled: {{ eq $storage_dialect "postgres" }}
@@ -87,7 +87,7 @@ releases:
           LHCI_STORAGE__SQL_CONNECTION_SSL: {{ env "LIGHTHOUSE_CI_DATABASE_CONNECTION_SSL" | default "false" | quote }}
 
       sqlite:
-        enabled: {{ eq $storage_dialect "sqlite" }}
+        enabled: {{ eq $storage_dialect "sqlite" | quote }}
         env:
           LHCI_STORAGE__STORAGE_METHOD: "sql"
           LHCI_STORAGE__STORAGE_DIALECT: {{ $storage_dialect | quote }}
