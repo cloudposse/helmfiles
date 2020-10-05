@@ -44,7 +44,9 @@ releases:
           maxUnavailable: 0
       revisionHistoryLimit: 10
       pod:
-        args: ["/usr/src/lhci/node_modules/.bin/lhci", "server"]
+        args:
+          - "/usr/src/lhci/node_modules/.bin/lhci"
+          - "server"
 
     service:
       enabled: true
