@@ -22,7 +22,7 @@ releases:
     vendor: "cloudposse"
     default: "false"
   chart: "cloudposse-incubator/monochart"
-  version: "0.10.0"
+  version: "0.24.0"
   wait: true
   installed: {{ env "LIGHTHOUSE_CI_INSTALLED" | default "true" }}
   values:
