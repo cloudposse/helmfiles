@@ -89,7 +89,7 @@ releases:
           LHCI_STORAGE__SQL_CONNECTION_SSL: {{ env "LIGHTHOUSE_CI_DATABASE_CONNECTION_SSL" | default "false" | quote }}
 
       sqlite:
-        enabled: {{ eq $storage_dialect "sqlite" | ternary "true" "false" | quote }}
+        enabled: {{ eq $storage_dialect "sqlite" | quote }}
         env:
           LHCI_STORAGE__STORAGE_METHOD: "sql"
           LHCI_STORAGE__STORAGE_DIALECT: {{ $storage_dialect | quote }}
