@@ -22,7 +22,7 @@ releases:
     vendor: "cloudposse"
     default: "false"
   chart: "cloudposse-incubator/monochart"
-  version: "0.10.0"
+  version: "0.24.0"
   wait: true
   installed: {{ env "LIGHTHOUSE_CI_INSTALLED" | default "true" }}
   values:
@@ -30,7 +30,7 @@ releases:
 
     image:
       repository: patrickhulce/lhci-server
-      tag: 0.3.7
+      tag: {{ env "LIGHTHOUSE_CI_TAG" | default "0.5.0" | quote }}
       pullPolicy: Always
 
     deployment:
@@ -43,14 +43,10 @@ releases:
           maxSurge: 1
           maxUnavailable: 0
       revisionHistoryLimit: 10
-
-    persistence:
-      enabled: true
-      storageName: storage
-      storageClass: {{ env "LIGHTHOUSE_CI_PERSISTENCE_STORAGE_CLASS" | default "default" }}
-      mountPath: /data
-      accessMode: ReadWriteOnce
-      size: {{ env "LIGHTHOUSE_CI_PERSISTENCE_SIZE" | default "8Gi" }}
+      pod:
+        args:
+          - "/usr/src/lhci/node_modules/.bin/lhci"
+          - "server"
 
     service:
       enabled: true
@@ -73,6 +69,40 @@ releases:
         enabled: true
         env:
           NODE_OPTIONS: '--max-old-space-size={{ env "LIGHTHOUSE_CI_LIMITS_MEMORY" | default "512Mi" | regexFind "\\d*" }}'
+
+{{ $storage_dialect := env "LIGHTHOUSE_CI_DATABASE_TYPE" | default "sqlite" }}
+
+      postgresql:
+        enabled: {{ eq $storage_dialect "postgres" }}
+        env:
+          LHCI_STORAGE__STORAGE_METHOD: "sql"
+          LHCI_STORAGE__STORAGE_DIALECT: {{ $storage_dialect | quote }}
+          LHCI_STORAGE__SQL_CONNECTION_URL: {{ env "LIGHTHOUSE_CI_DATABASE_CONNECTION_URL" | quote }}
+          LHCI_STORAGE__SQL_CONNECTION_SSL: {{ env "LIGHTHOUSE_CI_DATABASE_CONNECTION_SSL" | default "false" | quote }}
+
+      mysql:
+        enabled: {{ eq $storage_dialect "mysql" }}
+        env:
+          LHCI_STORAGE__STORAGE_METHOD: "sql"
+          LHCI_STORAGE__STORAGE_DIALECT: {{ $storage_dialect | quote }}
+          LHCI_STORAGE__SQL_CONNECTION_URL: {{ env "LIGHTHOUSE_CI_DATABASE_CONNECTION_URL" | quote }}
+          LHCI_STORAGE__SQL_CONNECTION_SSL: {{ env "LIGHTHOUSE_CI_DATABASE_CONNECTION_SSL" | default "false" | quote }}
+
+      sqlite:
+        enabled: {{ eq $storage_dialect "sqlite" | quote }}
+        env:
+          LHCI_STORAGE__STORAGE_METHOD: "sql"
+          LHCI_STORAGE__STORAGE_DIALECT: {{ $storage_dialect | quote }}
+          LHCI_STORAGE__SQL_DATABASE_PATH: "/data/lhci.db"
+
+    persistence:
+      enabled: {{ eq $storage_dialect "sqlite" }}
+      storageName: storage
+      storageClass: {{ env "LIGHTHOUSE_CI_PERSISTENCE_STORAGE_CLASS" | default "default" }}
+      mountPath: /data
+      accessMode: ReadWriteOnce
+      size: {{ env "LIGHTHOUSE_CI_PERSISTENCE_SIZE" | default "8Gi" }}
+
 
     ingress:
       default:
