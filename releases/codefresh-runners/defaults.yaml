@@ -1,0 +1,11 @@
+# These default values can be overridden per environment in conf/<env>.yaml files
+
+installed: true
+
+chart_version: "0.1.0"
+
+runners:
+    # This runner has no IAM access.
+    - default
+    # This runner has full IAM access to dev & sandbox accounts
+    - privileged

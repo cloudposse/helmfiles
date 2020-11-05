@@ -1,0 +1,38 @@
+# These default values can be overridden per environment in config/<env>.yaml files
+installed: false
+
+chart_version: "7.7.1"
+
+keycloak_version: "9.0.3"
+
+# IMPORTANT! Keycloak has a high-availability mode that is triggered when
+# replica_count > 1. You can not switch back and forth between the 2 modes
+# so you must keep replica_count > 1
+replica_count: 2
+
+keycloak_forecastle_expose: true
+
+limit_cpu: "1000m"
+
+limit_memory: "1024Mi"
+
+request_cpu: "50m"
+
+request_memory: "512Mi"
+
+ingress_enabled: true
+
+test_enabled: false
+
+proxy_address_forwarding: true
+
+keycloak_loglevel: "INFO"
+
+wildfly_loglevel: "INFO"
+
+forecastle_instance_name: "default"
+
+forecastle_group: "portal"
+
+deploy_postgres: false
+

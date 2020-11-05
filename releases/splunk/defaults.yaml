@@ -1,0 +1,5 @@
+installed: true
+
+chart_version: "1.4.3"
+
+installation_namespace: "logging"

@@ -1,0 +1,203 @@
+resources:
+
+###
+# Service Account - We need this so that we can write our Vault keys to SSM in post-install-init
+###
+- apiVersion: v1
+  kind: ServiceAccount
+  metadata:
+    name: vault-init
+    namespace: vault
+    annotations:
+      eks.amazonaws.com/role-arn: {{ printf "arn:aws:iam::%v:role/bd-%v-%v-eks-vault-init@vault" .Values.account_number .Values.environment .Values.stage | quote }}
+      helm.sh/hook: post-install
+      helm.sh/hook-weight: "-1"
+      helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
+
+###
+# Secrets (Required to create DB/schema)
+###
+{{- $pguser := fetchSecretValue "ref+awsssm://aurora_postgres/primary_aurora_postgres_master_username" }}
+{{- $pgpassword := fetchSecretValue "ref+awsssm://aurora_postgres/primary_aurora_postgres_master_password" }}
+{{- $pghost := fetchSecretValue "ref+awsssm://aurora_postgres/primary_aurora_postgres_master_hostname" }}
+{{- $pgport := fetchSecretValue "ref+awsssm://aurora_postgres/primary_aurora_postgres_master_port" }}
+- apiVersion: v1
+  kind: Secret
+  data:
+    PGUSER: {{ $pguser | b64enc}}
+    PGPASSWORD: {{ $pgpassword | b64enc}}
+    PGDATABASE: {{ .Values.database_name | b64enc }}
+    PGHOST: {{ $pghost | b64enc }}
+    PGPORT: {{ $pgport | b64enc }}
+    PGSSLMODE: {{ "require" | b64enc }}
+  metadata:
+    name: vault-init
+    namespace: vault
+    annotations:
+      helm.sh/hook: pre-install
+      helm.sh/hook-weight: "-1"
+      helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
+
+- apiVersion: v1
+  kind: Secret
+  data:
+    VAULT_OIDC_CLIENT_ID: {{ fetchSecretValue "ref+awsssm://vault/oidc-client-id" | b64enc }}
+    VAULT_OIDC_CLIENT_SECRET: {{ fetchSecretValue "ref+awsssm://vault/oidc-client-secret" | b64enc }}
+  metadata:
+    name: vault-init
+    namespace: vault
+    annotations:
+      helm.sh/hook: post-install
+      helm.sh/hook-weight: "-1"
+      helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
+
+      
+###
+# Pre/Post Install Init Scripts
+###
+- apiVersion: v1
+  kind: ConfigMap
+  metadata:
+    name: vault-init-scripts
+    annotations:
+      helm.sh/hook: pre-install
+      helm.sh/hook-weight: "-1"
+      helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
+  data:
+    schema.sql: |-
+{{ readFile "storage/schema.sql" | indent 6 }}
+    pre-install-init.sh: |-
+{{ readFile "scripts/pre-install-init.sh" | indent 6 }}
+
+- apiVersion: v1
+  kind: ConfigMap
+  metadata:
+    name: vault-init-scripts
+    annotations:
+      helm.sh/hook: post-install
+      helm.sh/hook-weight: "-1"
+      helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
+  data:
+    post-install-init.sh: |-
+{{ readFile "scripts/post-install-init.sh" | indent 6 }}
+    configure-auth.sh: |-
+{{ readFile "scripts/configure-auth.sh" | indent 6 }}
+
+
+###
+# Vault Policies
+###
+- apiVersion: v1
+  kind: ConfigMap
+  metadata:
+    name: vault-init-policies
+    annotations:
+      helm.sh/hook: post-install
+      helm.sh/hook-weight: "-1"
+      helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
+  data:
+    admin.hcl: |-
+{{ readFile "policies/admin.hcl" | indent 6 }}
+    editor.hcl: |-
+{{ readFile "policies/editor.hcl" | indent 6 }}
+    manager.hcl: |-
+{{ readFile "policies/manager.hcl" | indent 6 }}
+    noaccess.hcl: |-
+{{ readFile "policies/noaccess.hcl" | indent 6 }}
+    reader.hcl: |-
+{{ readFile "policies/reader.hcl" | indent 6 }}
+    writer.hcl: |-
+{{ readFile "policies/writer.hcl" | indent 6 }}
+
+
+###
+# Jobs
+###
+
+# Creates our Postgres database and schema, if necessary
+- apiVersion: batch/v1
+  kind: Job
+  metadata:
+    name: "vault-pre-install-init"
+    annotations:
+      helm.sh/hook: pre-install
+      helm.sh/hook-weight: "0"
+      helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
+  spec:
+    template:
+      spec:
+        containers:
+        - name: vault-init
+          image: cloudposse/vault-toolkit:0.2.1
+          command: [ "/vault/scripts/pre-install-init.sh" ]
+          envFrom:
+            - secretRef: 
+                name: vault-init
+          volumeMounts:
+            - name: storage
+              mountPath: /vault/scripts
+        volumes:
+          - name: storage
+            configMap:
+              name: vault-init-scripts
+              defaultMode: 0555
+        restartPolicy: Never
+    backoffLimit: 1
+
+# Initializes and configures Vault, OIDC, and KV.
+- apiVersion: batch/v1
+  kind: Job
+  metadata:
+    name: "vault-post-install-init"
+    annotations:
+      helm.sh/hook: post-install
+      helm.sh/hook-weight: "0"
+      helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
+  spec:
+    template:
+      spec:
+        serviceAccountName: vault-init
+        containers:
+        - name: vault-init
+          image: cloudposse/vault-toolkit:0.2.1
+          command: [ "/vault/scripts/post-install-init.sh" ]
+          env:
+            - name: VAULT_STAGE
+              value: {{ .Values.stage }}
+            - name: VAULT_ADDR
+              value: "http://vault:8200"
+            - name: SSM_KMS_KEY_ALIAS
+              value: "alias/aws/ssm"
+            - name: OIDC_DISCOVERY_URL
+              value: {{ .Values.oidc_discovery_url | quote }}
+            - name: ALLOWED_REDIRECT_URIS1
+              value: {{ printf "https://vault.%v.%v/ui/vault/auth/oidc/oidc/callback" .Values.stage .Values.root_domain | quote }}
+            - name: ALLOWED_REDIRECT_URIS2
+              value: {{ printf "https://vault.%v.%v/oidc/callback" .Values.stage .Values.root_domain | quote }}
+            - name: AWS_DEFAULT_REGION
+              value: {{ .Values.region | quote }}
+            - name: VAULT_OIDC_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: vault-init
+                  key: VAULT_OIDC_CLIENT_ID
+            - name: VAULT_OIDC_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: vault-init
+                  key: VAULT_OIDC_CLIENT_SECRET
+          volumeMounts:
+            - name: scripts
+              mountPath: /vault/scripts
+            - name: policies
+              mountPath: /vault/policies
+        volumes:
+          - name: scripts
+            configMap:
+              name: vault-init-scripts
+              defaultMode: 0555
+          - name: policies
+            configMap:
+              name: vault-init-policies
+        restartPolicy: Never
+    backoffLimit: 1

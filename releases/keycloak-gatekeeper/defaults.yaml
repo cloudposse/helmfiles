@@ -1,0 +1,24 @@
+# These default values can be overridden per environment in conf/<env>.yaml files
+
+chart_version: "3.2.0"
+
+raw_chart_version: "0.2.3"
+
+limit_cpu: "100m"
+
+limit_memory: "128Mi"
+
+request_cpu: "10m"
+
+request_memory: "15Mi"
+
+ingress_enabled: true
+
+tls_certificate_cluster_issuer: "letsencrypt-prod"
+
+optional_services: []
+
+# Simply removing a service from the list of optional services will not
+# cause it to be removed if was already installed. You must disable it
+# to remove it.
+disabled_services: []

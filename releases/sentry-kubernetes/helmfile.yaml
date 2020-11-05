@@ -1,0 +1,50 @@
+bases:
+  - ../helm-defaults.yaml
+  - ../environments.yaml
+---
+
+repositories:
+  - name: "kubernetes-incubator"
+    url: "https://kubernetes-charts-incubator.storage.googleapis.com"
+
+releases:
+  - name: "sentry-kubernetes"
+    labels:
+      chart: "sentry-kubernetes"
+      repo: "kubernetes-incubator"
+      component: "sentry-kubernetes"
+      vendor: "kubernetes-helm"
+    chart: "kubernetes-incubator/sentry-kubernetes"
+    version: {{ .Values.chart_version }}
+    force: true
+    wait: true
+    timeout: 600
+    installed: {{ .Values.installed }}
+    values:
+      - image:
+          repository: "getsentry/sentry-kubernetes"
+          tag: {{ .Values.image_tag | quote }}
+          pullPolicy: "Always"
+
+        sentry:
+          dsn: {{ .Values.dsn | quote }}
+          logLevel: {{ .Values.log_level | quote }}
+          environment: {{ .Values.environment | quote }}
+
+        serviceAccount:
+          create: {{ .Values.rbac_enabled | quote }}
+          name: {{ .Values.service_account_name | quote }}
+
+        rbac:
+          create: {{ .Values.rbac_enabled | quote }}
+
+        resources:
+          limits:
+            cpu: {{ .Values.limit_cpu | quote }}
+            memory: {{ .Values.limit_memory | quote }}
+          requests:
+            cpu: {{ .Values.request_cpu | quote }}
+            memory: {{ .Values.request_memory | quote }}
+
+        annotations:
+          cluster-autoscaler.kubernetes.io/safe-to-evict: "true"

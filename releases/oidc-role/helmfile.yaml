@@ -1,0 +1,111 @@
+bases:
+  - ../helm-defaults.yaml
+  - ../environments.yaml
+---
+
+repositories:
+# Kubernetes incubator repo of helm charts
+- name: "kubernetes-incubator"
+  url: "https://kubernetes-charts-incubator.storage.googleapis.com"
+
+releases:
+
+# oidc-role
+# This installs a cluster role binding intended to allow Kubernetes cluster
+# access, particularly to the Kubernetes Dashboard, via an OIDC role
+# https://github.com/helm/charts/tree/master/incubator/raw
+
+- name: 'oidc-role'
+  chart: "kubernetes-incubator/raw"
+  namespace: "kube-system"
+  version: {{ .Values.chart_version | quote }}
+  wait: true
+  timeout: 60
+  force: true
+  recreatePods: false
+  installed: {{ .Values.installed }}
+  values:
+    - resources:
+
+      - apiVersion: rbac.authorization.k8s.io/v1
+        kind: ClusterRoleBinding
+        metadata:
+          name: {{ .Values.root_crb_name | quote }}
+        roleRef:
+          apiGroup: rbac.authorization.k8s.io
+          kind: ClusterRole
+          name: {{ .Values.root_cluster_role | quote }}
+        subjects:
+        - apiGroup: rbac.authorization.k8s.io
+          kind: Group
+          name: {{ .Values.root_client_role | quote }}
+        - apiGroup: rbac.authorization.k8s.io
+          kind: User
+          name: {{ .Values.root_client_role | quote }}
+
+      - apiVersion: rbac.authorization.k8s.io/v1
+        kind: ClusterRoleBinding
+        metadata:
+          name: {{ .Values.power_user_crb_name | quote }}
+        roleRef:
+          apiGroup: rbac.authorization.k8s.io
+          kind: ClusterRole
+          name: {{ .Values.power_user_cluster_role | quote }}
+        subjects:
+        - apiGroup: rbac.authorization.k8s.io
+          kind: Group
+          name: {{ .Values.power_user_client_role | quote }}
+        - apiGroup: rbac.authorization.k8s.io
+          kind: User
+          name: {{ .Values.power_user_client_role | quote }}
+
+      - apiVersion: rbac.authorization.k8s.io/v1
+        kind: ClusterRoleBinding
+        metadata:
+          name: {{ .Values.observer_crb_name | quote }}
+        roleRef:
+          apiGroup: rbac.authorization.k8s.io
+          kind: ClusterRole
+          name: {{ .Values.observer_cluster_role | quote }}
+        subjects:
+        - apiGroup: rbac.authorization.k8s.io
+          kind: Group
+          name: {{ .Values.observer_client_role | quote }}
+        - apiGroup: rbac.authorization.k8s.io
+          kind: User
+          name: {{ .Values.observer_client_role | quote }}
+
+      - apiVersion: rbac.authorization.k8s.io/v1
+        kind: ClusterRole
+        metadata:
+          name: {{ .Values.observer_cluster_role | quote }}
+        aggregationRule:
+          clusterRoleSelectors:
+            - matchLabels:
+                rbac.authorization.k8s.io/aggregate-to-view: "true"
+            - matchLabels:
+                rbac.authorization.k8s.io/aggregate-to-observer: "true"
+
+      - apiVersion: rbac.authorization.k8s.io/v1
+        kind: ClusterRole
+        metadata:
+          name: "{{ .Values.observer_cluster_role }}-extra"
+          labels:
+            rbac.authorization.k8s.io/aggregate-to-observer: "true"
+        rules:
+        - apiGroups:
+            - ""
+          resources:
+            - secrets
+          verbs:
+            - list
+        - apiGroups:
+            - monitoring.coreos.com
+          resources:
+            - alertmanagers
+            - prometheuses
+            - servicemonitors
+            - prometheusrules
+          verbs:
+            - list
+            - get

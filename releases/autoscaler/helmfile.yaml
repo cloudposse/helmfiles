@@ -1,0 +1,67 @@
+bases:
+  - ../helm-defaults.yaml
+  - ../environments.yaml
+---
+
+repositories:
+# Official autoscaler chart rep
+- name: "autoscaler"
+  url: "https://kubernetes.github.io/autoscaler"
+
+releases:
+#  https://github.com/kubernetes/autoscaler/tree/master/charts/cluster-autoscaler-chart
+#  https://github.com/kubernetes/autoscaler/blob/master/charts/cluster-autoscaler-chart/values.yaml
+
+- name: "cluster-autoscaler"
+  namespace: "kube-system"
+  labels:
+    chart: "cluster-autoscaler"
+    repo: "autoscaler"
+    component: "autoscaler"
+    namespace: "kube-system"
+    vendor: "kubernetes"
+  chart: "autoscaler/cluster-autoscaler-chart"
+  version: {{ .Values.chart_version | quote }}
+  wait: true
+  timeout: 180
+  atomic: true
+  cleanupOnFail: true
+  installed: {{ .Values.installed }}
+  values:
+    - image:
+        {{- with index .Values "image_repository" }}
+        repository: {{ quote . }}
+        {{- end }}
+        {{- with index .Values "image_tag" }}
+        tag: {{ quote . }}
+        {{- end }}
+        pullPolicy: IfNotPresent
+      autoDiscovery:
+        clusterName: {{ printf .Values.cluster_name_format .Values.namespace .Values.environment .Values.stage | quote }}
+      awsRegion: {{ .Values.region }}
+      cloudProvider: {{ .Values.provider | quote }}
+      extraArgs:
+        skip-nodes-with-local-storage: false
+        skip-nodes-with-system-pods: false
+        balance-similar-node-groups: true
+      updateStrategy:
+        rollingUpdate:
+          maxSurge: 1
+          maxUnavailable: 0
+        type: RollingUpdate
+      rbac:
+        create: true
+        ## Service Account for pods
+        ## https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/
+        serviceAccount:
+          create: true
+          name: {{ .Values.service_account_name | quote }}
+          ## Annotations for the Service Account
+          {{- if .Values.provider | eq "aws" }}
+          annotations:
+            eks.amazonaws.com/role-arn: {{ printf "arn:aws:iam::%v:role/%v-%v-%v-eks-%v@kube-system" .Values.account_number .Values.namespace .Values.environment .Values.stage .Values.service_account_name | quote }}
+          {{- end }}
+        ## Podsecuritypolicy
+        pspEnabled: false
+      serviceMonitor:
+        enabled: {{ .Values.service_monitor_enabled }}

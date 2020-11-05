@@ -1,0 +1,64 @@
+bases:
+  - ../helm-defaults.yaml
+  - ../environments.yaml
+---
+
+repositories:
+  # Stable repo of official helm charts
+  - name: "stable"
+    url: "https://kubernetes-charts.storage.googleapis.com"
+
+releases:
+
+  # https://docs.aws.amazon.com/eks/latest/userguide/cluster-autoscaler.html
+  # https://github.com/helm/charts/tree/master/stable/cluster-autoscaler
+  # https://github.com/helm/charts/blob/master/stable/cluster-autoscaler/values.yaml
+  # https://github.com/kubernetes/autoscaler/tree/master/cluster-autoscaler
+
+  - name: "cluster-autoscaler"
+    namespace: "kube-system"
+    labels:
+      chart: "cluster-autoscaler"
+      repo: "stable"
+      component: "autoscaling"
+      namespace: "kube-system"
+      vendor: "kubernetes"
+    chart: "stable/cluster-autoscaler"
+    version: {{ .Values.chart_version | quote }}
+    wait: true
+    timeout: 180
+    installed: {{ .Values.installed }}
+    values:
+      - image:
+          repository: "{{ .Values.image_repository }}"
+          tag: "{{ .Values.image_tag }}"
+        autoDiscovery:
+          clusterName: {{ .Values.cluster_name | quote }}
+        cloudProvider: "aws"
+        awsRegion: {{ .Values.aws_region | quote }}
+        fullnameOverride: "cluster-autoscaler"
+        replicaCount: {{ .Values.replica_count }}
+        extraArgs:
+          # Only a few of the parameters described at https://github.com/kubernetes/autoscaler/blob/master/cluster-autoscaler/FAQ.md
+          # are supported by the chart. The rest need to be explicitly added.
+          # Also see https://docs.aws.amazon.com/eks/latest/userguide/cluster-autoscaler.html
+          balance-similar-node-groups: "true"
+          skip-nodes-with-system-pods: "false"
+        resources:
+          limits:
+            cpu: {{ .Values.limit_cpu | quote }}
+            memory: {{ .Values.limit_memory | quote }}
+          requests:
+            cpu: {{ .Values.request_cpu | quote }}
+            memory: {{ .Values.request_memory | quote }}
+        podAnnotations:
+          cluster-autoscaler.kubernetes.io/safe-to-evict: "false"
+        rbac:
+          create: {{ .Values.rbac_enabled }}
+          # https://kubernetes.io/docs/concepts/policy/pod-security-policy/
+          pspEnabled: {{ .Values.psp_enabled }}
+          serviceAccount:
+            create: {{ .Values.rbac_enabled }}
+            name: {{ .Values.service_account_name | quote }}
+          serviceAccountAnnotations:
+            eks.amazonaws.com/role-arn: {{ .Values.iam_role_arn | quote }}

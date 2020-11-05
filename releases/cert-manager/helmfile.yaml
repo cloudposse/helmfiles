@@ -1,0 +1,158 @@
+bases:
+  - ../helm-defaults.yaml
+  - ../environments.yaml
+---
+
+repositories:
+  # Add the Jetstack Helm repository
+  - name: jetstack
+    url: "https://charts.jetstack.io"
+    # Kubernetes incubator repo of helm charts
+  - name: "kubernetes-incubator"
+    url: "https://kubernetes-charts-incubator.storage.googleapis.com"
+
+releases:
+
+# cert-manager - Automatic Let's Encrypt for Ingress.
+# Also provides local CA for issuing locally valid TLS certificates.
+# https://hub.helm.sh/charts/jetstack/cert-manager
+# https://github.com/jetstack/cert-manager/blob/v0.16.1/deploy/charts/cert-manager/values.yaml
+# https://cert-manager.io/docs/installation/kubernetes/
+
+- name: "cert-manager"
+  namespace: "cert-manager"
+  labels:
+    chart: "cert-manager"
+    repo: "stable"
+    component: "cert-manager"
+    namespace: "cert-manager"
+    vendor: "jetstack"
+  chart: "jetstack/cert-manager"
+  version: {{ .Values.chart_version | quote }}
+  wait: true
+  timeout: 300
+  atomic: true
+  cleanupOnFail: true
+  createNamespace: true
+  installed: {{ .Values.installed }}
+  hooks:
+  - events: ["presync"]
+    showlogs: true
+    command: "./cert-manager-crd"
+    args:
+    - "upgrade"
+    - {{ .Values.chart_version | quote }}
+  - events: ["postsync"]
+    # Give cert-manager time to initialize itself
+    showlogs: true
+    command: "/bin/sleep"
+    args: ["15"]
+  - events: ["postuninstall"]
+    showlogs: true
+    command: "./cert-manager-crd"
+    args:
+    - "uninstall"
+    - {{ .Values.chart_version | quote }}
+  values:
+    - fullnameOverride: cert-manager
+      rbac:
+        create: true
+      # According to cert-manager docs, install_crds does not work with helm 3.3
+      installCRDs: false
+      ingressShim:
+        defaultIssuerName: {{ .Values.ingress_shim_default_issuer_name | quote }}
+        defaultIssuerKind: {{ .Values.ingress_shim_default_issuer_kind | quote }}
+        # defaultACMEChallengeType: ""
+        # defaultACMEDNS01ChallengeProvider: ""
+      serviceAccount:
+        create: true
+        name: "cert-manager"
+        # https://github.com/jetstack/cert-manager/blob/master/deploy/charts/cert-manager/templates/serviceaccount.yaml
+        annotations:
+          eks.amazonaws.com/role-arn: {{ printf "arn:aws:iam::%v:role/%v-%v-%v-eks-cert-manager" .Values.account_number .Values.namespace .Values.environment .Values.stage | quote }}
+      securityContext:
+        enabled: true
+        fsGroup: 1001
+        runAsGroup: 1001
+      prometheus:
+        enabled: {{ .Values.metrics_enabled }}
+        servicemonitor:
+          enabled: {{ .Values.metrics_enabled }}
+          prometheusInstance: default
+          targetPort: 9402
+          path: /metrics
+          interval: 60s
+          scrapeTimeout: 30s
+      webhook:
+        enabled: true
+      cainjector:
+        enabled: true
+      resources:
+        limits:
+          cpu: {{ .Values.limit_cpu | quote }}
+          memory: {{ .Values.limit_memory | quote }}
+        requests:
+          cpu: {{ .Values.request_cpu | quote }}
+          memory: {{ .Values.request_memory | quote }}
+
+- name: 'cert-manager-issuers'
+  needs: ['cert-manager/cert-manager']
+  chart: "kubernetes-incubator/raw"
+  namespace: "cert-manager"
+  labels:
+    component: "cert-manager"
+    namespace: "cert-manager"
+  version: {{ .Values.cert_manager_issuers_chart_version | quote }}
+  wait: true
+  timeout: 120
+  atomic: true
+  cleanupOnFail: true
+  installed: {{ .Values.installed }}
+  disableValidation: true
+  values:
+  - resources:
+    - apiVersion: cert-manager.io/v1
+      kind: ClusterIssuer
+      metadata:
+        name: letsencrypt-staging
+      spec:
+        acme:
+          # The ACME server URL
+          server: https://acme-staging-v02.api.letsencrypt.org/directory
+          # Email address used for ACME registration
+          email: {{ printf .Values.support_email_template .Values.stage | quote }}
+          # Name of a secret used to store the ACME account private key
+          privateKeySecretRef:
+            name: letsencrypt-staging
+          solvers:
+            #            # Enable the HTTP-01 challenge provider
+            #            - http01:
+            #                ingress:
+            #                  class: nginx
+            # Enable the DNS-01 challenge provider
+            - dns01:
+                route53:
+                  region: {{ .Values.dns_region | quote }}
+
+    - apiVersion: cert-manager.io/v1
+      kind: ClusterIssuer
+      metadata:
+        name: letsencrypt-prod
+      spec:
+        acme:
+          # The ACME server URL
+          server: https://acme-v02.api.letsencrypt.org/directory
+          # Email address used for ACME registration
+          email: {{ printf .Values.support_email_template .Values.stage | quote }}
+          # Name of a secret used to store the ACME account private key
+          privateKeySecretRef:
+            name: letsencrypt-prod
+          solvers:
+            #            # Enable the HTTP-01 challenge provider
+            #            - http01:
+            #                ingress:
+            #                  class: nginx
+            # Enable the DNS-01 challenge provider
+            - dns01:
+                route53:
+                  region: {{ .Values.dns_region | quote }}

@@ -1,0 +1,18 @@
+# These default values can be overridden per environment in config/<env>.yaml files
+
+chart_version: 1.0.3
+
+cluster_name_format: "%v-%v-%v-eks-cluster"
+
+# Omit image_repository to use the chart defaults.
+#
+#image_repository: us.gcr.io/k8s-artifacts-prod/autoscaling/cluster-autoscaler
+
+# Image tage needs to match major and minor Kubernetes version
+image_tag: v1.17.3
+
+provider: "aws"
+
+service_account_name: "autoscaler"
+
+service_monitor_enabled: false

@@ -1,0 +1,39 @@
+{{- $pguser := urlquery (fetchSecretValue "ref+awsssm://aurora_postgres/primary_aurora_postgres_master_username") }}
+{{- $pgpassword := urlquery (fetchSecretValue "ref+awsssm://aurora_postgres/primary_aurora_postgres_master_password") }}
+{{- $pghost := fetchSecretValue "ref+awsssm://aurora_postgres/primary_aurora_postgres_master_hostname" }}
+{{- $pgport := fetchSecretValue "ref+awsssm://aurora_postgres/primary_aurora_postgres_master_port" }}
+vault:
+  enabled: true
+  injector:
+    enabled: {{ .Values.vault.injector.enabled }}
+  server:
+    image:
+      tag: {{ .Values.vault.app_version | quote }}
+    serviceAccount:
+      annotations:
+        eks.amazonaws.com/role-arn: {{ printf "arn:aws:iam::%v:role/bd-%v-%v-eks-vault" .Values.account_number .Values.environment .Values.stage | quote }}
+    standalone:
+      enabled: false
+    ha:
+      enabled: {{ .Values.vault.server.ha.enabled }}
+      replicas: {{ .Values.vault.server.ha.replicas }}
+      raft:
+        enabled: false
+      config: |
+        ui = true
+        disable_mlock = true
+        listener "tcp" {
+          tls_disable = 1
+          address = "[::]:8200"
+          cluster_address = "[::]:8201"
+        }
+        storage "postgresql" {
+          connection_url = "{{ printf "postgres://%s:%s@%s:%s/%s?sslmode=require" $pguser $pgpassword $pghost $pgport .Values.database_name}}"
+          ha_enabled     = "true"
+        }
+        seal "awskms" {
+          region      = {{ .Values.region | quote }}
+          kms_key_id  = {{ printf "alias/bd-%v-%v-vault-awskms" .Values.environment .Values.stage | quote }}
+        }
+    extraEnvironmentVars:
+      AWS_ROLE_SESSION_NAME: "vault"

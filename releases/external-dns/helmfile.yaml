@@ -1,0 +1,77 @@
+bases:
+  - ../helm-defaults.yaml
+  - ../environments.yaml
+---
+
+repositories:
+# "Official(?)" version of chart is now maintained by Bitnami
+- name: "bitnami"
+  url: "https://charts.bitnami.com/bitnami"
+
+releases:
+#   - https://github.com/bitnami/charts/tree/master/bitnami/external-dns
+#   - https://github.com/bitnami/charts/blob/master/bitnami/external-dns/values-production.yaml
+#   - (obsolete) https://github.com/kubernetes/charts/blob/master/stable/external-dns
+- name: "external-dns"
+  namespace: "kube-system"
+  labels:
+    chart: "external-dns"
+    repo: "stable"
+    component: "dns"
+    namespace: "kube-system"
+    vendor: "kubernetes"
+  chart: "bitnami/external-dns"
+  version: {{ .Values.chart_version | quote }}
+  wait: true
+  timeout: 180
+  atomic: true
+  cleanupOnFail: true
+  installed: {{ .Values.installed }}
+  values:
+    - sources:
+      - service
+      - ingress
+      {{- /* We test for eq true (which may seem redundant) so that
+         we see an error when the value is a string instead of a bool,
+         otherwise "false" would evaluate as true. */ -}}
+      {{- if or (index .Values "istio_enabled") false | eq true }}
+      - istio-gateway
+      {{- end }}
+      {{- if .Values.crd_enabled | eq true }}
+      - crd
+      {{- end }}
+      txtOwnerId: {{ printf "%s-%s" .Values.txt_prefix  .Values.stage | quote }}
+      txtPrefix: {{ printf "%s-%s-" .Values.txt_prefix  .Values.stage | quote }}
+      publishInternalServices: {{ .Values.publishInternalServices }}
+      policy:  {{ .Values.policy | quote }}
+      provider: {{ .Values.provider | quote }}
+      podAnnotations:
+        cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
+      crd:
+        ## Install and use the integrated DNSEndpoint CRD
+        create: {{ .Values.crd_enabled }}
+      resources:
+        limits:
+          cpu: {{ .Values.limit_cpu | quote }}
+          memory: {{ .Values.limit_memory | quote }}
+        requests:
+          cpu: {{ .Values.request_cpu | quote }}
+          memory: {{ .Values.request_memory | quote }}
+      rbac:
+        create: {{ .Values.rbac_enabled }}
+        ## Service Account for pods
+        ## https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/
+        ## RBAC API version
+        apiVersion: v1
+        ## Podsecuritypolicy
+        pspEnabled: false
+      serviceAccount:
+        name: {{ .Values.service_account_name | quote }}
+        ## Annotations for the Service Account
+        {{- if .Values.provider | eq "aws" }}
+        annotations:
+          eks.amazonaws.com/role-arn: {{ printf "arn:aws:iam::%v:role/%v-%v-%v-eks-%v@kube-system" .Values.account_number .Values.namespace .Values.environment .Values.stage .Values.service_account_name | quote }}
+        {{- end }}
+      aws:
+        region: {{ .Values.region | quote }}
+        evaluateTargetHealth: false

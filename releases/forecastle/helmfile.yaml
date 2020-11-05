@@ -1,0 +1,69 @@
+bases:
+  - ../helm-defaults.yaml
+  - ../environments.yaml
+---
+
+repositories:
+  # Forecastle does not have a chart in a helm repo. Use plugin to pull the chart from GitHub repo
+  - name: "forecastle"
+    # Cannot use release tags, see https://github.com/aslafy-z/helm-git/issues/9
+    # url: "git+https://github.com/stakater/Forecastle@deployments/kubernetes/chart?ref=v1.0.22"
+    # v1.0.22: url: "git+https://github.com/stakater/Forecastle@deployments/kubernetes/chart?ref=8d6e5cd2dba3ad6c265ae94138c40276425b7634"
+    # v1.0.25 url: "git+https://github.com/stakater/Forecastle@deployments/kubernetes/chart?ref=8f36b82beaf2a1a42b364a3857bc83638c51e30b"
+    # v1.0.34 url: "git+https://github.com/stakater/Forecastle@deployments/kubernetes/chart?ref=19b369aa684152ad52c33d1935a74b0f425db2cb"
+    # v1.0.41 url: "git+https://github.com/stakater/Forecastle@deployments/kubernetes/chart?ref=a1fd9d959d7a35363e03678d74819cc6997a0614"
+    # v1.0.57 url: "git+https://github.com/stakater/Forecastle@deployments/kubernetes/chart?ref=582efcadab987b5e6dc196a3a03cf7ab9d81cfe1&sparse=0"
+    url: "git+https://github.com/stakater/Forecastle@deployments/kubernetes/chart?ref=582efcadab987b5e6dc196a3a03cf7ab9d81cfe1&sparse=0"
+
+releases:
+
+# forecastle
+# Forecastle is a dynamic web portal for Kubernetes services
+# https://github.com/stakater/Forecastle
+# https://github.com/stakater/Forecastle/tree/v1.0.41/deployments/kubernetes/chart/forecastle
+
+- name: "forecastle"
+  namespace: 'portal'
+  labels:
+    chart: "forecastle"
+    repo: "github"
+    component: "forecastle"
+    namespace: "portal"
+    vendor: "stakater"
+  chart: "forecastle/forecastle"
+  version: {{ .Values.chart_version | quote }}
+  wait: true
+  timeout: 180
+  installed: {{ .Values.installed }}
+  atomic: true
+  cleanupOnFail: true
+  createNamespace: true
+  values:
+    {{- if ne .Values.custom_apps ""}}
+    - {{ .Values.custom_apps }}
+    {{- end }}
+    - forecastle:
+        createCustomResource: {{ .Values.create_crd }}
+        image:
+          pullPolicy: IfNotPresent
+        namespace: "portal"
+        deployment:
+          annotations:
+            "app.kubernetes.io/configuration-checksum": {{ toJson .Values | sha256sum | trunc 48 | quote }}
+            "reloader.stakater.com/auto": "true"
+          replicas: {{ .Values.replica_count }}
+          revisionHistoryLimit: {{ .Values.revision_history_limit }}
+        service:
+          expose: "true"
+        config:
+          instanceName: {{ .Values.instance_name | quote }}
+          namespaceSelector:
+            {{- if gt (len .Values.namespaces) 0 }}
+            any: false
+            matchNames: {{ toYaml .Values.namespaces | nindent 14 }}
+            {{- else }}
+            any: true
+            # Need to override default value
+            matchNames: []
+            {{- end }}
+          title: {{ .Values.title | quote }}

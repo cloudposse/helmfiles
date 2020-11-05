@@ -1,0 +1,66 @@
+{{ $host := ternary .Values.host_override (printf "vault.%v.%v" .Values.stage .Values.root_domain) (ne .Values.host_override "") }}
+
+resources:
+
+- apiVersion: cert-manager.io/v1alpha2
+  kind: Certificate
+  metadata:
+    name: vault-gateway-cert
+    namespace: istio-system
+  spec:
+    secretName: vault-gateway-cert
+    issuerRef:
+      name: letsencrypt-prod
+      kind: ClusterIssuer
+    commonName: {{ $host }}
+    dnsNames:
+    - {{ $host }}
+
+- apiVersion: networking.istio.io/v1alpha3
+  kind: Gateway
+  metadata:
+    name: vault-gateway
+    namespace: vault
+  spec:
+    selector:
+      istio: ingressgateway
+    servers:
+      - hosts:
+        - {{ $host }}
+        port:
+          name: http
+          number: 80
+          protocol: HTTP
+        tls:
+          httpsRedirect: true
+      - hosts:
+        - {{ $host }}
+        port:
+          name: https
+          number: 443
+          protocol: HTTPS
+        tls:
+          mode: SIMPLE
+          credentialName: vault-gateway-cert
+
+- apiVersion: networking.istio.io/v1alpha3
+  kind: VirtualService
+  metadata:
+    name: vault
+    namespace: vault
+    labels:
+{{ .Values.vault_gateway.labels | toYaml | indent 6 }}
+  spec:
+    hosts:
+    -  {{ $host }}
+    gateways:
+    - vault-gateway
+    http:
+    - match:
+      - uri:
+          prefix: /
+      route:
+      - destination:
+          host: {{ .Values.vault_gateway.destination.host | required "vault_gateway.destination.host is required" }}
+          port:
+            number: {{ .Values.vault_gateway.destination.port | required "vault_gateway.destination.port is required" }}

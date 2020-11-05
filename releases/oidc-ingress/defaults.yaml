@@ -1,0 +1,39 @@
+# These default values can be overridden per environment in conf/<env>.yaml files
+
+gatekeeper_chart_version: "2.2.0"
+
+ingress_nginx_chart_version: "1.11.5"
+
+ingress_nginx_image_tag: "0.25.1"
+
+ingress_enabled: true
+
+ingress_debug: false
+
+ingress_replica_count: 1
+
+forecastle_replica_count: 2
+
+ingress_nginx_metrics_enabled: false
+
+ingress_deny_access_by_default: true
+
+ingress_rules: ["uri=/*|roles=user"]
+
+ingress_tls_enabled: true
+
+limit_cpu: "100m"
+
+limit_memory: "128Mi"
+
+request_cpu: "10m"
+
+request_memory: "15Mi"
+
+nginx_limit_cpu: "200m"
+
+nginx_limit_memory: "256Mi"
+
+nginx_request_cpu: "50m"
+
+nginx_request_memory: "128Mi"

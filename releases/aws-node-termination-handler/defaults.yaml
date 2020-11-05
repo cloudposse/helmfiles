@@ -1,0 +1,35 @@
+# These default values can be overridden per environment in config/<env>.yaml files
+
+chart_version: 0.9.5
+
+image_repository: "amazon/aws-node-termination-handler"
+
+image_tag: "v1.7.0"
+
+runAsUserID: 1000
+
+runAsGroupID: 1000
+
+priorityClassName: system-node-critical
+
+limit_cpu: "100m"
+
+limit_memory: "128Mi"
+
+request_cpu: "50m"
+
+request_memory: "64Mi"
+
+service_account_name: "aws-node-termination-handler"
+
+rbac_pspEnabled: true
+
+podMonitor_enabled: false
+
+podMonitor_scrape_interval: 30s
+
+podMonitor_sample_limit: 5000
+
+updateStrategy_type: RollingUpdate
+
+updateStrategy_rollingUpdate_maxUnavailable: 1

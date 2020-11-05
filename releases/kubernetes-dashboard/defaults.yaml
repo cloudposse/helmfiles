@@ -1,0 +1,39 @@
+# These default values can be overridden per environment in conf/<env>.yaml files
+
+chart_version: 1.10.1
+
+image_repository: "k8s.gcr.io/kubernetes-dashboard-amd64"
+
+image_tag: "v1.10.1"
+
+replica_count: 1
+
+limit_cpu: "200m"
+
+limit_memory: "256Mi"
+
+request_cpu: "100m"
+
+request_memory: "64Mi"
+
+rbac_enabled: true
+
+service_account_name: "kubernetes-dashboard"
+
+enable_skip_login: true
+
+enable_insecure_login: false
+
+ingress_enabled: false
+
+ingress_class: "nginx"
+
+ingress_host: ""
+
+ingress_use_kube_lego: false
+
+ingress_tls_enabled: false
+
+cluster_admin_role: true
+
+cluster_readonly_role: false

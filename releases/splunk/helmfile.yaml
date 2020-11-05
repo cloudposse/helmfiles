@@ -1,0 +1,37 @@
+bases:
+  - ../helm-defaults.yaml
+  - ../environments.yaml
+---
+
+releases:
+- name: "splunk"
+  namespace: {{ .Values.installation_namespace }}
+  labels:
+    chart: "splunk/splunk-connect-for-kubernetes"
+    repo: "splunk"
+    component: "splunk"
+    namespace: {{ .Values.installation_namespace }}
+    vendor: "splunk"
+  chart: "https://github.com/splunk/splunk-connect-for-kubernetes/releases/download/{{ .Values.chart_version }}/splunk-kubernetes-logging-{{ .Values.chart_version }}.tgz"
+  version: {{ .Values.chart_version | quote }}
+  wait: true
+  timeout: 180
+  installed: {{ .Values.installed }}
+  createNamespace: true
+  atomic: true
+  cleanupOnFail: true
+  values:
+  - logLevel: info
+    splunk:
+      hec:
+        # host is required and should be provided by user
+        host: {{ .Values.hec.host }}
+        # port to HEC, optional, default 8088
+        port: {{ .Values.hec.port }}
+        # token is required and should be provided by user
+        token: {{ fetchSecretValue "ref+awsssm://splunk/token" }}
+        # indexName tells which index to use, this is optional. If it's not present, will use "main".
+        indexName: {{ printf "%v-%v-%v-eks" .Values.namespace .Values.environment .Values.stage }}
+    kubernetes:
+      # The cluster name used to tag logs. Default is cluster_name
+      clusterName: {{ printf "%v-%v-%v-eks" .Values.namespace .Values.environment .Values.stage }}

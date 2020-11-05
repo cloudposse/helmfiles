@@ -1,0 +1,146 @@
+# These default values can be overridden per environment in conf/<env>.yaml files
+
+chart_version: "2.3.15"
+
+k8s_raw_chart_version: "0.2.3"
+
+
+## @param logLevel - string - required
+## Set logging verbosity, valid log levels are:
+## trace, debug, info, warn, error, critical, and off
+#
+logLevel: INFO
+
+## @param kubeStateMetricsEnabled - boolean - required
+## If true, deploys the kube-state-metrics deployment.
+## ref: https://github.com/kubernetes/charts/tree/master/stable/kube-state-metrics
+#
+kubeStateMetricsEnabled: true
+
+  ## @param clusterChecks - object - required
+  ## Enable the Cluster Checks feature on both the cluster-agents and the daemonset
+  ## ref: https://docs.datadoghq.com/agent/autodiscovery/clusterchecks/
+  ## Autodiscovery via Kube Service annotations is automatically enabled
+  #
+
+clusterChecksRunner:
+
+  ## @param enabled - boolean - required
+  ## If true, deploys agent dedicated for running the Cluster Checks instead of running in the Daemonset's agents.
+  ## ref: https://docs.datadoghq.com/agent/autodiscovery/clusterchecks/
+  #
+  enabled: false
+
+
+clusterChecks:
+  enabled: true
+
+## @param nodeLabelsAsTags - list of key:value strings - optional
+## Provide a mapping of Kubernetes Node Labels to Datadog Tags.
+#
+# nodeLabelsAsTags:
+#   beta.kubernetes.io/instance-type: aws-instance-type
+#   kubernetes.io/role: kube_role
+#   <KUBERNETES_NODE_LABEL>: <DATADOG_TAG_KEY>
+
+## @param podLabelsAsTags - list of key:value strings - optional
+## Provide a mapping of Kubernetes Labels to Datadog Tags.
+#
+# podLabelsAsTags:
+#   app: kube_app
+#   release: helm_release
+#   <KUBERNETES_LABEL>: <DATADOG_TAG_KEY>
+
+## @param podAnnotationsAsTags - list of key:value strings - optional
+## Provide a mapping of Kubernetes Annotations to Datadog Tags
+#
+# podAnnotationsAsTags:
+#   iam.amazonaws.com/role: kube_iamrole
+#   <KUBERNETES_ANNOTATIONS>: <DATADOG_TAG_KEY>
+
+## @param tags  - list of key:value elements - optional
+## List of tags to attach to every metric, event and service check collected by this Agent.
+##
+## Learn more about tagging: https://docs.datadoghq.com/tagging/
+#
+# tags:
+#   - <KEY_1>:<VALUE_1>
+#   - <KEY_2>:<VALUE_2>
+
+
+
+## @param logsEnabled - boolean - optional - default: false
+## Enables this to activate Datadog Agent log collection.
+## ref: https://docs.datadoghq.com/agent/basic_agent_usage/kubernetes/#log-collection-setup
+#
+logsEnabled: true
+
+
+## @param apm - object - required
+## Enable apm agent and provide custom configs
+#
+apm:
+  ## @param enabled - boolean - optional - default: false
+  ## Enable this to enable APM and tracing, on port 8126
+  ## ref: https://github.com/DataDog/docker-dd-agent#tracing-from-the-host
+  #
+  enabled: true
+
+
+## @param processAgent - object - required
+## Enable process agent and provide custom configs
+#
+processAgent:
+  ## @param enabled - boolean - required
+  ## Set this to true to enable live process monitoring agent
+  ## Note: /etc/passwd is automatically mounted to allow username resolution.
+  ## ref: https://docs.datadoghq.com/graphing/infrastructure/process/#kubernetes-daemonset
+  #
+  enabled: true
+
+
+## @param systemProbe - object - required
+## Enable systemProbe agent and provide custom configs
+#
+systemProbe:
+  ## @param enabled - boolean - required
+  ## Set this to true to enable system-probe agent
+  #
+  enabled: true
+
+
+
+## @param clusterAgent - object - required
+## This is the Datadog Cluster Agent implementation that handles cluster-wide
+## metrics more cleanly, separates concerns for better rbac, and implements
+## the external metrics API so you can autoscale HPAs based on datadog metrics
+## ref: https://docs.datadoghq.com/agent/kubernetes/cluster/
+#
+clusterAgent:
+
+  ## @param enabled - boolean - required
+  ## Set this to true to enable Datadog Cluster Agent
+  #
+  enabled: true
+
+  ## @param replicas - integer - required
+  ## Specify the of cluster agent replicas, if > 1 it allow the cluster agent to
+  ## work in HA mode.
+  #
+  replicas: 1
+
+## @param metricsProvider - object - required
+## Enable the metricsProvider to be able to scale based on metrics in Datadog
+#
+metricsProvider:
+  enabled: false
+
+apiKeySecret:
+  name: datadog-api-key
+  versionId:
+appKeySecret:
+  name: datadog-app-key
+  versionId:
+clusterTokenSecret:
+  name: datadog-cluster-token
+  versionId:

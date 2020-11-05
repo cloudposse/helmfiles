@@ -1,0 +1,21 @@
+# These default values can be overridden per environment in conf/<env>.yaml files
+
+chart_version: "0.2.3"
+
+root_crb_name: "oidc-root"
+
+root_cluster_role: "cluster-admin"
+
+root_client_role: "oidc:kube-admin"
+
+power_user_crb_name: "oidc-power-user"
+
+power_user_cluster_role: "edit"
+
+power_user_client_role: "oidc:power-user"
+
+observer_crb_name: "oidc-observer"
+
+observer_cluster_role: "oidc-observer"
+
+observer_client_role: "oidc:observer"

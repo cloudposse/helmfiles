@@ -1,0 +1,154 @@
+bases:
+  - ../helm-defaults.yaml
+  - ../environments.yaml
+---
+
+repositories:
+# Stable repo of official helm charts
+- name: "stable"
+  url: "https://kubernetes-charts.storage.googleapis.com"
+  # Cloud Posse incubator repo of helm charts
+- name: "cloudposse-incubator"
+  url: "https://charts.cloudposse.com/incubator/"
+
+releases:
+# https://github.com/helm/charts/blob/master/stable/nginx-ingress/values.yaml
+
+{{ $client_errors := .Values.custom_client_errors | default "403,404" | splitList "," }}
+{{ $server_errors := .Values.custom_server_errors | default "500,501,502,503,504" | splitList "," }}
+
+# The nignx-ingress expects the ingress-backend to already exist, so install the backend first
+- name: "ingress-backend"
+  namespace: "kube-system"
+  labels:
+    chart: "nginx-default-backend"
+    component: "ingress"
+    namespace: "kube-system"
+    vendor: "cloudposse"
+  chart: "cloudposse-incubator/nginx-default-backend"
+  version: {{ .Values.default_backend_chart_version | quote }}
+  wait: true
+  timeout: 300
+  installed: {{ .Values.default_backend_installed }}
+  values:
+    - nameOverride: default
+      replicaCount: {{ .Values.default_backend_replica_count }}
+      resources:
+        limits:
+          cpu: {{ .Values.default_backend_limit_cpu | quote }}
+          memory: {{ .Values.default_backend_limit_memory | quote }}
+        requests:
+          cpu: {{ .Values.default_backend_request_cpu | quote }}
+          memory: {{ .Values.default_backend_request_memory | quote }}
+      errors:
+        configmap: "default"
+        default:
+          email: {{ .Values.support_email | quote }}
+          site: /
+        client:
+{{- range $status := $client_errors  }}
+        - "{{ $status }}"
+{{- end }}
+        server:
+{{- range $status := $server_errors  }}
+        - "{{ $status }}"
+{{- end }}
+
+- name: "ingress"
+  namespace: "kube-system"
+  labels:
+    chart: "nginx-ingress"
+    repo: "stable"
+    component: "ingress"
+    namespace: "kube-system"
+    vendor: "kubernetes"
+  chart: "stable/nginx-ingress"
+  version: {{ .Values.chart_version | quote }}
+  wait: true
+  timeout: 300
+  installed: {{ .Values.installed }}
+  values:
+    - controller:
+        image:
+          repository: {{ .Values.image_repository | quote }}
+          tag: {{ .Values.image_tag | quote }}
+          pullPolicy: "IfNotPresent"
+        replicaCount: {{ .Values.replica_count }}
+        resources:
+          limits:
+            cpu: {{ .Values.limit_cpu | quote }}
+            memory: {{ .Values.limit_memory | quote }}
+          requests:
+            cpu: {{ .Values.request_cpu | quote }}
+            memory: {{ .Values.request_memory | quote }}
+        kind: {{ .Values.kind | quote }}
+        defaultBackendService: "kube-system/ingress-backend-default"
+        ingressClass: {{ .Values.ingress_class | quote }}
+        config:
+          custom-http-errors: '{{ join "," $client_errors }},{{ join "," $server_errors }}'
+          use-proxy-protocol: {{ .Values.use_proxy_protocol | quote }}
+        service:
+          externalTrafficPolicy: {{ .Values.external_traffic_policy | quote }}
+          annotations:
+            external-dns.alpha.kubernetes.io/hostname: {{ .Values.hostname | quote }}
+            external-dns.alpha.kubernetes.io/ttl: {{ .Values.ttl }}
+            ### Network Load Balancer to be able to get Client IP
+            {{- if eq .Values.nlb_enabled true }}
+            service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
+            {{- end }}
+            {{- if eq .Values.use_proxy_protocol true }}
+            service.beta.kubernetes.io/aws-load-balancer-proxy-protocol: "*"
+            {{- end }}
+        updateStrategy:
+          rollingUpdate:
+            maxUnavailable: 1
+          type: RollingUpdate
+
+        metrics:
+          enabled: {{ .Values.metrics_enabled }}
+
+          serviceMonitor:
+            enabled: {{ .Values.metrics_enabled }}
+            namespace: "kube-system"
+
+          {{- if eq .Values.prometheus_rule_enabled true }}
+          prometheusRule:
+            enabled: {{ .Values.prometheus_rule_enabled }}
+            rules:
+              - alert: NginxIngressControllerError
+                annotations:
+                  description: "Nginx ingress controller error"
+                  summary: NginxIngressControllerError
+                expr: nginx_ingress_controller_requests > {{ .Values.metrics_controller_error_alert }}
+                labels:
+                  severity: warning
+          {{- end }}
+
+      ### Regexp used to map
+      ### 8080:default/example-tcp-svc:9000,8081:staging/example-tcp-svc:9000
+      ### to
+      ### 8080: default/example-tcp-svc:9000
+      ### 8081: staging/example-tcp-svc:9000
+      ### Optional: NGINX_INGRESS_TCP; e.g. 8080:default/example-tcp-svc:9000,8081:staging/example-tcp-svc:9000
+      tcp:
+      {{- range .Values.ingress_tcp | splitList "," }}
+        {{ regexReplaceAll "(\\d*:)(.*)" . "$1 $2" }}
+      {{- end }}
+      ### Regexp used to map
+      ### 8080:default/example-udp-svc:9000,8081:staging/example-udp-svc:9000
+      ### to
+      ### 8080: default/example-udp-svc:9000
+      ### 8081: staging/example-udp-svc:9000
+      ### Optional: NGINX_INGRESS_UDP; e.g. 8080:default/example-udp-svc:9000,8081:staging/example-udp-svc:9000
+      udp:
+      {{- range .Values.ingress_udp | splitList "," }}
+        {{ regexReplaceAll "(\\d*:)(.*)" . "$1 $2" }}
+      {{- end }}
+
+      defaultBackend:
+        enabled: {{ eq .Values.default_backend_installed false }}
+      rbac:
+        create: {{ .Values.rbac_enabled }}
+      serviceAccount:
+        create: {{ .Values.rbac_enabled }}
+        name: {{ .Values.service_account_name | quote }}

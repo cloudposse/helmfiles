@@ -1,0 +1,62 @@
+bases:
+  - ../helm-defaults.yaml
+  - ../environments.yaml
+---
+
+repositories:
+# Cloud Posse incubator repo of helm charts
+- name: "cloudposse-incubator"
+  url: "https://charts.cloudposse.com/incubator/"
+
+releases:
+
+# https://codefresh.io/docs/docs/deploy-to-kubernetes/add-kubernetes-cluster/
+# https://github.com/cloudposse/charts/tree/master/incubator/codefresh-service-account
+# https://github.com/cloudposse/charts/pull/190
+
+- name: "codefresh-service-account"
+  namespace: "kube-system"
+  labels:
+    chart: "codefresh-service-account"
+    component: "codefresh"
+    namespace: "kube-system"
+    vendor: "cloudposse"
+  chart: "cloudposse-incubator/codefresh-service-account"
+  version: {{ .Values.chart_version | quote }}
+  wait: true
+  timeout: 60
+  installed: {{ .Values.installed }}
+  values:
+  - fullnameOverride: "codefresh-service-account"
+    annotations:
+      cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
+    clusterrole:
+      rules:
+        - apiGroups: ["batch"]
+          resources: ["jobs", "cronjobs"]
+          verbs: ["*"]
+        - apiGroups: [""]
+          resources: ["*"]
+          verbs: ["list", "watch", "get"]
+        - apiGroups: [""]
+          resources: ["pods"]
+          verbs: ["delete"]
+        - apiGroups: ["extensions", "apps"]
+          resources: ["deployments", "replicasets"]
+          verbs: ["*"]
+        - apiGroups: ["extensions"]
+          resources: ["ingresses"]
+          verbs: ["get", "list"]
+        - apiGroups: [""]
+          resources: ["namespaces"]
+{{ if eq .Values.unlimited_staging_enabled true }}
+          verbs: ["create", "get", "list", "update", "patch", "delete"]
+{{ else }}
+          verbs: ["get", "list", "update", "patch"]
+{{ end }}
+        - apiGroups: ["storage.k8s.io"]
+          resources: ["storageclasses"]
+          verbs: ["get", "list", "watch"]
+        - apiGroups: [""]
+          resources: ["pods/portforward"]
+          verbs: ["create"]

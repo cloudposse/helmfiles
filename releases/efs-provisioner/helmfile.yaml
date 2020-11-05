@@ -1,0 +1,66 @@
+bases:
+  - ../helm-defaults.yaml
+  - ../environments.yaml
+---
+
+repositories:
+# Stable repo of official helm charts
+- name: "stable"
+  url: "https://kubernetes-charts.storage.googleapis.com"
+
+releases:
+
+# https://hub.helm.sh/charts/stable/efs-provisioner
+# https://github.com/kubernetes-incubator/external-storage/tree/master/aws/efs
+
+# Note, the warning on startup "couldn't confirm that the EFS file system exists: AccessDeniedException..."
+# is not an error or a problem. See https://github.com/kubernetes-incubator/external-storage/issues/666#issuecomment-372788243
+- name: "efs-provisioner"
+  namespace: "kube-system"
+  labels:
+    chart: "efs-provisioner"
+    repo: "stable"
+    component: "efs"
+    namespace: "kube-system"
+    vendor: "kubernetes"
+  chart: "stable/efs-provisioner"
+  version: {{ .Values.chart_version | quote }}
+  wait: true
+  timeout: 180
+  atomic: true
+  cleanupOnFail: true
+  installed: {{ .Values.installed }}
+  values:
+    - global:
+        deployEnv: {{ .Values.stage | quote }}
+      image:
+        repository: {{ .Values.image_repository | quote }}
+        tag: {{ .Values.image_tag | quote }}
+        pullPolicy: "IfNotPresent"
+      resources:
+        limits:
+          cpu: {{ .Values.limit_cpu | quote }}
+          memory: {{ .Values.limit_memory | quote }}
+        requests:
+          cpu: {{ .Values.request_cpu | quote }}
+          memory: {{ .Values.request_memory | quote }}
+      rbac:
+        create: true
+      serviceAccount:
+        create: true
+        name: {{ .Values.service_account_name | quote }}
+      efsProvisioner:
+        dnsName: {{ .Values.efs_dns_name | quote }}
+        awsRegion: {{ .Values.aws_region | quote }}
+        path: {{ .Values.efs_pv_path | quote }}
+        provisionerName: {{ .Values.provisioner_name | quote }}
+        storageClass:
+          name: {{ .Values.storage_class_name | quote }}
+          isDefault: {{ .Values.storage_class_is_default }}
+          gidAllocate:
+            enabled: {{ .Values.storage_class_gid_allocate_enabled }}
+            gidMin: {{ .Values.storage_class_gid_allocate_git_min }}
+            gidMax: {{ .Values.storage_class_gid_allocate_git_max }}
+          reclaimPolicy: {{ .Values.storage_class_reclaim_policy | quote }}
+      podAnnotations:
+        "cluster-autoscaler.kubernetes.io/safe-to-evict": "true"
