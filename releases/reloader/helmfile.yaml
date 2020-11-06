@@ -1,7 +1,3 @@
-bases:
-  - ../environments.yaml
----
-
 repositories:
 - name: "stakater"
   url: "https://stakater.github.io/stakater-charts"

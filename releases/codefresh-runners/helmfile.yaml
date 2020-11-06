@@ -1,7 +1,3 @@
-bases:
-  - ../environments.yaml
----
-
 releases:
 {{- range $runner := .Values.runners }}
 - name: "runner-{{ $runner }}"

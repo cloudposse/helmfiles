@@ -1,9 +1,4 @@
-bases:
-  - ../environments.yaml
----
-
 repositories:
-# "Official(?)" version of chart is now maintained by Bitnami
 - name: "bitnami"
   url: "https://charts.bitnami.com/bitnami"
 
