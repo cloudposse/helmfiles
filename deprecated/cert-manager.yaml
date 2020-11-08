@@ -16,9 +16,9 @@ releases:
 
 #
 # References:
-# - https://github.com/jetstack/cert-manager/blob/v0.9.0/deploy/charts/cert-manager/values.yaml
+# - https://github.com/jetstack/cert-manager/blob/v1.0.4/deploy/charts/cert-manager/values.yaml
 # Instructions for installing and testing correct install are at
-# - https://docs.cert-manager.io/en/release-0.9/getting-started/install/kubernetes.html
+# - https://cert-manager.io/docs/installation/kubernetes/#installing-with-helm
 #
 - name: "cert-manager"
   namespace: "cert-manager"
@@ -30,31 +30,21 @@ releases:
     vendor: "jetstack"
     default: "false"
   chart: "jetstack/cert-manager"
-  version: "v0.9.0"
+  version: "{{ env "CERT_MANAGER_CHART_VERSION" | default "v1.0.4" }}"
   wait: true
   atomic: true
   cleanupOnFail: true
+  createNamespace: true
   installed: {{ env "CERT_MANAGER_INSTALLED" | default "true" }}
   hooks:
-    # This hoook adds the CRDs
-    - events: ["presync"]
-      showlogs: true
-      command: "/bin/sh"
-      args: ["-c", "kubectl apply -f https://raw.githubusercontent.com/jetstack/cert-manager/release-0.9/deploy/manifests/00-crds.yaml"]
-    # This hook adds the annotation that keeps the webhook from preventing its own installation
-    - events: ["presync"]
-      showlogs: true
-      command: "/bin/sh"
-      args:
-      - "-c"
-      - >-
-        kubectl get namespace "{{`{{ .Release.Namespace }}`}}" >/dev/null 2>&1 || kubectl create namespace "{{`{{ .Release.Namespace }}`}}";
-        kubectl label --overwrite namespace "{{`{{ .Release.Namespace }}`}}" "certmanager.k8s.io/disable-validation=true" ;
-        [[ "{{`{{ .Release.Namespace }}`}}" = "cert-manager" ]] && [[ -n "${CERT_MANAGER_IAM_ROLE}" ]]
-        && kubectl annotate namespace "{{`{{ .Release.Namespace }}`}}" "iam.amazonaws.com/permitted=${CERT_MANAGER_IAM_ROLE}"
-        || echo + Not annotating namespace "{{`{{ .Release.Namespace }}`}}" with "iam.amazonaws.com/permitted=${CERT_MANAGER_IAM_ROLE}"
+  - events: ["postsync"]
+    # Give cert-manager time to initialize itself
+    showlogs: true
+    command: "/bin/sleep"
+    args: ["15"]
   values:
     - fullnameOverride: cert-manager
+      installCRDs: true
       rbac:
         ### Optional: RBAC_ENABLED;
         create: {{ env "RBAC_ENABLED" | default "false" }}
@@ -67,20 +57,20 @@ releases:
         # defaultIssuerKind: ""
         # defaultACMEChallengeType: ""
         # defaultACMEDNS01ChallengeProvider: ""
-{{ if env "CERT_MANAGER_IAM_ROLE" | default "" }}
+      {{- if env "CERT_MANAGER_IAM_ROLE" | default "" }}
       podAnnotations:
         ### Required: EXTERNAL_DNS_IAM_ROLE; e.g. cp-staging-external-dns
         iam.amazonaws.com/role: '{{ env "CERT_MANAGER_IAM_ROLE" }}'
-{{ end }}
+      {{- end }}
       serviceAccount:
         ### Optional: RBAC_ENABLED;
         create: {{ env "RBAC_ENABLED" | default "false" }}
         ### Optional: CERT_MANAGER_SERVICE_ACCOUNT_NAME;
         name: '{{ env "CERT_MANAGER_SERVICE_ACCOUNT_NAME" | default "" }}'
       prometheus:
-        enabled: true
+        enabled: {{ env "CERT_MANAGER_METRICS_ENABLED" | default (env "METRICS_ENABLED") | default "false" }}
         servicemonitor:
-          enabled: true
+          enabled: {{ env "CERT_MANAGER_METRICS_ENABLED" | default (env "METRICS_ENABLED") | default "false" }}
           prometheusInstance: default
           targetPort: 9402
           path: /metrics
@@ -98,10 +88,11 @@ releases:
           cpu: "50m"
           memory: "128Mi"
 - name: 'cert-manager-issuers'
+  needs: ['cert-manager/cert-manager']
   chart: "kubernetes-incubator/raw"
   namespace: "cert-manager"
   labels:
-    component: "iam"
+    component: "cert-manager"
     namespace: "cert-manager"
     default: "true"
   version: "0.2.3"
@@ -109,9 +100,10 @@ releases:
   atomic: true
   cleanupOnFail: true
   installed: {{ env "CERT_MANAGER_INSTALLED" | default "true" }}
+  disableValidation: true
   values:
   - resources:
-    - apiVersion: certmanager.k8s.io/v1alpha1
+    - apiVersion: cert-manager.io/v1
       kind: ClusterIssuer
       metadata:
         name: letsencrypt-staging
@@ -125,16 +117,19 @@ releases:
           privateKeySecretRef:
             name: letsencrypt-staging
           solvers:
+            {{- if env "CERT_MANAGER_HTTP_SOLVER_ENABLED" | default "" }}
             # Enable the HTTP-01 challenge provider
             - http01:
                 ingress:
                   class: nginx
-{{- if env "CERT_MANAGER_IAM_ROLE" | default "" }}
+            {{- end }}
+            {{- if env "CERT_MANAGER_IAM_ROLE" | default "" }}
             # Enable the DNS-01 challenge provider
             - dns01:
-                route53: {}
-{{- end }}
-    - apiVersion: certmanager.k8s.io/v1alpha1
+                route53:
+                  region: {{ env "AWS_REGION" | default (env "AWS_DEFAULT_REGION") }}
+            {{- end }}
+    - apiVersion: cert-manager.io/v1
       kind: ClusterIssuer
       metadata:
         name: letsencrypt-prod
@@ -148,14 +143,16 @@ releases:
           privateKeySecretRef:
             name: letsencrypt-prod
           solvers:
+            {{- if env "CERT_MANAGER_HTTP_SOLVER_ENABLED" | default "" }}
             # Enable the HTTP-01 challenge provider
             - http01:
                 ingress:
                   class: nginx
-{{- if env "CERT_MANAGER_IAM_ROLE" | default "" }}
+            {{- end }}
+            {{- if env "CERT_MANAGER_IAM_ROLE" | default "" }}
             # Enable the DNS-01 challenge provider
             - dns01:
-                route53: {}
-{{- end }}
-
+                route53:
+                  region: {{ env "AWS_REGION" | default (env "AWS_DEFAULT_REGION") }}
+            {{- end }}
 

@@ -44,7 +44,7 @@ releases:
   chart: "gabibbo97/keycloak-gatekeeper"
   version: "3.3.1"
   wait: false
-  installed: true
+  installed: {{ not (index $service "uninstall") }}
   values:
   - nameOverride: "key-gate-{{- $service.name }}"
     fullNameOverride: "key-gate-{{- $service.name }}"
