@@ -4,7 +4,7 @@ repositories:
   url: "https://uswitch.github.io/kiam-helm-charts/charts/"
   # Kubernetes incubator repo of helm charts
 - name: "kubernetes-incubator"
-  url: "https://kubernetes-charts-incubator.storage.googleapis.com"
+  url: "https://charts.helm.sh/incubator"
 
   # Cloud Posse incubator repo of helm charts
 - name: "cloudposse-incubator"
@@ -34,12 +34,8 @@ releases:
 #   /bin/sh -c '/sbin/iptables -t nat -A PREROUTING -d 169.254.169.254/32 -i cali+ -p tcp -m tcp --dport 80 -j DNAT --to-destination $(curl -s http://169.254.169.254/latest/meta-data/local-ipv4):8181'
 #
 #
-# This release REQUIRES that cert-manager is installed and available, as it uses it to provision the
+# This release REQUIRES that cert-manager v1.x is installed and available, as it uses it to provision the
 # TLS certificates that secure the communication between the kiam agents and servers.
-#
-# WARNING: At this time, this release uses the outdated `certmanager.k8s.io/v1alpha1` cert-manager API
-# and not the v1 `cert-manager.io/v1` API. This is to provide a migration path for upgrading `kiam` before
-# upgrading `cert-manager`
 #
 # This release OPTIONALLY uses stakater/reloader, if installed,
 # to automatically restart kiam pods when the TLS certificates change
@@ -60,14 +56,14 @@ releases:
   installed: {{ env "KIAM_INSTALLED" | default "true" }}
   values:
     - resources:
-        - apiVersion: certmanager.k8s.io/v1alpha1
+        - apiVersion: cert-manager.io/v1
           kind: Issuer
           metadata:
             name: kiam-selfsigning-issuer
           spec:
             selfSigned: {}
 
-        - apiVersion: certmanager.k8s.io/v1alpha1
+        - apiVersion: cert-manager.io/v1
           kind: Certificate
           metadata:
             name: kiam-ca
@@ -78,7 +74,7 @@ releases:
             issuerRef:
               name: kiam-selfsigning-issuer
 
-        - apiVersion: certmanager.k8s.io/v1alpha1
+        - apiVersion: cert-manager.io/v1
           kind: Issuer
           metadata:
             name: kiam-ca-issuer
@@ -86,22 +82,30 @@ releases:
             ca:
               secretName: kiam-ca-tls
 
-        - apiVersion: certmanager.k8s.io/v1alpha1
+        - apiVersion: cert-manager.io/v1
           kind: Certificate
           metadata:
             name: kiam-agent
           spec:
             secretName: kiam-agent-tls
             commonName: agent
+            duration: 2160h # 90d
+            renewBefore: 360h # 15d
+            privateKey:
+              rotationPolicy: Always
             issuerRef:
               name: kiam-ca-issuer
 
-        - apiVersion: certmanager.k8s.io/v1alpha1
+        - apiVersion: cert-manager.io/v1
           kind: Certificate
           metadata:
             name: kiam-server
           spec:
             secretName: kiam-server-tls
+            duration: 2160h # 90d
+            renewBefore: 360h # 15d
+            privateKey:
+              rotationPolicy: Always
             issuerRef:
               name: kiam-ca-issuer
             dnsNames:
@@ -117,6 +121,7 @@ releases:
 # Here we deploy kiam itself
 # The release name must be "kiam" for chart to work properly with TLS/PKI certs
 - name: "kiam"
+  needs: ["kube-system/kiam-tls"]
   namespace: "kube-system"
   labels:
     chart: "kiam"

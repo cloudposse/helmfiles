@@ -1,7 +1,7 @@
 repositories:
-# Stable repo of official helm charts
-- name: "stable"
-  url: "https://kubernetes-charts.storage.googleapis.com"
+# Official Kubernetes Dashboard helm chart
+- name: "kubernetes-dashboard"
+  url: "https://kubernetes.github.io/dashboard/"
 
 releases:
 
@@ -13,7 +13,7 @@ releases:
 #
 # References:
 #   - https://github.com/kubernetes/dashboard
-#   - https://github.com/kubernetes/charts/tree/master/stable/kubernetes-dashboard
+#   - https://github.com/kubernetes/dashboard/tree/master/aio/deploy/helm-chart/kubernetes-dashboard
 #
 - name: "kubernetes-dashboard"
   namespace: '{{- env "KUBERNETES_DASHBOARD_NAMESPACE" | default "kube-system" -}}'
@@ -24,26 +24,35 @@ releases:
     namespace: "kube-system"
     vendor: "kubernetes"
     default: "true"
-  chart: "stable/kubernetes-dashboard"
-  version: "0.10.0"
+  chart: "kubernetes-dashboard/kubernetes-dashboard"
+  version: '{{ env "KUBERNETES_DASHBOARD_CHART_VERSION" | default "v2.8.2" }}'
   wait: true
+  atomic: true
+  cleanupOnFail: true
   installed: {{ env "KUBERNETES_DASHBOARD_INSTALLED" | default "true" }}
   values:
     - image:
-        repository: "k8s.gcr.io/kubernetes-dashboard-amd64"
-        ### Optional: KUBERNETES_DASHBOARD_IMAGE_TAG;
-        tag: '{{ env "KUBERNETES_DASHBOARD_IMAGE_TAG" | default "v1.10.0" }}'
+        repository: "kubernetesui/dashboard"
+        ### Optional: KUBERNETES_DASHBOARD_IMAGE_TAG; use chart default otherwise
+        {{- if (env "KUBERNETES_DASHBOARD_IMAGE_TAG") }}
+        tag: '{{ env "KUBERNETES_DASHBOARD_IMAGE_TAG" }}'
+        {{- end }}
         pullPolicy: "IfNotPresent"
-      enableInsecureLogin: {{ env "KUBERNETES_DASHBOARD_ENABLE_INSECURE_LOGIN" | default "false"}}
-{{- if eq (env "KUBERNETES_DASHBOARD_ENABLE_INSECURE_LOGIN" | default "false") "true" }}
+      {{- if eq (env "KUBERNETES_DASHBOARD_ENABLE_INSECURE_LOGIN" | default "false") "true" }}
       service:
         externalPort: 80
-{{- end }}
-{{- if eq (env "KUBERNETES_DASHBOARD_SKIP_LOGIN" | default "false") "true" }}
+      {{- end }}
       extraArgs:
+        {{- if eq (env "KUBERNETES_DASHBOARD_ENABLE_INSECURE_LOGIN" | default "false") "true" }}
+        - --enable-insecure-login
+        {{- end }}
+        {{- if eq (env "KUBERNETES_DASHBOARD_SKIP_LOGIN" | default "false") "true" }}
         - --enable-skip-login
-{{- end }}
+        {{- end }}
       replicaCount: '{{ env "KUBERNETES_DASHBOARD_REPLICA_COUNT" | default 1 }}'
+      podDisruptionBudget:
+        enabled: true
+        maxUnavailable: "60%"
       resources:
         limits:
           cpu: '{{ env "KUBERNETES_DASHBOARD_LIMIT_CPU" | default "100m" }}'
@@ -53,10 +62,10 @@ releases:
           memory: '{{ env "KUBERNETES_DASHBOARD_REQUEST_MEMORY" | default "50Mi" }}'
       rbac:
         ### Optional: RBAC_ENABLED;
-        create: {{ env "RBAC_ENABLED" | default "false" }}
+        create: {{ env "RBAC_ENABLED" | default "true" }}
       serviceAccount:
         ### Optional: RBAC_ENABLED;
-        create: {{ env "RBAC_ENABLED" | default "false" }}
+        create: {{ env "RBAC_ENABLED" | default "true" }}
         ### Optional: KUBERNETES_DASHBOARD_SERVICE_ACCOUNT_NAME;
         name: '{{ env "KUBERNETES_DASHBOARD_SERVICE_ACCOUNT_NAME" | default "" }}'
 
@@ -64,15 +73,15 @@ releases:
         enabled: {{ env "KUBERNETES_DASHBOARD_INGRESS_ENABLED" | default "false" }}
         annotations:
           kubernetes.io/ingress.class: {{ env "KUBERNETES_DASHBOARD_INGRESS_CLASS" | default "nginx" }}
-{{- if eq (env "KUBERNETES_DASHBOARD_ENABLE_INSECURE_LOGIN" | default "false") "false" }}
+          {{- if eq (env "KUBERNETES_DASHBOARD_ENABLE_INSECURE_LOGIN" | default "false") "false" }}
           nginx.ingress.kubernetes.io/secure-backends: "true"
-{{- end }}
-          kubernetes.io/tls-acme: '{{ env "KUBERNETES_DASHBOARD_INGRESS_USE_KUBE_LEGO" | default "false" }}'
+          {{- end }}
+          kubernetes.io/tls-acme: '{{ env "KUBERNETES_DASHBOARD_INGRESS_USE_TLS_ACME" | default (env "KUBERNETES_DASHBOARD_INGRESS_TLS_ENABLED" | default "false") }}'
         hosts:
         - {{ env "KUBERNETES_DASHBOARD_INGRESS_HOST" }}
-{{- if eq (env "KUBERNETES_DASHBOARD_INGRESS_TLS_ENABLED" | default "false") "true" }}
+        {{- if eq (env "KUBERNETES_DASHBOARD_INGRESS_TLS_ENABLED" | default "false") "true" }}
         tls:
         - secretName: kubernetes-dashboard-tls
           hosts:
           - {{ env "KUBERNETES_DASHBOARD_INGRESS_HOST" }}
-{{- end }}
+        {{- end }}
