@@ -1,10 +1,10 @@
 repositories:
   # Stable repo of official helm charts
   - name: "stable"
-    url: "https://kubernetes-charts.storage.googleapis.com"
+    url: "https://charts.helm.sh/stable"
   # Kubernetes incubator repo of helm charts
   - name: "kubernetes-incubator"
-    url: "https://kubernetes-charts-incubator.storage.googleapis.com"
+    url: "https://charts.helm.sh/incubator"
 
 releases:
 # Use Kubernetes "raw" chart to create aws-secret-operator secrets

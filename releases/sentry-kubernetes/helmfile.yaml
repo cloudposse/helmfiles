@@ -1,6 +1,6 @@
 repositories:
   - name: "kubernetes-incubator"
-    url: "https://kubernetes-charts-incubator.storage.googleapis.com"
+    url: "https://charts.helm.sh/incubator"
 
 releases:
   - name: "sentry-kubernetes"

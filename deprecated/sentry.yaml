@@ -1,7 +1,7 @@
 repositories:
   # Stable repo of official helm charts
   - name: "stable"
-    url: "https://kubernetes-charts.storage.googleapis.com"
+    url: "https://charts.helm.sh/stable"
   # Cloud Posse incubator repo of helm charts
   - name: "cloudposse-incubator"
     url: "https://charts.cloudposse.com/incubator/"

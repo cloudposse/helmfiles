@@ -4,7 +4,7 @@ repositories:
     url: "https://charts.jetstack.io"
     # Kubernetes incubator repo of helm charts
   - name: "kubernetes-incubator"
-    url: "https://kubernetes-charts-incubator.storage.googleapis.com"
+    url: "https://charts.helm.sh/incubator"
 
 releases:
 

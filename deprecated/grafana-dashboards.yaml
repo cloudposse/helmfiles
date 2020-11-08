@@ -1,7 +1,7 @@
 repositories:
   # Kubernetes incubator repo of helm charts
   - name: "kubernetes-incubator"
-    url: "https://kubernetes-charts-incubator.storage.googleapis.com"
+    url: "https://charts.helm.sh/incubator"
 
 ######
 # You need to create a grafana-dashboards-definitions.yaml file with an array of
