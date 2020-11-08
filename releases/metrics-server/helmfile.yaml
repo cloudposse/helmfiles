@@ -2,7 +2,7 @@ repositories:
 # Stable repo of official helm charts, deprecated, but no official replacement yet.
 # Possibly use https://charts.bitnami.com/bitnami but it is different chart
 - name: "stable"
-  url: "https://kubernetes-charts.storage.googleapis.com"
+  url: "https://charts.helm.sh/stable"
 
 releases:
 

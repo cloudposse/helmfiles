@@ -1,7 +1,7 @@
 repositories:
   # Repo of new Kubernetes charts in development
   - name: "kubernetes-incubator"
-    url: "https://kubernetes-charts-incubator.storage.googleapis.com"
+    url: "https://charts.helm.sh/incubator"
 
 releases:
 

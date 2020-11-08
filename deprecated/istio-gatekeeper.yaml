@@ -1,14 +1,14 @@
 repositories:
 # Repo of official, stable helm charts
 - name: "stable"
-  url: "https://kubernetes-charts.storage.googleapis.com"
+  url: "https://charts.helm.sh/stable"
 # keycloak-gatekeeper
 # No official chart, this user's chart seems to be the best there is
 - name: "gabibbo97"
   url: "https://gabibbo97.github.io/charts/"
 # Repo of new Kubernetes charts in development
 - name: "kubernetes-incubator"
-  url: "https://kubernetes-charts-incubator.storage.googleapis.com"
+  url: "https://charts.helm.sh/incubator"
 # Forecastle does not have a chart in a helm repo. Use plugin to pull the chart from GitHub repo
 - name: "forecastle"
   # Cannot use release tags, see https://github.com/aslafy-z/helm-git/issues/9

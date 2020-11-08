@@ -5,7 +5,7 @@ repositories:
   url: "https://gabibbo97.github.io/charts/"
 # Kubernetes incubator repo of helm charts
 - name: "kubernetes-incubator"
-  url: "https://kubernetes-charts-incubator.storage.googleapis.com"
+  url: "https://charts.helm.sh/incubator"
 
 releases:
 
