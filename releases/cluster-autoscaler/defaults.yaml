@@ -1,0 +1,24 @@
+# These default values can be overridden per environment in conf/<env>.yaml files
+installed: true
+
+chart_version: 7.3.1
+
+image_repository: us.gcr.io/k8s-artifacts-prod/autoscaling/cluster-autoscaler
+
+image_tag: v1.16.5
+
+replica_count: 1
+
+rbac_enabled: true
+
+psp_enabled: false
+
+service_account_name: "cluster-autoscaler"
+
+limit_cpu: "200m"
+
+limit_memory: "256Mi"
+
+request_cpu: "100m"
+
+request_memory: "128Mi"

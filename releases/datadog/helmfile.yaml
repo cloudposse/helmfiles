@@ -1,0 +1,97 @@
+repositories:
+  # Stable repo of official helm charts
+  - name: "stable"
+    url: "https://kubernetes-charts.storage.googleapis.com"
+  # Kubernetes incubator repo of helm charts
+  - name: "kubernetes-incubator"
+    url: "https://kubernetes-charts-incubator.storage.googleapis.com"
+
+releases:
+# Use Kubernetes "raw" chart to create aws-secret-operator secrets
+# https://github.com/helm/charts/tree/master/incubator/raw
+# https://github.com/mumoshu/aws-secret-operator
+
+- name: "datadog-secrets"
+  chart: "kubernetes-incubator/raw"
+  namespace: "monitoring"
+  version: {{ .Values.k8s_raw_chart_version | quote }}
+  wait: true
+  timeout: 60
+  installed: {{ .Values.installed }}
+  values:
+  - resources:
+    - apiVersion: mumoshu.github.io/v1alpha1
+      kind: AWSSecret
+      metadata:
+        name: {{ .Values.apiKeySecret.name }}
+      spec:
+        stringDataFrom:
+          secretsManagerSecretRef:
+            secretId: datadog/{{ .Values.apiKeySecret.name }}
+            versionId: {{ .Values.apiKeySecret.versionId }}
+    - apiVersion: mumoshu.github.io/v1alpha1
+      kind: AWSSecret
+      metadata:
+        name: {{ .Values.appKeySecret.name }}
+      spec:
+        stringDataFrom:
+          secretsManagerSecretRef:
+            secretId: datadog/{{ .Values.appKeySecret.name }}
+            versionId: {{ .Values.appKeySecret.versionId }}
+    - apiVersion: mumoshu.github.io/v1alpha1
+      kind: AWSSecret
+      metadata:
+        name: {{ .Values.clusterTokenSecret.name }}
+      spec:
+        stringDataFrom:
+          secretsManagerSecretRef:
+            secretId: datadog/{{ .Values.clusterTokenSecret.name }}
+            versionId: {{ .Values.clusterTokenSecret.versionId }}
+
+# DataDog official chart
+# https://github.com/helm/charts/tree/master/stable/datadog
+# https://docs.datadoghq.com/agent/kubernetes/helm/
+
+- name: "datadog"
+  namespace: 'monitoring'
+  labels:
+    chart: "datadog"
+    repo: "stable"
+    component: "datadog"
+    namespace: "monitoring"
+    vendor: "datadog"
+  chart: "stable/datadog"
+  version: {{ .Values.chart_version | quote }}
+  wait: true
+  timeout: 180
+  installed: {{ .Values.installed }}
+  hooks:
+    - events: ["presync"]
+      showlogs: true
+      command: "/bin/sh"
+      args:
+        - "-c"
+        - >-
+          kubectl get namespace "{{`{{ .Release.Namespace }}`}}" >/dev/null 2>&1 || kubectl create namespace "{{`{{ .Release.Namespace }}`}}";
+  values:
+  - datadog:
+      apiKeyExistingSecret: {{ .Values.apiKeySecret.name }}
+      appKeyExistingSecret: {{ .Values.appKeySecret.name }}
+      logLevel: {{ .Values.logLevel }}
+      logs:
+        enabled: {{ .Values.logsEnabled }}
+        containerCollectAll: {{ .Values.logsEnabled }}
+      apm:
+        enabled: {{ .Values.apm.enabled }}
+      processAgent:
+        enabled: {{ .Values.processAgent.enabled }}
+        processCollection: {{ .Values.processAgent.enabled }}
+      systemProbe:
+        enabled: {{ .Values.systemProbe.enabled }}
+      clusterAgent:
+        enabled: {{ .Values.clusterAgent.enabled }}
+        tokenExistingSecret: {{ .Values.clusterTokenSecret.name }}
+        metricsProvider:
+          enabled: {{ .Values.metricsProvider.enabled }}
+        clusterChecks:
+          enabled: {{ .Values.clusterChecks.enabled }}

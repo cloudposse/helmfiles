@@ -1,0 +1,200 @@
+repositories:
+# No official chart for Keycloak Gateeper
+# This chart seems to be the best there is
+- name: "gabibbo97"
+  url: "https://gabibbo97.github.io/charts/"
+# Kubernetes incubator repo of helm charts
+- name: "kubernetes-incubator"
+  url: "https://kubernetes-charts-incubator.storage.googleapis.com"
+
+releases:
+
+# keycloak-gatekeeper (formerly keycloak-proxy)
+# keycloak-gatekeeper is an open source identity-aware proxy
+# https://github.com/gabibbo97/charts/tree/master/charts/keycloak-gatekeeper
+# https://hub.helm.sh/charts/gabibbo97/keycloak-gatekeeper
+# https://www.keycloak.org
+# The list of configuration options:
+# https://github.com/keycloak/keycloak-gatekeeper/blob/82b697421e8dc2e32d70cf227620fa4cb6000ae8/doc.go#L155
+# The default values
+# https://github.com/keycloak/keycloak-gatekeeper/blob/82b697421e8dc2e32d70cf227620fa4cb6000ae8/config.go#L36
+
+{{ range $index, $service := .Values.services }}
+{{- $serviceName := print "key-gate-" $service.name }}
+{{- $releaseNamespace := "portal" }}
+{{- if or (index $service "default") (has $service.name $.Values.optional_services) -}}
+- name: "{{ $serviceName }}"
+  namespace: {{ $releaseNamespace }}
+  labels:
+    chart: "keycloak-gatekeeper"
+    repo: "gabibbo97"
+    component: "iap"
+    namespace: {{ $releaseNamespace }}
+    vendor: "keycloak"
+  chart: "gabibbo97/keycloak-gatekeeper"
+  version: {{ $.Values.chart_version | quote }}
+  wait: true
+  timeout: 120
+  installed:  {{ and $.Values.installed (not (has $service.name $.Values.disabled_services)) }}
+  createNamespace: true
+  atomic: true
+  cleanupOnFail: true
+  values:
+  - nameOverride: "key-gate-{{- $service.name }}"
+    fullNameOverride: "key-gate-{{- $service.name }}"
+    image:
+      pullPolicy: "IfNotPresent"
+    debug: {{ index $service "debug" | default "false" }}
+    replicas: {{ index $service "replicas" | default 1 }}
+    logging: {{ index $service "debug" | default "false" }}
+    sessionCookies: false
+    droolsPolicyEnabled: false
+    # This is a little convoluted because we want defaultDeny to be true by default, but
+    # the "default" operator will convert false to the default, so we use yes/no instead
+    # and use a different name to avoid confusion with the boolean argument.
+    # We also want misspellings and other invalid values to set defaultDeny true,
+    # so we test for "not yes".
+    defaultDeny: {{ not (eq "yes" (index $service "allowAll" | default "no")) }}
+    {{- if index $service "podAnnotations" }}
+    podAnnotations:
+      {{- with $service.podAnnotations }}
+      {{- toYaml . | nindent 6 }}
+      {{- end }}
+    {{- end }}
+    ingress:
+      enabled: {{ $.Values.ingress_enabled }}
+      annotations:
+        kubernetes.io/ingress.class: nginx
+        nginx.ingress.kubernetes.io/proxy-buffer-size: "16k"
+        {{- if index $service "proxyTimeout" }}
+        nginx.ingress.kubernetes.io/proxy-connect-timeout: "{{- $service.proxyTimeout -}}"
+        nginx.ingress.kubernetes.io/proxy-read-timeout: "{{- $service.proxyTimeout -}}"
+        nginx.ingress.kubernetes.io/proxy-send-timeout: "{{- $service.proxyTimeout -}}"
+        {{- end }}
+        {{- if index $service "stickySessions" }}
+        nginx.ingress.kubernetes.io/affinity: cookie
+        nginx.ingress.kubernetes.io/session-cookie-change-on-failure: "true"
+        {{- end }}
+        {{- if (index $service "useTLS" | default false) }}
+          {{- if (index $.Values "tls_certificate_cluster_issuer") }}
+        cert-manager.io/cluster-issuer: {{ $.Values.tls_certificate_cluster_issuer | quote }}
+          {{- else }}
+        kubernetes.io/tls-acme: "true"
+          {{- end }}
+        {{- else }}
+        kubernetes.io/tls-acme: "false"
+        {{- end }}
+        external-dns.alpha.kubernetes.io/target: {{ coalesce (index $.Values "nginx_ingress_hostname") (printf (printf "ingress.%v" $.Values.base_domain_name_format) $.Values.stage $.Values.environment) | quote }}
+        external-dns.alpha.kubernetes.io/ttl: "60"
+        {{- if or (index $service "portalName") (index $service "portalNameFormat")  }}
+        forecastle.stakater.com/expose: "true"
+        forecastle.stakater.com/appName: "{{ coalesce (index $service "portalName") (printf (index $service "portalNameFormat" | default "%s") (index $.Values "cluster_title" | default $service.name)) }}"
+        {{- end }}
+        {{- if index $service "portalIcon" }}
+        forecastle.stakater.com/icon: "{{ $service.portalIcon }}"
+        {{- end }}
+        {{- if index $service "portalURL" }}
+        forecastle.stakater.com/url: "{{ $service.portalURL }}"
+        {{- end }}
+        {{- if index $service "forecastleInstanceName"  }}
+        forecastle.stakater.com/instance: "{{ $service.forecastleInstanceName }}"
+        {{- end }}
+        {{- if index $service "forecastleGroupName"  }}
+        forecastle.stakater.com/group: "{{ $service.forecastleGroupName }}"
+        {{- end }}
+        {{- if index $service "ingressAnnotations" }}
+        {{- with $service.ingressAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- end }}
+      {{- $host := coalesce (index $service "host") (printf (default "%s" (index $service "hostFormat")) (printf $.Values.base_domain_name_format $.Values.stage $.Values.environment)) }}
+      hosts: ["{{- $host -}}"]
+      {{- if (index $service "useTLS" | default false) }}
+      tls:
+        - secretName: "key-gate-{{- $service.name }}-tls"
+          hosts: ["{{- $host -}}"]
+      {{- end }}
+    discoveryURL: {{ $.Values.discovery_url | quote }}
+    upstreamURL: '{{- or (index $service "upstream") (printf (index $service "upstreamFormat" | default "%v") (fetchSecretValue (index $service "upstreamSecret" | default "ref+echo://disabled"))) }}'
+    # Once we find an adequate sidecar proxy, this will allow us to configure it.
+    # At the moment, awsSigning has no effect
+    {{- if index $service "awsSigning" }}
+    awsSigning:
+    {{- range $key, $value := $service.awsSigning }}
+      {{ $key }}: {{ $value }}
+    {{- end }}
+    {{- end }}
+    skipUpstreamTlsVerify: {{ index $service "skipUpstreamTlsVerify" | default "false" }}
+    ClientID: ref+awsssm://keycloak/cluster_client/name?region={{ $.Values.region }}
+    ClientSecret:  ref+awsssm:///keycloak/cluster_client/secret?region={{ $.Values.region }}
+    # ClientSecret is not needed for PUBLIC clients, but the chart complains without one
+    # ClientSecret: "10000000-0000-0000-0000-000000000001"
+    # If encryption key is not provided, one will be generated, but it will change on each install
+    # Should be 16 or 32 ASCII characters for for AES-128/AES-256
+    encryptionKey: ref+awsssm://helmfiles/keycloak-gatekeeper/keycloak_gatekeeper_encryption_key?region={{ $.Values.region }}
+    {{- with index $service "extraScopes" }}
+    # We used to explicitly request the "roles" scope but Keycloak adds it by default
+    # Realm roles are available in the auth token as realm_access.roles
+    scopes:
+      {{- range $i, $arg := . }}
+      - {{ $arg }}
+      {{- end }}
+    {{- end }}
+    rules:
+      # See https://github.com/gabibbo97/charts/tree/master/charts/keycloak-gatekeeper#fine-grained-rules-for-authentication
+      # URI pattern is absolute path, either an exact match (like "/login"), or a prefix with trailing * (like "/api/*")
+      # To restrict to having any one of a set of roles:  uri=pattern|roles=role1,role2|require-any-role=true
+      # To whitelist: uri=pattern|white-listed=true
+      {{- range $i, $rule := $service.rules }}
+      - "{{ $rule }}"
+      {{- end }}
+    extraArgs:
+      # proxyTimeout must be in seconds to work with nginx,
+      # but gatekeeper wants a Golang Duration, so tack on "s"
+      {{- if index $service "proxyTimeout" }}
+      - upstream-timeout={{- $service.proxyTimeout -}}s
+      - server-read-timeout={{- $service.proxyTimeout -}}s
+      - server-write-timeout={{- $service.proxyTimeout -}}s
+      - upstream-expect-continue-timeout={{- $service.proxyTimeout -}}s
+      - upstream-response-header-timeout={{- $service.proxyTimeout -}}s
+      {{- end }}
+      {{- if index $service "extraArgs" }}
+      {{- range $i, $arg := $service.extraArgs }}
+      - {{ $arg }}
+      {{- end }}
+      {{- end }}
+    {{- if index $service "serviceAccountAuthEnabled" }}
+      - enable-token-header=false
+      - enable-authorization-header=false
+      - enable-authorization-cookies=false
+      - 'headers=Authorization=Bearer $(LOGIN_TOKEN)'
+    extraEnvs:
+      - name: LOGIN_TOKEN
+        valueFrom:
+          secretKeyRef:
+            name: "key-gate-{{- $service.name }}-login"
+            key: token
+    {{- end }}
+    rbac:
+      create: true
+    serviceAccount:
+      create: true
+      name: "key-gate-{{- $service.name }}"
+    livenessProbe:
+      initialDelaySeconds: 10
+      periodSeconds: 30
+      timeoutSeconds: 1
+      failureThreshold: 5
+    readinessProbe:
+      initialDelaySeconds: 10
+      periodSeconds: 30
+      timeoutSeconds: 1
+    resources:
+      limits:
+        cpu: {{ $.Values.limit_cpu | quote }}
+        memory: {{ $.Values.limit_memory | quote }}
+      requests:
+        cpu: {{ $.Values.request_cpu | quote }}
+        memory: {{ $.Values.request_memory | quote }}
+{{ end }}
+{{- end }}

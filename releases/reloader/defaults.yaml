@@ -1,0 +1,15 @@
+# These default values can be overridden per environment in config/<env>.yaml files
+
+chart_version: "v0.0.68"
+
+limit_cpu: "20m"
+
+limit_memory: "128Mi"
+
+rbac_enabled: true
+
+request_cpu: "10m"
+
+request_memory: "64Mi"
+
+service_account_name: "reloader"

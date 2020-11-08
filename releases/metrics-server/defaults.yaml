@@ -1,0 +1,17 @@
+# These default values can be overridden per environment in /config/<env>.yaml files
+
+chart_version: 2.11.2
+
+image_repository: "k8s.gcr.io/metrics-server/metrics-server"
+
+image_tag: "v0.3.7"
+
+limit_cpu: "200m"
+
+limit_memory: "256Mi"
+
+request_cpu: "100m"
+
+request_memory: "128Mi"
+
+service_account_name: "metrics-server"

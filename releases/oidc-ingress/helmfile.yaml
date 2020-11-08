@@ -1,0 +1,330 @@
+repositories:
+# Repo of official, stable helm charts
+- name: "stable"
+  url: "https://kubernetes-charts.storage.googleapis.com"
+# keycloak-gatekeeper
+# No official chart, this user's chart seems to be the best there is
+- name: "gabibbo97"
+  url: "https://gabibbo97.github.io/charts/"
+# Repo of new Kubernetes charts in development
+- name: "kubernetes-incubator"
+  url: "https://kubernetes-charts-incubator.storage.googleapis.com"
+- name: "forecastle"
+  # Cannot use release tags, see https://github.com/aslafy-z/helm-git/issues/9
+  # Starting with git version 2.22, you also need to append &sparse=0 at the end
+  # https://github.com/aslafy-z/helm-git/issues/9#issuecomment-500752693
+  # https://raw.githubusercontent.com/git/git/master/Documentation/RelNotes/2.22.0.txt
+  #    "The filter specification "--filter=sparse:path=<path>" used to create a lazy/partial clone has been removed."
+  # url: "git+https://github.com/stakater/Forecastle@deployments/kubernetes/chart?ref=v1.0.22"
+  # v1.0.22: url: "git+https://github.com/stakater/Forecastle@deployments/kubernetes/chart?ref=8d6e5cd2dba3ad6c265ae94138c40276425b7634"
+  # v1.0.25 url: "git+https://github.com/stakater/Forecastle@deployments/kubernetes/chart?ref=8f36b82beaf2a1a42b364a3857bc83638c51e30b"
+  # v1.0.34 url: "git+https://github.com/stakater/Forecastle@deployments/kubernetes/chart?ref=19b369aa684152ad52c33d1935a74b0f425db2cb"
+  # v1.0.41 url: "git+https://github.com/stakater/Forecastle@deployments/kubernetes/chart?ref=a1fd9d959d7a35363e03678d74819cc6997a0614"
+  url: "git+https://github.com/stakater/Forecastle@deployments/kubernetes/chart?ref=a1fd9d959d7a35363e03678d74819cc6997a0614&sparse=0"
+
+releases:
+
+################################################################################
+## oidc-ingress                                                               ##
+## oidc-ingress is a package of resources that implement an ingress protected ##
+## by an OIDC authorization server that authenticates users and distributes   ##
+## authorizations in the form of OIDC claims (by default, "roles").           ##
+################################################################################
+
+#############################################################################
+## Security consideration
+##
+## Ensure your use of oidc-ingress and the configuration of your clients and
+## authorization server guard against the attacks described in RFC 6749.
+##  https://tools.ietf.org/html/rfc6749#section-10.6
+##
+##############################################################################
+
+
+#######################################################################################
+## keycloak-gatekeeper (formerly keycloak-proxy)                                     ##
+## keycloak-gatekeeper is an open source identity-aware proxy                        ##
+#######################################################################################
+
+#
+# References:
+#   - https://github.com/gabibbo97/charts/tree/master/charts/keycloak-gatekeeper
+#   - https://hub.helm.sh/charts/gabibbo97/keycloak-gatekeeper
+#   - https://www.keycloak.org/
+#
+- name: "oidc-ingress"
+  namespace: "oidc-ingress"
+  labels:
+    chart: "keycloak-gatekeeper"
+    repo: "gabibbo97"
+    component: "oidc-ingress"
+    namespace: "oidc-ingress"
+    vendor: "keycloak"
+  chart: "gabibbo97/keycloak-gatekeeper"
+  version: "{{ .Values.gatekeeper_chart_version }}"
+  wait: true
+  installed: {{ .Values.installed | default "false" }}
+#  hooks:
+#  - events: ["presync"]
+#    showlogs: true
+#    command: "/bin/sh"
+#    args:
+#    - "-c"
+#    - >-
+#      kubectl get namespace "{{`{{ .Release.Namespace }}`}}" >/dev/null 2>&1 || kubectl create namespace "{{`{{ .Release.Namespace }}`}}";
+  values:
+  - nameOverride: "oidc-ingress"
+    fullNameOverride: "oidc-ingress"
+    image:
+      pullPolicy: "IfNotPresent"
+    debug: {{ .Values.ingress_debug }}
+    replicas: {{ .Values.ingress_replica_count }}
+    logging: false
+    sessionCookies: false
+    droolsPolicyEnabled: false
+    # You must set OIDC_INGRESS_DENY_ACCESS_BY_DEFAULT to "false" if you want
+    # to permit access to URLs not otherwise restricted.
+    defaultDeny: {{ .Values.ingress_deny_access_by_default }}
+    ingress:
+      enabled: {{ .Values.ingress_enabled }}
+      annotations:
+        kubernetes.io/ingress.class: nginx
+        nginx.ingress.kubernetes.io/proxy-buffer-size: "16k"
+        # Disable custom errors on the ingress in front of the OIDC ingress,
+        # because otherwise errors behind the OIDC ingress would not get through
+        nginx.ingress.kubernetes.io/custom-http-errors: "418,599"
+        {{- if index .Values "ingress_proxy_timeout" }}
+        nginx.ingress.kubernetes.io/proxy-connect-timeout: "{{- .Values.ingress_proxy_timeout -}}"
+        nginx.ingress.kubernetes.io/proxy-read-timeout: "{{- .Values.ingress_proxy_timeout -}}"
+        nginx.ingress.kubernetes.io/proxy-send-timeout: "{{- .Values.ingress_proxy_timeout -}}"
+        {{- end }}
+        kubernetes.io/tls-acme: "{{ .Values.ingress_tls_enabled }}"
+        # OIDC_INGRESS_INGRESS_HOST is the hostname of the ingress IN FRONT OF oidc-ingress
+        external-dns.alpha.kubernetes.io/target: '{{ .Values.ingress_ingress_hostname }}'
+        external-dns.alpha.kubernetes.io/ttl: "60"
+      hosts: ['{{- .Values.ingress_hostname }}']
+      {{- if .Values.ingress_tls_enabled }}
+      tls:
+        - secretName: "oidc-ingress-tls"
+          hosts: ['{{- .Values.ingress_hostname }}']
+      {{- end }}
+    # discoveryURL is the  OIDC provider's base URL, under which you can retrieve ".well-known/openid-configuration"
+    discoveryURL: '{{- .Values.discovery_url }}'
+    # upstreamURL is the URL of the ingress BEHIND (protected by) oidc-ingress
+    upstreamURL: 'https://oidc-ingress-nginx-controller.oidc-ingress.svc'
+    skipUpstreamTlsVerify: true
+    ClientID: '{{- .Values.oidc_client_id }}'
+    ClientSecret:  ref+awsssm://helmfiles/keycloak-gatekeeper/oidc_ingress_client_secret?region={{ $.Values.region }}
+    # If encryption key is not provided, one will be generated, but it will change on each install
+    # Should be 16 or 32 ASCII characters for for AES-128/AES-256
+    encryptionKey: ref+awsssm://helmfiles/keycloak-gatekeeper/oidc_ingress_encryption_key?region={{ $.Values.region }}
+    scopes:
+      - roles
+    rules:
+    {{- range $i, $rule := .Values.ingress_rules }}
+      - "{{ $rule }}"
+    {{- end }}
+    extraArgs:
+      - preserve-host=true
+      - enable-token-header=false
+      - enable-authorization-header=false
+      - enable-authorization-cookies=false
+      {{- if index .Values "ingress_proxy_timeout" }}
+      - upstream-timeout={{- .Values.ingress_proxy_timeout -}}s
+      - server-read-timeout={{- .Values.ingress_proxy_timeout -}}s
+      - server-write-timeout={{- .Values.ingress_proxy_timeout -}}s
+      - upstream-expect-continue-timeout={{- .Values.ingress_proxy_timeout -}}s
+      - upstream-response-header-timeout={{- .Values.ingress_proxy_timeout -}}s
+      {{- end }}
+      {{- if .Values.ingress_debug }}
+      - enable-logging=true
+      - verbose
+      {{- end }}
+    rbac:
+      create: true
+    serviceAccount:
+      create: true
+      name: "oidc-ingress"
+    livenessProbe:
+      initialDelaySeconds: 10
+      periodSeconds: 30
+      timeoutSeconds: 1
+      failureThreshold: 5
+    readinessProbe:
+      initialDelaySeconds: 10
+      periodSeconds: 30
+      timeoutSeconds: 1
+    resources:
+      limits:
+        cpu: "{{ .Values.limit_cpu }}"
+        memory: "{{ .Values.limit_memory}}"
+      requests:
+        cpu: "{{ .Values.request_cpu }}"
+        memory: "{{ .Values.request_memory }}"
+
+
+############################################################################
+## NGINX Ingress Controller by Kubernetes    ###############################
+## This is NOT the NGINX Ingress Controller provided by NGINX.         #####
+## Provides the load balancer front end for all the services.          #####
+############################################################################
+#
+# References:
+#   - https://github.com/kubernetes/ingress-nginx
+#   - https://kubernetes.github.io/ingress-nginx/
+#   - https://github.com/helm/charts/blob/master/stable/nginx-ingress/values.yaml
+# NOT: https://github.com/nginxinc/kubernetes-ingress
+#
+- name: "oidc-ingress-nginx"
+  namespace: "oidc-ingress"
+  labels:
+    chart: "nginx-ingress"
+    repo: "stable"
+    component: "oidc-ingress"
+    namespace: "oidc-ingress"
+    vendor: "kubernetes"
+  chart: "stable/nginx-ingress"
+  version: "{{ .Values.ingress_nginx_chart_version }}"
+  wait: true
+  installed: {{ .Values.installed }}
+  values:
+    - fullnameOverride: oidc-ingress-nginx
+      nameOverride: oidc-ingress-nginx
+      controller:
+        name: controller
+        image:
+          repository: "quay.io/kubernetes-ingress-controller/nginx-ingress-controller"
+          tag: '{{ .Values.ingress_nginx_image_tag }}'
+          pullPolicy: "IfNotPresent"
+        ### replicaCount is used only if `kind=Deployment` e.g. 4
+        # replicaCount: 1
+        updateStrategy:
+          rollingUpdate:
+            maxUnavailable: 1
+          type: RollingUpdate
+        resources:
+          limits:
+            cpu: "{{ .Values.nginx_limit_cpu }}"
+            memory: "{{ .Values.nginx_limit_memory}}"
+          requests:
+            cpu: "{{ .Values.nginx_request_cpu }}"
+            memory: "{{ .Values.nginx_request_memory }}"
+        ##  Valid values for kind: DaemonSet or Deployment
+        kind: "DaemonSet"
+        ingressClass: "oidc-ingress"
+        config:
+          # Setting custom-http-errors to unused codes 418 and 599 effectively disables
+          # nginx from intercepting any error codes, and instead they will all be passed
+          # through to the back end.
+          custom-http-errors: '418,599'
+        service:
+          annotations:
+            service.beta.kubernetes.io/aws-load-balancer-internal: "true"
+        stats:
+          enabled: true
+        metrics:
+          enabled: {{ .Values.ingress_nginx_metrics_enabled }}
+          serviceMonitor:
+            enabled: {{ .Values.ingress_nginx_metrics_enabled }}
+      defaultBackend:
+        enabled: false
+      rbac:
+        create: true
+      serviceAccount:
+        create: true
+
+##############################################################################
+## Forecastle ################################################################
+## Forecastle is a dynamic web portal for Kubernetes services.              ##
+## Used here to provide a page listing all the components deployed behind   ##
+## the OIDC ingress.                                                        ##
+##############################################################################
+#
+# References:
+#   - https://github.com/stakater/Forecastle/tree/v1.0.27/deployments/kubernetes/chart/forecastle
+# v1.0.27  url: "git+https://github.com/stakater/Forecastle@deployments/kubernetes/chart?ref=ffb5179aa659e0e3cf0ca20e1c8bd94c5fd66a2e"
+#   - https://github.com/stakater/Forecastle
+# See repo URL notes above in the repositories section.
+#
+- name: "oidc-ingress-forecastle"
+  namespace: "oidc-ingress"
+  labels:
+    chart: "forecastle"
+    repo: "github"
+    component: "iap"
+    namespace: "oidc-ingress"
+    vendor: "stakater"
+  chart: "forecastle/forecastle"
+  version: "v1.0.41"
+  wait: false
+  installed: {{ .Values.installed }}
+  values:
+  - nameOverride: oidc-ingress-forecastle
+    fullNameOverride: oidc-ingress-forecastle
+    forecastle:
+      image:
+        pullPolicy: "IfNotPresent"
+      namespace: "oidc-ingress"
+      # The Forecastl CRD installation is not updated for helm 3 yet
+      createCustomResource: false
+      deployment:
+        # The old charts sets lots of annotations by default unless explicitly cleared
+        # annotations: ""
+        replicas: '{{- .Values.forecastle_replica_count -}}'
+        revisionHistoryLimit: '10'
+      config:
+        # Let the Forecastle instance name reflect the nginx ingress class
+        # for simplicity and ease of understanding.
+        instanceName:  "oidc-ingress"
+        namespaceSelector:
+          any: true
+          # The chart sets namespaces to match unless explicitly cleared
+          matchNames: []
+        title: '{{ .Values.ingress_portal_title }}'
+      service:
+        # The old charts sets lots of annotations by default unless explicitly cleared
+        # annotations: ""
+        expose: "true"
+
+
+###############################################################################
+## Ingress ####################################################################
+## Use Kubernetes raw chart to create an Ingress for the Forecastle service   #
+## https://github.com/helm/charts/tree/master/incubator/raw                   #
+###############################################################################
+- name: 'oidc-ingress-forecastle-ingress'
+  chart: "kubernetes-incubator/raw"
+  namespace: "oidc-ingress"
+  labels:
+    component: "iap"
+    namespace: "oidc-ingress"
+  version: "0.2.3"
+  wait: true
+  installed: {{ .Values.installed }}
+  values:
+  - resources:
+    - apiVersion: extensions/v1beta1
+      kind: Ingress
+      metadata:
+        annotations:
+          # These annotations control how the OIDC ingress portal is displayed
+          # on the main portal for the cluster.
+          forecastle.stakater.com/appName: "{{ .Values.ingress_portal_title }}"
+          forecastle.stakater.com/expose: "true"
+          forecastle.stakater.com/url: 'https://{{- .Values.ingress_portal_hostname -}}'
+          forecastle.stakater.com/icon: "https://cloudposse.com/wp-content/uploads/2019/09/portal.png"
+          forecastle.stakater.com/instance: "default"
+          forecastle.stakater.com/group: "portal"
+          kubernetes.io/ingress.class: "oidc-ingress"
+          kubernetes.io/tls-acme: "false"
+        name: oidc-ingress-portal
+      spec:
+        rules:
+        - host: '{{ .Values.ingress_portal_hostname }}'
+          http:
+            paths:
+              - path: /
+                backend:
+                  serviceName: 'oidc-ingress-forecastle'
+                  servicePort: http
+

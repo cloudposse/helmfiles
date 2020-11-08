@@ -1,0 +1,178 @@
+repositories:
+# Incubator repo of official helm charts
+# Cloud Posse incubator repo of helm charts
+- name: "cloudposse-incubator"
+  url: "https://charts.cloudposse.com/incubator/"
+
+releases:
+
+#######################################################################################
+## Fluentd to Kinesis Firehose                                                       ##
+## Forward logs to Kinesis with fluentd                                              ##
+#######################################################################################
+
+#
+# References:
+#   - https://github.com/kubernetes/charts/blob/master/incubator/fluentd/
+#   - https://github.com/kubernetes/charts/blob/master/incubator/fluentd/values.yaml
+#   - https://github.com/cloudposse/fluentd-kinesis-logs
+#
+
+- name: "fluentd"
+  # Must be in kube-system namespace to be "system-cluster-critical"
+  namespace: "kube-system"
+  labels:
+    chart: "fluentd-kubernetes"
+    repo: "cloudposse-incubator"
+    component: "fluentd"
+    namespace: "kube-system"
+    default: "false"
+  chart: "cloudposse-incubator/fluentd-kubernetes"
+  version: "{{ .Values.fluentd_chart_version }}"
+  wait: true
+  installed: {{ index .Values "fluentd_installed" | default "true" }}
+  values:
+  - image:
+      repository: "{{ .Values.fluentd_image_repo }}"
+      tag: "{{ .Values.fluentd_image_tag }}"
+      pullPolicy: "IfNotPresent"
+    # Make "system-cluster-critical" so that it has priority over other workloads
+    priorityClassName: system-cluster-critical
+    resources:
+      limits:
+        cpu: "100m"
+        memory: "384Mi"
+      requests:
+        cpu: "20m"
+        memory: "144Mi"
+    env:
+      open:
+        FLUENTD_KINESIS_FIREHOSE_REGION: '{{ .Values.region }}'
+        FLUENTD_KINESIS_FIREHOSE_NAME: '{{ printf "%v-%v-%v-logging-%v" .Values.namespace .Values.environment .Values.log_destination .Values.stage }}'
+        FLUENTD_KINESIS_FIREHOSE_INCLUDE_TIME_KEY: "true"
+
+    service:
+      enabled: true
+      type: ClusterIP
+      ports:
+      - name: metrics
+        protocol: TCP
+        port: 24231
+        targetPort: 24231
+
+    serviceAccount:
+      enabled: true
+      name: fluentd
+      annotations:
+        eks.amazonaws.com/role-arn: "{{ printf "arn:aws:iam::%v:role/%v-%v-%v-eks-fluentd@kube-system" .Values.account_number .Values.namespace .Values.environment .Values.stage }}"
+
+    serviceMonitor:
+      # Enable the service monitor when we find or create a Grafana dashboard to display the metrics
+      enabled: false
+
+    # This is basically the default fluent.conf from https://github.com/fluent/fluentd-kubernetes-daemonset/blob/214fbcce4ecef7f128060cb43cf36423fb89af0e/templates/conf/fluent.conf.erb#L306-L322
+    # but with kinesis_firehose instead of kinesis_streams (and while we are at it, a different location for systemd.conf).
+    # With https://github.com/awslabs/aws-fluent-plugin-kinesis plugin v3.x, `include_time_key false` is replaced with
+    # <inject> time_key time.... See https://github.com/awslabs/aws-fluent-plugin-kinesis/tree/v3.2.3#inject-section
+    #
+    # We also added record_transformer filter to add cluster label, since we are logging multiple clusters to the same destination.
+    # Info notice about disabling optimization is not important. See https://docs.fluentd.org/filter#filter-chain-optimization
+    fluent.conf: |
+      # get from conf.d/ @include "#{ENV['FLUENTD_SYSTEMD_CONF'] || 'systemd'}.conf"
+      @include "#{ENV['FLUENTD_PROMETHEUS_CONF'] || 'prometheus'}.conf"
+      @include kubernetes.conf
+      @include /fluentd/etc/conf.d/*.conf
+
+      <filter **>
+        @type record_transformer
+        <record>
+          cluster {{ printf "%v-%v" .Values.environment .Values.stage }}
+        </record>
+      </filter>
+
+      <match **>
+        @type kinesis_firehose
+        @id out_kinesis_firehose
+        region "#{ENV['FLUENTD_KINESIS_FIREHOSE_REGION'] || nil}"
+        delivery_stream_name "#{ENV['FLUENTD_KINESIS_FIREHOSE_NAME']}"
+
+        <inject>
+          time_key time
+          time_type string
+          time_format %Y-%m-%dT%H:%M:%S.%N%z
+        </inject>
+
+        <buffer>
+          flush_interval 1
+          chunk_limit_size "#{ENV['FLUENTD_KINESIS_FIREHOSE_CHUNK_LIMIT_SIZE'] || '1m'}"
+          flush_thread_interval 0.1
+          flush_thread_burst_interval 0.01
+          flush_thread_count 15
+        </buffer>
+
+        {{- if index .Values "fluentd_kinesis_firehose_role_arn" }}
+        <assume_role_credentials>
+          role_arn          "{{ .Values.fluentd_kinesis_firehose_role_arn}}"
+          role_session_name "{{ printf "fluentd-%v-%v" .Values.environment .Values.stage }}"
+        </assume_role_credentials>
+        {{- end }}
+
+      </match>
+
+    # configDir reference above in fluent.conf. I think the default "conf.d/*" is actually /home/fluent/conf.d
+    configDir: /fluentd/etc/conf.d
+    # This systemd.conf is the one from https://github.com/fluent/fluentd-kubernetes-daemonset/blob/214fbcce4ecef7f128060cb43cf36423fb89af0e/templates/conf/systemd.conf.erb#L6-L61
+    # when the target is Elasticsearch. We do not get it by default when we use the Kinesis docker image, but we want
+    # the "fields_strip_underscores true" because we are eventually sending this to Elasticsearch and it does not like
+    # fields whose names begin with underscore.
+    configMaps:
+      systemd.conf: |
+        <source>
+          @type systemd
+          @id in_systemd_kubelet
+          matches [{ "_SYSTEMD_UNIT": "kubelet.service" }]
+          <storage>
+            @type local
+            persistent true
+            path /var/log/fluentd-journald-kubelet-cursor.json
+          </storage>
+          <entry>
+          fields_strip_underscores true
+          </entry>
+          read_from_head true
+          tag kubelet
+        </source>
+
+        # Logs from docker-systemd
+        <source>
+          @type systemd
+          @id in_systemd_docker
+          matches [{ "_SYSTEMD_UNIT": "docker.service" }]
+          <storage>
+            @type local
+            persistent true
+            path /var/log/fluentd-journald-docker-cursor.json
+          </storage>
+          <entry>
+          fields_strip_underscores true
+          </entry>
+          read_from_head true
+          tag docker.systemd
+        </source>
+
+        # Logs from systemd-journal for interesting services.
+        <source>
+          @type systemd
+          @id in_systemd_bootkube
+          matches [{ "_SYSTEMD_UNIT": "bootkube.service" }]
+          <storage>
+            @type local
+            persistent true
+            path /var/log/fluentd-journald-bootkube-cursor.json
+          </storage>
+          <entry>
+          fields_strip_underscores true
+          </entry>
+          read_from_head true
+          tag bootkube
+        </source>

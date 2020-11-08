@@ -1,0 +1,17 @@
+chart_version: "0.2.4"
+
+image_tag: latest
+
+limit_cpu: 200m
+
+limit_memory: 256Mi
+
+request_cpu: 10m
+
+request_memory: 64Mi
+
+rbac_enabled: true
+
+service_account_name: sentry-kubernetes
+
+namespace: sentry-kubernetes

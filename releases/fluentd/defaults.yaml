@@ -1,0 +1,5 @@
+fluentd_chart_version: "0.4.0"
+
+fluentd_image_repo: "fluent/fluentd-kubernetes-daemonset"
+
+fluentd_image_tag: "v1.11.3-debian-kinesis-2.0"

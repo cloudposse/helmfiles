@@ -1,0 +1,62 @@
+# These default values can be overridden per environment in conf/<env>.yaml files
+
+chart_version: 0.17.0
+
+deployment_replica_count: 2
+
+## Acceptable values for podAntiAffinity:
+## soft: specifies preferences that the scheduler will try to enforce but will not guarantee (Default)
+## hard: specifies rules that must be met for a pod to be scheduled onto a node
+deployment_pod_anti_affinity: "soft"
+
+deployment_limit_cpu: "1"
+
+deployment_limit_memory: "1Gi"
+
+deployment_request_cpu: "0.5"
+
+deployment_request_memory: "768Mi"
+
+events_deployment_limit_cpu: "200m"
+
+events_deployment_limit_memory: "512Mi"
+
+events_deployment_request_cpu: "100m"
+
+events_deployment_request_memory: "256Mi"
+
+# If enabled, a pre-install hook will create Collector and Sources in Sumo Logic
+sumologic_setup_enabled: true
+
+# If enabled, collect K8s events
+sumologic_k8s_event_collection_enabled: true
+
+# Format to post logs into Sumo. json, json_merge, or text
+sumologic_log_format: "json"
+
+# How frequently to push logs to SumoLogic
+# ref: https://github.com/SumoLogic/fluentd-kubernetes-sumologic#options
+sumologic_flush_interval: "10s"
+
+# Increase number of http threads to Sumo. May be required in heavy logging clusters
+sumologic_num_threads: 8
+
+sumologic_chunk_limit_size: "1m"
+
+sumologic_queue_chunk_limit_size: 128
+
+sumologic_total_limit_size: "128m"
+
+sumologic_source_category_prefix: "kubernetes/"
+
+# Traces configuration
+# This is experimental feature and may be unavailable for your account
+sumologic_traces_enabled: false
+
+otelcol_limit_cpu: "1"
+
+otelcol_limit_memory: "2Gi"
+
+otelcol_request_cpu: "200m"
+
+otelcol_request_memory: "384Mi"

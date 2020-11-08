@@ -1,0 +1,61 @@
+repositories:
+- name: "eks"
+  url: "https://aws.github.io/eks-charts"
+
+releases:
+#  https://github.com/aws/aws-node-termination-handler/tree/master/config/helm/aws-node-termination-handler
+
+- name: "aws-node-termination-handler"
+  namespace: "kube-system"
+  labels:
+    chart: "aws-node-termination-handler"
+    repo: "stable"
+    component: "eks"
+    namespace: "kube-system"
+    vendor: "aws"
+  chart: "eks/aws-node-termination-handler"
+  version: {{ .Values.chart_version | quote }}
+  wait: true
+  timeout: 180
+  installed: {{ .Values.installed }}
+  values:
+  - image:
+      repository: {{ .Values.image_repository | quote }}
+      tag: {{ .Values.image_tag | quote }}
+      pullPolicy: IfNotPresent
+
+    securityContext:
+      runAsUserID: {{ .Values.runAsUserID }}
+      runAsGroupID: {{ .Values.runAsGroupID }}
+
+    priorityClassName: {{ .Values.priorityClassName }}
+
+    resources:
+      requests:
+        memory: {{ .Values.request_memory | quote }}
+        cpu: {{ .Values.request_cpu | quote }}
+      limits:
+        memory: {{ .Values.limit_memory | quote }}
+        cpu: {{ .Values.limit_cpu | quote }}
+
+    tolerations:
+    - operator: "Exists"
+
+    serviceAccount:
+      create: true
+      name: {{ .Values.service_account_name | quote }}
+      annotations: {}
+      #  eks.amazonaws.com/role-arn:
+
+    rbac:
+      pspEnabled: {{ .Values.rbac_pspEnabled }}
+
+    podMonitor:
+      create: {{ .Values.podMonitor_enabled }}
+      interval: {{ .Values.podMonitor_scrape_interval }}
+      sampleLimit: {{ .Values.podMonitor_sample_limit }}
+
+    updateStrategy:
+      type: {{ .Values.updateStrategy_type }}
+      rollingUpdate:
+        maxUnavailable: {{ .Values.updateStrategy_rollingUpdate_maxUnavailable }}

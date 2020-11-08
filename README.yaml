@@ -13,10 +13,12 @@ badges:
   - name: "Slack Community"
     image: "https://slack.cloudposse.com/badge.svg"
     url: "https://slack.cloudposse.com"
-    
+
 description: |-
-  Helmfiles is a comprehensive distribution of declarative [`helm`](https://helm.sh/) chart invocations. It makes it really easy to get up and running with a full stack of fully integrated apps for Kubernetes using [`helmfile`](https://github.com/roboll/helmfile).
-  
+  Helmfiles is a comprehensive distribution of declarative [`helm`](https://helm.sh/) chart invocations.
+
+  It makes it really easy to get up and running with a full stack of fully integrated apps for Kubernetes using [`helmfile`](https://github.com/roboll/helmfile).
+
   Pull Requests are welcome!
 
 usage: |-
@@ -53,32 +55,19 @@ usage: |-
   **IMPORTANT:** we recommend pinning `cloudposse/helmfiles` to a specific release rather than using `latest`
 
   ### Git
-  
+
   ```
   git clone git@github.com:cloudposse/helmfiles.git
   ```
 
-  ### Configuration
+  ## Deprecations
 
-  Define a `helmfile.yaml` which includes the releases you wish to support. Specify all releases in the order in which they should get installed.
+  Helmfiles which are no longer actively maintained are now in the `deprecated/` folder.
 
-  Here's an example of a [`helmfile.yaml`](helmfile.yaml):
+  Many of these deprecated helmfiles use environment variables rather than environments or were designed specifically to work with `kops` and `kiam`.
 
-  ```
-  # Ordered list of releases. 
-  helmfiles:
-    - "releases/prometheus-operator.yaml"
-    - "releases/cluster-autoscaler.yaml"
-    - "releases/kiam.yaml"
-    - "releases/external-dns.yaml"
-    - "releases/kube-lego.yaml"
-    - "releases/nginx-ingress.yaml"
-    - "releases/kube-prometheus.yaml"
-    - "releases/grafana.yaml"
-    - "releases/heapster.yaml"
-    - "releases/dashboard.yaml"
-    - "releases/portal.yaml"
-  ```
+  We intend to eventually delete, but are leaving them for now in the repo.
+
 
 related:
   - name: "Geodesic"

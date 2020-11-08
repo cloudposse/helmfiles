@@ -1,0 +1,77 @@
+repositories:
+# Stable repo of official helm charts
+- name: "stable"
+  url: "https://kubernetes-charts.storage.googleapis.com"
+
+releases:
+
+# Kubernetes dashboard
+# General-purpose web UI for Kubernetes clusters
+# https://github.com/kubernetes/dashboard
+# https://github.com/kubernetes/charts/tree/master/stable/kubernetes-dashboard
+
+- name: "kubernetes-dashboard"
+  namespace: "kube-system"
+  labels:
+    chart: "kubernetes-dashboard"
+    repo: "stable"
+    component: "monitoring"
+    namespace: "kube-system"
+    vendor: "kubernetes"
+  chart: "stable/kubernetes-dashboard"
+  version: {{ .Values.chart_version | quote }}
+  wait: true
+  timeout: 180
+  installed: {{ .Values.installed }}
+  values:
+    - image:
+        repository: {{ .Values.image_repository | quote }}
+        tag: {{ .Values.image_tag | quote }}
+        pullPolicy: IfNotPresent
+
+      enableSkipLogin: {{ .Values.enable_skip_login }}
+
+      enableInsecureLogin: {{ .Values.enable_insecure_login }}
+{{- if eq .Values.enable_insecure_login true }}
+      service:
+        externalPort: 80
+{{- end }}
+
+      extraArgs:
+        - --system-banner={{ .Values.banner | quote }}
+
+      replicaCount: {{ .Values.replica_count }}
+
+      resources:
+        limits:
+          cpu: {{ .Values.limit_cpu | quote }}
+          memory: {{ .Values.limit_memory | quote }}
+        requests:
+          cpu: {{ .Values.request_cpu | quote }}
+          memory: {{ .Values.request_memory | quote }}
+
+      rbac:
+        create: {{ .Values.rbac_enabled }}
+        clusterAdminRole: {{ .Values.cluster_admin_role }}
+        clusterReadOnlyRole: {{ .Values.cluster_readonly_role }}
+
+      serviceAccount:
+        create: {{ .Values.rbac_enabled }}
+        name: {{ .Values.service_account_name | quote }}
+
+      ingress:
+        enabled: {{ .Values.ingress_enabled }}
+        annotations:
+          kubernetes.io/ingress.class: {{ .Values.ingress_class | quote }}
+{{- if eq .Values.enable_insecure_login false }}
+          nginx.ingress.kubernetes.io/secure-backends: "true"
+{{- end }}
+          kubernetes.io/tls-acme: {{ .Values.ingress_use_kube_lego | quote }}
+        hosts:
+        - {{ .Values.ingress_host | quote }}
+{{- if eq .Values.ingress_tls_enabled true }}
+        tls:
+        - secretName: kubernetes-dashboard-tls
+          hosts:
+          - {{ .Values.ingress_host | quote }}
+{{- end }}

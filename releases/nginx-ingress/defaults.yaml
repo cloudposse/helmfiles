@@ -1,0 +1,61 @@
+# These default values can be overridden per environment in conf/<env>.yaml files
+
+chart_version: 1.31.0
+
+image_repository: "quay.io/kubernetes-ingress-controller/nginx-ingress-controller"
+
+image_tag: "0.29.0"
+
+limit_cpu: "200m"
+
+limit_memory: "1Gi"
+
+request_cpu: "100m"
+
+request_memory: "256Mi"
+
+rbac_enabled: true
+
+service_account_name: "nginx-ingress"
+
+replica_count: 1
+
+kind: "DaemonSet"
+
+ingress_class: "nginx"
+
+use_proxy_protocol: false
+
+external_traffic_policy: "Cluster"
+
+ttl: 60
+
+nlb_enabled: false
+
+metrics_enabled: false
+
+prometheus_rule_enabled: false
+
+metrics_controller_error_alert: 100000
+
+ingress_tcp: ""
+
+ingress_udp: ""
+
+custom_client_errors: "418"
+
+custom_server_errors: "599"
+
+default_backend_installed: true
+
+default_backend_chart_version: 0.5.0
+
+default_backend_replica_count: 2
+
+default_backend_limit_cpu: "50m"
+
+default_backend_limit_memory: "24Mi"
+
+default_backend_request_cpu: "1m"
+
+default_backend_request_memory: "8Mi"

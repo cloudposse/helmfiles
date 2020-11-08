@@ -1,0 +1,109 @@
+repositories:
+# Official repo for Keycloak chart (helm stable repo deprecated)
+- name: "codecentric"
+  url: "https://codecentric.github.io/helm-charts"
+
+releases:
+
+# keycloak
+# Keycloak is an open source identity and access management system
+# https://www.keycloak.org
+# https://github.com/codecentric/helm-charts/tree/master/charts/keycloak
+
+- name: "keycloak"
+  namespace: "kube-system"
+  labels:
+    chart: "keycloak"
+    repo: "stable"
+    component: "iap"
+    namespace: "kube-system"
+    vendor: "keycloak"
+  chart: "codecentric/keycloak"
+  version: {{ .Values.chart_version | quote }}
+  wait: true
+  timeout: 300
+  installed:  {{ .Values.installed }}
+  atomic: true
+  cleanupOnFail: true
+  values:
+  - init:
+      image:
+        pullPolicy: "IfNotPresent"
+    test:
+      enabled: {{ .Values.test_enabled }}
+    keycloak:
+      extraArgs: "-Dkeycloak.profile.feature.upload_scripts=enabled"
+      extraEnv: |
+        - name: PROXY_ADDRESS_FORWARDING
+          value: {{ .Values.proxy_address_forwarding | quote }}
+        - name: KEYCLOAK_LOGLEVEL
+          value: {{ .Values.keycloak_loglevel | quote }}
+        - name: WILDFLY_LOGLEVEL
+          value: {{ .Values.wildfly_loglevel | quote }}
+      image:
+          tag: {{ .Values.keycloak_version }}
+          pullPolicy: "IfNotPresent"
+      # The configuration is different if you only run 1 replica. You cannot install 1 replica and then scale up.
+      {{ if lt .Values.replica_count 2 -}}
+        {{ fail (printf "replica_count %d is not >=2. Keycloak requires at least 2 replicas for high-availabity (HA) mode, and cannot switch to/from HA and non-HA mode." .Values.replica_count) -}}
+      {{ end -}}
+      replicas: {{ .Values.replica_count }}
+      serviceAccount:
+        create: true
+      # Keycloak admin username and password, separate from database user/password
+      username: {{ index .Values "keycloak_username" | default "keycloak" | quote }}
+      password: ref+awsssm://keycloak/admin_password?region={{ $.Values.region }}
+      ingress:
+        enabled: {{ .Values.ingress_enabled | quote }}
+        annotations:
+          kubernetes.io/ingress.class: nginx
+          kubernetes.io/tls-acme: "true"
+          nginx.ingress.kubernetes.io/app-root: 'https://{{ .Values.keycloak_ingress_hostname }}/auth/admin/master/console/#/realms/master/clients'
+          ingress.kubernetes.io/affinity: cookie
+          external-dns.alpha.kubernetes.io/target: {{ .Values.nginx_ingress_hostname | quote }}
+          external-dns.alpha.kubernetes.io/ttl: "60"
+          {{- if eq .Values.keycloak_forecastle_expose true }}
+          forecastle.stakater.com/expose: "true"
+          forecastle.stakater.com/appName: "Keycloak"
+          forecastle.stakater.com/icon: "https://www.keycloak.org/resources/images/keycloak_logo_480x108.png"
+          # At the moment, it appears Forecastle does not allow "#" in the URL
+          # forecastle.stakater.com/url: 'https://{{ .Values.keycloak_ingress_hostname }}/auth/admin/master/console/#/realms/master/clients'
+          forecastle.stakater.com/url: 'https://{{ .Values.keycloak_ingress_hostname }}/auth/admin/master/console/'
+          forecastle.stakater.com/instance: {{ .Values.forecastle_instance_name | quote }}
+          forecastle.stakater.com/group: {{ .Values.forecastle_group | quote }}
+          {{- end }}
+        hosts: [{{ .Values.keycloak_ingress_hostname }}]
+        tls:
+        - secretName: keycloak-http-tls
+          hosts:  [{{ .Values.keycloak_ingress_hostname }}]
+
+      livenessProbe: |
+        httpGet:
+          path: /auth/
+          port: http
+        initialDelaySeconds: 240
+        periodSeconds: 30
+        timeoutSeconds: 5
+      readinessProbe: |
+        httpGet:
+          path: /auth/realms/master
+          port: http
+        initialDelaySeconds: 120
+        periodSeconds: 60
+        timeoutSeconds: 5
+
+      resources:
+        limits:
+          cpu: {{ .Values.limit_cpu | quote }}
+          memory: {{ .Values.limit_memory | quote }}
+        requests:
+          cpu: {{ .Values.request_cpu | quote }}
+          memory: {{ .Values.request_memory | quote }}
+      persistence:
+        deployPostgres: false
+        dbVendor: ref+awsssm://keycloak/keycloak_db_vendor?region={{ $.Values.region }}
+        dbName: ref+awsssm://keycloak/keycloak_db_name?region={{ $.Values.region }}
+        dbHost: ref+awsssm://keycloak/keycloak_db_host?region={{ $.Values.region }}
+        dbPort: ref+awsssm://keycloak/keycloak_db_port?region={{ $.Values.region }}
+        dbUser: ref+awsssm://keycloak/keycloak_db_user?region={{ $.Values.region }}
+        dbPassword: ref+awsssm://keycloak/keycloak_db_password?region={{ $.Values.region }}

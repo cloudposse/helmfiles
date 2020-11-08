@@ -1,0 +1,15 @@
+# These default values can be overridden per environment in config/<env>.yaml files
+
+chart_version: "v1.0.57"
+
+replica_count: 1
+
+# If only running one instance of Forecastle, it is best to leave the instance name blank
+instance_name: "default"
+
+# Set to empty list to monitor all namespaces
+namespaces: []
+
+revision_history_limit: 10
+
+create_crd: false

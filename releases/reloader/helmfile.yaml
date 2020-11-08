@@ -1,0 +1,42 @@
+repositories:
+- name: "stakater"
+  url: "https://stakater.github.io/stakater-charts"
+
+releases:
+
+# Reloader: a Kubernetes controller to watch changes in ConfigMap and Secrets
+# and then restart pods for Deployment, StatefulSet and DaemonSet.
+# https://github.com/stakater/Reloader
+# https://github.com/stakater/Reloader/tree/master/deployments/kubernetes/chart/reloader
+# https://github.com/stakater/Reloader/blob/master/deployments/kubernetes/chart/reloader/values.yaml
+- name: "reloader"
+  namespace: "reloader"
+  labels:
+    chart: "stakater/reloader"
+    repo: "stakater"
+    component: "reloader"
+    namespace: "reloader"
+    vendor: "stakater"
+  chart: "stakater/reloader"
+  createNamespace: true
+  version: {{ .Values.chart_version | quote }}
+  wait: true
+  timeout: 180
+  atomic: true
+  cleanupOnFail: true
+  installed: {{ .Values.installed }}
+  values:
+    - rbac:
+        enabled: {{ .Values.rbac_enabled }}
+      serviceAccount:
+        create: {{ .Values.rbac_enabled }}
+        name: {{ .Values.service_account_name | quote }}
+      resources:
+        limits:
+          cpu: {{ .Values.limit_cpu | quote }}
+          memory: {{ .Values.limit_memory | quote }}
+        requests:
+          cpu: {{ .Values.request_cpu | quote }}
+          memory: {{ .Values.request_memory | quote }}
+      annotations:
+        cluster-autoscaler.kubernetes.io/safe-to-evict: "true"

@@ -1,0 +1,30 @@
+# These default values can be overridden per environment in conf/<env>.yaml files
+
+chart_version: 3.4.3
+
+# CRD probably does not work with helm 3.3, and we do not need it anyway
+crd_enabled: false
+
+# txt_prefix will have -${STAGE}- appended
+txt_prefix: "external-dns"
+
+# Must be "aws"
+provider: "aws"
+
+policy: "sync"
+
+# Teleport, for one, needs publishInternalServices: true
+publishInternalServices: true
+
+limit_cpu: "200m"
+
+limit_memory: "256Mi"
+
+request_cpu: "100m"
+
+request_memory: "128Mi"
+
+rbac_enabled: true
+
+# Must be "external-dns" or IAM role will not work
+service_account_name: "external-dns"

@@ -1,0 +1,33 @@
+# These default values can be overridden per environment in conf/<env>.yaml files
+
+chart_version: 0.12.1
+
+image_repository: "quay.io/external_storage/efs-provisioner"
+
+image_tag: "v2.4.0"
+
+efs_pv_path: "efs-provisioner"
+
+provisioner_name: "aws-efs"
+
+storage_class_name: "efs"
+
+storage_class_is_default: false
+
+storage_class_gid_allocate_enabled: true
+
+storage_class_gid_allocate_git_min: 40000
+
+storage_class_gid_allocate_git_max: 50000
+
+storage_class_reclaim_policy: "Delete"
+
+limit_cpu: "200m"
+
+limit_memory: "256Mi"
+
+request_cpu: "100m"
+
+request_memory: "128Mi"
+
+service_account_name: "efs-provisioner"

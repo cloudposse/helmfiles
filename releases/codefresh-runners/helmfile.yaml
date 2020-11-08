@@ -1,0 +1,43 @@
+releases:
+{{- range $runner := .Values.runners }}
+- name: "runner-{{ $runner }}"
+  namespace: "codefresh-{{ $runner }}"
+  labels:
+    chart: "runner-installation"
+    repo: "runner-installation"
+    component: "runner-installation"
+    namespace: "codefresh-{{ $runner }}"
+    vendor: "codefresh-io"
+  chart: "https://api.github.com/repos/codefresh-io/runner-installation/tarball/master"
+  version: {{ $.Values.chart_version | quote }}
+  wait: true
+  timeout: 60
+  atomic: true
+  cleanupOnFail: true
+  installed: {{ $.Values.installed }}
+  createNamespace: true
+{{- if ne $runner "default" }}
+  hooks:
+    - events: ["presync"]
+      showlogs: true
+      command: "/bin/sh"
+      args:
+        - "-c"
+        - >-
+          kubectl get namespace "{{`{{ .Release.Namespace }}`}}" >/dev/null 2>&1 || kubectl create namespace "{{`{{ .Release.Namespace }}`}}";
+          kubectl annotate -n "{{`{{ .Release.Namespace }}`}}" sa --overwrite default eks.amazonaws.com/role-arn={{ printf "arn:aws:iam::%v:role/%v-%v-%v-eks-default@codefresh-%v" $.Values.account_number $.Values.namespace $.Values.environment $.Values.stage $runner | quote }};
+{{- end }}
+  values:
+    - env:
+        codefreshToken: {{ fetchSecretValue "ref+awsssm://codefresh/api_token" | quote }}
+        codefreshAgentName: {{ printf "%v-%v-%v-%v" $.Values.namespace $.Values.environment $.Values.stage $runner | quote }}
+        codefreshUrl: "https://g.codefresh.io"
+        dockerRegistry: ""
+      image:
+        repository: "codefresh/cli"
+        imagePullSecrets: []
+      # This isn't used anywhere, however linting fails at the moment if it doesn't exist.
+      # https://github.com/codefresh-io/runner-installation/issues/9
+      service:
+        port: 8000
+{{- end }}
