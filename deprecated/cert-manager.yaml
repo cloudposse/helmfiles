@@ -37,6 +37,15 @@ releases:
   createNamespace: true
   installed: {{ env "CERT_MANAGER_INSTALLED" | default "true" }}
   hooks:
+  - events: ["presync"]
+    showlogs: true
+    command: "/bin/sh"
+    args:
+    - "-c"
+    - >-
+      [[ "{{`{{ .Release.Namespace }}`}}" = "cert-manager" ]] && [[ -n "${CERT_MANAGER_IAM_ROLE}" ]]
+      && kubectl annotate namespace "{{`{{ .Release.Namespace }}`}}" "iam.amazonaws.com/permitted=${CERT_MANAGER_IAM_ROLE}"
+      || echo + Not annotating namespace "{{`{{ .Release.Namespace }}`}}" with "iam.amazonaws.com/permitted=${CERT_MANAGER_IAM_ROLE}"
   - events: ["postsync"]
     # Give cert-manager time to initialize itself
     showlogs: true
