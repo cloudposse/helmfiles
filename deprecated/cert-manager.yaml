@@ -91,11 +91,11 @@ releases:
         enabled: true
       resources:
         limits:
-          cpu: "200m"
-          memory: "256Mi"
+          cpu: '{{ env "CERT_MANAGER_LIMIT_CPU" | default "200m" }}'
+          memory: '{{ env "CERT_MANAGER_LIMIT_MEMORY" | default "256Mi" }}'
         requests:
-          cpu: "50m"
-          memory: "128Mi"
+          cpu: '{{ env "CERT_MANAGER_REQUEST_CPU" | default "50m" }}'
+          memory: '{{ env "CERT_MANAGER_REQUEST_MEMORY" | default "128Mi" }}'
 - name: 'cert-manager-issuers'
   needs: ['cert-manager/cert-manager']
   chart: "kubernetes-incubator/raw"
