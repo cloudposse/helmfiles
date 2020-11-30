@@ -1,0 +1,12 @@
+environments:
+  default:
+    values:
+      - defaults.yaml
+## Add additional environments with value overrides like this:
+#  production_east:
+#    values:
+#    - defaults.yaml
+#    - east.yaml
+#    - production.yaml
+#
+# See https://github.com/roboll/helmfile#environment for details

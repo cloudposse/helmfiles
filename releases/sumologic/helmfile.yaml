@@ -1,3 +1,6 @@
+bases:
+- environments.yaml
+---
 repositories:
   - name: "sumologic"
     url: "https://sumologic.github.io/sumologic-kubernetes-collection"

@@ -1,3 +1,6 @@
+bases:
+- environments.yaml
+---
 repositories:
   # Forecastle does not have a chart in a helm repo. Use plugin to pull the chart from GitHub repo
   - name: "forecastle"

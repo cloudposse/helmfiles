@@ -1,3 +1,6 @@
+bases:
+- environments.yaml
+---
 repositories:
 # Repo of official, stable helm charts
 - name: "stable"

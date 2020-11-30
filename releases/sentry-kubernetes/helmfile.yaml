@@ -1,3 +1,6 @@
+bases:
+- environments.yaml
+---
 repositories:
   - name: "kubernetes-incubator"
     url: "https://charts.helm.sh/incubator"

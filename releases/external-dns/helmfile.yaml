@@ -1,3 +1,6 @@
+bases:
+- environments.yaml
+---
 repositories:
 - name: "bitnami"
   url: "https://charts.bitnami.com/bitnami"

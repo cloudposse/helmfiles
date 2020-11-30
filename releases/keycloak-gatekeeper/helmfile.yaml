@@ -1,3 +1,6 @@
+bases:
+- environments.yaml
+---
 repositories:
 # No official chart for Keycloak Gateeper
 # This chart seems to be the best there is
