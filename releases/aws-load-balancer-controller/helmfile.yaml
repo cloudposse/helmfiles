@@ -1,0 +1,43 @@
+bases:
+- environments.yaml
+---
+repositories:
+# Official aws-load-balancer-controller chart repo
+- name: "eks"
+  url: "https://aws.github.io/eks-charts"
+
+releases:
+# https://github.com/aws/eks-charts/tree/master/stable/aws-load-balancer-controller
+# https://github.com/aws/eks-charts/blob/master/stable/aws-load-balancer-controller/values.yaml
+
+- name: "alb-controller"
+  namespace: "kube-system"
+  chart: "eks/aws-load-balancer-controller"
+  version: {{ .Values.chart_version | quote }}
+  wait: true
+  timeout: 180
+  atomic: true
+  cleanupOnFail: true
+  installed: {{ .Values.installed }}
+  values:
+  - nameOverride: "alb-controller"
+    image:
+      {{- with index .Values "image_repository" }}
+      repository: {{ quote . }}
+      {{- end }}
+      {{- with index .Values "image_tag" }}
+      tag: {{ quote . }}
+      {{- end }}
+      pullPolicy: IfNotPresent
+    clusterName: {{ printf .Values.cluster_name_format .Values.namespace .Values.environment .Values.stage | quote }}
+    serviceAccount:
+      create: {{ .Values.service_account_create }}
+      name: {{ .Values.service_account_name }}
+      {{- if .Values.service_account_annotation_format }}
+      annotations:
+        eks.amazonaws.com/role-arn: {{ printf .Values.service_account_annotation_format .Values.account_number .Values.namespace .Values.environment .Values.stage .Values.service_account_name | quote }}
+      {{- end }}
+
+    {{- with index .Values "chart_values" }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
