@@ -1,3 +1,6 @@
+bases:
+- environments.yaml
+---
 repositories:
 # Incubator repo of official helm charts
 # Cloud Posse incubator repo of helm charts

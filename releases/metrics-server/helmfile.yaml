@@ -1,3 +1,6 @@
+bases:
+- environments.yaml
+---
 repositories:
 # Stable repo of official helm charts, deprecated, but no official replacement yet.
 # Possibly use https://charts.bitnami.com/bitnami but it is different chart

@@ -1,3 +1,6 @@
+bases:
+- environments.yaml
+---
 repositories:
   # Add the Jetstack Helm repository
   - name: jetstack

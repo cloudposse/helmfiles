@@ -1,4 +1,6 @@
-# These default values can be overridden per environment in conf/<env>.yaml files
+# These default values can be overridden using environments or state files
+
+installed: true
 
 chart_version: 3.4.3
 

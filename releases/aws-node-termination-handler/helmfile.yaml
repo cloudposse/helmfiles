@@ -1,3 +1,6 @@
+bases:
+- environments.yaml
+---
 repositories:
 - name: "eks"
   url: "https://aws.github.io/eks-charts"
