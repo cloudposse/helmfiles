@@ -2,7 +2,7 @@ bases:
 - environments.yaml
 ---
 repositories:
-# Official autoscaler chart rep
+# Official autoscaler chart repo
 - name: "autoscaler"
   url: "https://kubernetes.github.io/autoscaler"
 
