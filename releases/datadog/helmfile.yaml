@@ -91,10 +91,10 @@ releases:
         processCollection: {{ .Values.processAgent.enabled }}
       systemProbe:
         enabled: {{ .Values.systemProbe.enabled }}
-      clusterAgent:
-        enabled: {{ .Values.clusterAgent.enabled }}
-        tokenExistingSecret: {{ .Values.clusterTokenSecret.name }}
-        metricsProvider:
-          enabled: {{ .Values.metricsProvider.enabled }}
-        clusterChecks:
-          enabled: {{ .Values.clusterChecks.enabled }}
+    clusterAgent:
+      enabled: {{ .Values.clusterAgent.enabled }}
+      tokenExistingSecret: {{ .Values.clusterTokenSecret.name }}
+      metricsProvider:
+        enabled: {{ .Values.metricsProvider.enabled }}
+      clusterChecks:
+        enabled: {{ .Values.clusterChecks.enabled }}
