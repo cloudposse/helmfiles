@@ -1,4 +1,6 @@
+<!-- markdownlint-disable -->
 # Helmfiles [![Codefresh Build Status](https://g.codefresh.io/api/badges/build?repoOwner=cloudposse&repoName=helmfiles&branch=master&pipelineName=helmfiles&accountName=cloudposse&type=cf-1)](https://g.codefresh.io/pipelines/helmfiles/builds) [![Latest Release](https://img.shields.io/github/release/cloudposse/helmfiles.svg)](https://github.com/cloudposse/helmfiles/releases/latest) [![Slack Community](https://slack.cloudposse.com/badge.svg)](https://slack.cloudposse.com)
+<!-- markdownlint-restore -->
 
 [![README Header][readme_header_img]][readme_header_link]
 
@@ -273,8 +275,10 @@ Check out [our other projects][github], [follow us on twitter][twitter], [apply 
 
 ### Contributors
 
+<!-- markdownlint-disable -->
 |  [![Erik Osterman][osterman_avatar]][osterman_homepage]<br/>[Erik Osterman][osterman_homepage] | [![Igor Rodionov][goruha_avatar]][goruha_homepage]<br/>[Igor Rodionov][goruha_homepage] | [![Andriy Knysh][aknysh_avatar]][aknysh_homepage]<br/>[Andriy Knysh][aknysh_homepage] |
 |---|---|---|
+<!-- markdownlint-restore -->
 
 
   [osterman_homepage]: https://github.com/osterman

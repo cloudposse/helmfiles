@@ -1,0 +1,41 @@
+# These default values can be overridden using environments or state files
+
+installed: true
+
+chart_version: 1.0.8
+
+# clusterName will be set as
+#   printf .Values.cluster_name_format .Values.namespace .Values.environment .Values.stage
+# You can directly set the cluster by not including substitutions in the format, e.g. "my-cluster-name"
+# You can use the values in a different order, or skip some, by including 1-based index numbers,
+# for example, if you do not use "namespace" in your cluster name: "%[2]v-%[3]v-eks-cluster" and
+# if not otherwise defined, also set namespace: ""
+# Note: `.Values.namespace` is NOT the Kubernetes deployment namespace .Release.namespace, but rather
+# the Cloud Posse resource namespace in the convention of `cloudposse/terraform-null-label`.
+cluster_name_format: "%v-%v-%v-eks-cluster"
+
+# Like cluster name, serviceAccount.annotations will be set as
+#   printf .Values.service_account_annotation_format .Values.account_number .Values.namespace .Values.environment .Values.stage .Values.service_account_name
+# Set to "" to prevent annotating the service account.
+service_account_annotation_format: "arn:aws:iam::%v:role/%v-%v-%v-eks-%v@kube-system"
+
+service_account_name: "alb-controller"
+
+service_account_create: true
+
+# Omit image_repository to use the chart defaults.
+#
+#image_repository: 602401143452.dkr.ecr.us-west-2.amazonaws.com/amazon/aws-load-balancer-controller
+
+# Omit image_tag to use the chart defaults.
+# image_tag: v2.0.1
+
+###
+### Most of the chart values can be specified under chart_values, using the same structure as values.yaml
+### Exceptions are the "clusterName" variable and "image" and "serviceAccount" sections, which are set above.
+###
+### For example:
+###   chart_values:
+###     podSecurityContext:
+###       fsGroup: 27
+

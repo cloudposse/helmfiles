@@ -1,4 +1,4 @@
-# These default values can be overridden per environment in config/<env>.yaml files
+# These default values can be overridden per environment
 
 chart_version: 1.0.3
 
