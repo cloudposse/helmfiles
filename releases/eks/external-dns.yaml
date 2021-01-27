@@ -1,0 +1,68 @@
+repositories:
+# Stable repo of official helm charts
+- name: "stable"
+  url: "https://kubernetes-charts.storage.googleapis.com"
+
+releases:
+
+#
+# References:
+#   - https://github.com/kubernetes/charts/blob/master/stable/external-dns/values.yaml
+#
+- name: "external-dns"
+  namespace: "kube-system"
+  labels:
+    chart: "external-dns"
+    repo: "stable"
+    component: "dns"
+    namespace: "kube-system"
+    vendor: "kubernetes"
+    default: "true"
+  chart: "stable/external-dns"
+  version: "2.13.0"
+  wait: true
+  installed: {{ env "EXTERNAL_DNS_INSTALLED" | default "true" }}
+  values:
+    - sources:
+      - service
+      - ingress
+{{- if env "EXTERNAL_DNS_CRD_ENABLED" | default "false" | eq "true" }}
+      - crd
+{{- end }}
+      txtOwnerId: '{{ env "EXTERNAL_DNS_TXT_OWNER_ID" }}'
+      txtPrefix: '{{ env "EXTERNAL_DNS_TXT_PREFIX" }}'
+      publishInternalServices: true
+      policy:  '{{ env "EXTERNAL_DNS_POLICY" | default "sync" }}'
+      provider: '{{ env "EXTERNAL_DNS_PROVIDER" | default "aws" }}'
+{{ if env "EXTERNAL_DNS_PROVIDER" | default "aws" | eq "cloudflare" }}
+      cloudflare:
+        apiKey: '{{ env "EXTERNAL_DNS_CLOUDFLARE_API_KEY" }}'
+        email: '{{ env "EXTERNAL_DNS_CLOUDFLARE_EMAIL" }}'
+{{ end }}
+
+      podAnnotations:
+        cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
+      crd:
+        ## Install and use the integrated DNSEndpoint CRD
+        create: {{ env "EXTERNAL_DNS_CRD_ENABLED" | default "false" | quote }}
+      resources:
+        limits:
+          cpu: '{{ env "EXTERNAL_DNS_LIMIT_CPU" | default "200m" }}'
+          memory: '{{ env "EXTERNAL_DNS_LIMIT_MEMORY" | default "256Mi" }}'
+        requests:
+          cpu: '{{ env "EXTERNAL_DNS_REQUEST_CPU" | default "100m" }}'
+          memory: '{{ env "EXTERNAL_DNS_REQUEST_MEMORY" | default "128Mi" }}'
+      rbac:
+        create: {{ env "RBAC_ENABLED" | default "true" }}
+        ## Service Account for pods
+        ## https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/
+        serviceAccountName: '{{ env "EXTERNAL_DNS_RBAC_SERVICE_ACCOUNT_NAME" | default "external-dns" }}'
+        ## Annotations for the Service Account
+{{- if env "EXTERNAL_DNS_PROVIDER" | default "aws" | eq "aws" }}
+        serviceAccountAnnotations:
+          eks.amazonaws.com/role-arn: '{{ env "EXTERNAL_DNS_IAM_ROLE" }}'
+{{- end }}
+        ## RBAC API version
+        apiVersion: v1
+        ## Podsecuritypolicy
+        pspEnabled: false
