@@ -57,7 +57,7 @@ releases:
           ## Annotations for the Service Account
           {{- if .Values.provider | eq "aws" }}
           annotations:
-            eks.amazonaws.com/role-arn: {{ printf "arn:aws:iam::%v:role/%v-%v-%v-eks-%v@kube-system" .Values.account_number .Values.namespace .Values.environment .Values.stage .Values.service_account_name | quote }}
+            eks.amazonaws.com/role-arn: {{ printf "arn:aws:iam::%012d:role/%v-%v-%v-eks-%v@kube-system" .Values.account_number .Values.namespace .Values.environment .Values.stage .Values.service_account_name | quote }}
           {{- end }}
         ## Podsecuritypolicy
         pspEnabled: false

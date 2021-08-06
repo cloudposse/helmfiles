@@ -67,7 +67,7 @@ releases:
       enabled: true
       name: fluentd
       annotations:
-        eks.amazonaws.com/role-arn: "{{ printf "arn:aws:iam::%v:role/%v-%v-%v-eks-fluentd@kube-system" .Values.account_number .Values.namespace .Values.environment .Values.stage }}"
+        eks.amazonaws.com/role-arn: "{{ printf "arn:aws:iam::%012d:role/%v-%v-%v-eks-fluentd@kube-system" .Values.account_number .Values.namespace .Values.environment .Values.stage }}"
 
     serviceMonitor:
       # Enable the service monitor when we find or create a Grafana dashboard to display the metrics

@@ -67,7 +67,7 @@ releases:
         name: "cert-manager"
         # https://github.com/jetstack/cert-manager/blob/master/deploy/charts/cert-manager/templates/serviceaccount.yaml
         annotations:
-          eks.amazonaws.com/role-arn: {{ printf "arn:aws:iam::%v:role/%v-%v-%v-eks-cert-manager" .Values.account_number .Values.namespace .Values.environment .Values.stage | quote }}
+          eks.amazonaws.com/role-arn: {{ printf "arn:aws:iam::%012d:role/%v-%v-%v-eks-cert-manager" .Values.account_number .Values.namespace .Values.environment .Values.stage | quote }}
       securityContext:
         enabled: true
         fsGroup: 1001
