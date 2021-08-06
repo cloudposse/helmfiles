@@ -28,7 +28,7 @@ releases:
         - "-c"
         - >-
           kubectl get namespace "{{`{{ .Release.Namespace }}`}}" >/dev/null 2>&1 || kubectl create namespace "{{`{{ .Release.Namespace }}`}}";
-          kubectl annotate -n "{{`{{ .Release.Namespace }}`}}" sa --overwrite default eks.amazonaws.com/role-arn={{ printf "arn:aws:iam::%v:role/%v-%v-%v-eks-default@codefresh-%v" $.Values.account_number $.Values.namespace $.Values.environment $.Values.stage $runner | quote }};
+          kubectl annotate -n "{{`{{ .Release.Namespace }}`}}" sa --overwrite default eks.amazonaws.com/role-arn={{ printf "arn:aws:iam::%s:role/%v-%v-%v-eks-default@codefresh-%v" $.Values.account_number $.Values.namespace $.Values.environment $.Values.stage $runner | quote }};
 {{- end }}
   values:
     - env:

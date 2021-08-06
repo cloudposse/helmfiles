@@ -67,7 +67,7 @@ releases:
         ## Annotations for the Service Account
         {{- if .Values.provider | eq "aws" }}
         annotations:
-          eks.amazonaws.com/role-arn: {{ printf "arn:aws:iam::%v:role/%v-%v-%v-eks-%v@kube-system" .Values.account_number .Values.namespace .Values.environment .Values.stage .Values.service_account_name | quote }}
+          eks.amazonaws.com/role-arn: {{ printf "arn:aws:iam::%s:role/%v-%v-%v-eks-%v@kube-system" .Values.account_number .Values.namespace .Values.environment .Values.stage .Values.service_account_name | quote }}
         {{- end }}
       aws:
         region: {{ .Values.region | quote }}
