@@ -1,0 +1,30 @@
+repositories:
+  # Cloud Posse incubator repo of helm charts
+  - name: "cloudposse-incubator"
+    url: "https://charts.cloudposse.com/incubator/"
+
+releases:
+
+  #################################################################################################
+  ## superset-service-operator                                                                   ##
+  ## Service level operator abstracts and automates the service level of Kubernetes applications ##
+  ## by generation SLI & SLOs                                                                    ##
+  #################################################################################################
+
+  #
+  # References:
+  #   - https://github.com/spotahome/service-level-operator
+  #
+  - name: "slo"
+    namespace: "monitoring"
+    labels:
+      chart: "service-level-operator"
+      namespace: "monitoring"
+    chart: "cloudposse-incubator/service-level-operator"
+    version: "0.1.0"
+    wait: true
+    installed: {{ env "SERVICE_OPERATOR_INSTALLED" | default "true" }}
+    values:
+      - serviceLevelOperator:
+        replicaCount: 1
+        prometheus: prometheus-operator-prometheus
